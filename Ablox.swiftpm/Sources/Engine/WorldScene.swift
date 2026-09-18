@@ -1,6 +1,7 @@
 import Foundation
 import RealityKit
 import simd
+import AbloxCore
 
 /// Keeps a RealityKit scene in step with a `WorldDocument`.
 ///
@@ -263,8 +264,10 @@ public final class WorldScene {
         for step in 1...steps {
             let t = Float(step) / Float(steps)
             let delay = duration * Double(step) / Double(steps)
-            DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak entity] in
-                guard let entity, entity.parent != nil else { return }
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self, weak entity] in
+                // Both weak: a ramp in flight must not keep the scene — or a
+                // block that has since been deleted — alive until it finishes.
+                guard let self, let entity, entity.parent != nil else { return }
                 self.applyInstantTint(ColorRGBA.lerp(startColor, color, t), to: entity)
             }
         }

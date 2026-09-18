@@ -1,4 +1,5 @@
 import SwiftUI
+import AbloxCore
 
 struct SettingsView: View {
     @EnvironmentObject private var settings: AppSettings

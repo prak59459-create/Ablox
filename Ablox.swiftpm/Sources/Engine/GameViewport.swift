@@ -3,6 +3,7 @@ import RealityKit
 import ARKit
 import simd
 import Combine
+import AbloxCore
 
 /// The 3D play surface: a non-AR `ARView` driving the world, the local
 /// avatar, and everyone else's.
@@ -58,11 +59,9 @@ public struct GameViewport: UIViewRepresentable {
         context.coordinator.parent = self
         context.coordinator.syncWorld(session.world)
         context.coordinator.syncRoster(session.roster, localPeerID: session.localPeerID)
-
-        let effects = session.drainEffects()
-        if !effects.isEmpty {
-            context.coordinator.apply(effects: effects)
-        }
+        // Effects are drained in the render loop, not here: `drainEffects()`
+        // mutates published state, and doing that inside `updateUIView` means
+        // changing SwiftUI state while SwiftUI is mid-update.
     }
 
     public func makeCoordinator() -> Coordinator {
@@ -75,6 +74,7 @@ public struct GameViewport: UIViewRepresentable {
 
     // MARK: - Coordinator
 
+    @MainActor
     public final class Coordinator {
         var parent: GameViewport
 
@@ -124,7 +124,12 @@ public struct GameViewport: UIViewRepresentable {
             localAvatar = local
 
             updateSubscription = view.scene.subscribe(to: SceneEvents.Update.self) { [weak self] event in
-                self?.tick(deltaTime: Float(event.deltaTime))
+                // Scene updates are delivered on the main thread, but the
+                // closure itself is non-isolated, so the hop has to be stated
+                // for the compiler rather than assumed.
+                MainActor.assumeIsolated {
+                    self?.tick(deltaTime: Float(event.deltaTime))
+                }
             }
         }
 
@@ -233,6 +238,10 @@ public struct GameViewport: UIViewRepresentable {
             for avatar in avatars.values {
                 avatar.update(deltaTime: dt)
             }
+
+            // 6. Apply anything the host told us to do since the last frame.
+            let effects = parent.session.drainEffects()
+            if !effects.isEmpty { apply(effects: effects) }
 
             updateCamera(dt: dt)
             publishIfDue()

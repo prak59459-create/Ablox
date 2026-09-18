@@ -2,6 +2,7 @@ import Foundation
 import RealityKit
 import simd
 import UIKit
+import AbloxCore
 
 /// A blocky avatar built from RealityKit primitives.
 ///
@@ -45,7 +46,11 @@ public final class AvatarEntity: Entity {
         apply(profile: profile)
     }
 
-    @MainActor required init() {
+    // No explicit global-actor annotation: a subclass inherits its
+    // superclass's isolation, and RealityKit's `Entity` is @MainActor on newer
+    // SDKs and not on older ones. Spelling it out here would be an error
+    // against whichever of the two this is built with.
+    required init() {
         self.peerID = PeerID()
         self.profile = .default
         self.targetPosition = .zero

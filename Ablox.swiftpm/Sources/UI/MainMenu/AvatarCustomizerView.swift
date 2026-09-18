@@ -1,5 +1,6 @@
 import SwiftUI
 import RealityKit
+import AbloxCore
 
 /// Live avatar editor: a rotating 3D preview beside the controls, so a colour
 /// change is visible on the actual rig rather than on a swatch.
@@ -198,6 +199,7 @@ private struct AvatarPreview: UIViewRepresentable {
         coordinator.detach()
     }
 
+    @MainActor
     final class Coordinator {
         private var avatar: AvatarEntity?
         private var subscription: Cancellable?
@@ -230,9 +232,11 @@ private struct AvatarPreview: UIViewRepresentable {
             view.scene.addAnchor(anchor)
 
             subscription = view.scene.subscribe(to: SceneEvents.Update.self) { [weak self] event in
-                guard let self, let avatar = self.avatar else { return }
-                self.spin += Float(event.deltaTime) * 28
-                avatar.orientation = Quat.yaw(degrees: self.spin).simd
+                MainActor.assumeIsolated {
+                    guard let self, let avatar = self.avatar else { return }
+                    self.spin += Float(event.deltaTime) * 28
+                    avatar.orientation = Quat.yaw(degrees: self.spin).simd
+                }
             }
         }
 

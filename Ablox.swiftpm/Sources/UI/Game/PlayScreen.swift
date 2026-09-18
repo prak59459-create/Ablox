@@ -1,4 +1,5 @@
 import SwiftUI
+import AbloxCore
 
 /// The full-screen play surface: 3D viewport underneath, HUD on top.
 public struct PlayScreen: View {

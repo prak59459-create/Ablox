@@ -47,9 +47,20 @@ let package = Package(
         )
     ],
     targets: [
+        // AbloxCore is a real module, not just a folder, so that the app and
+        // the off-device test package compile it identically — and so that
+        // Ablox Studio, which mirrors these same files, sees the same module
+        // boundary. A stray `import RealityKit` in core would fail here
+        // rather than quietly making the core untestable on Linux.
+        .target(
+            name: "AbloxCore",
+            path: "Sources/AbloxCore"
+        ),
         .executableTarget(
             name: "AbloxApp",
-            path: "Sources"
+            dependencies: ["AbloxCore"],
+            path: "Sources",
+            exclude: ["AbloxCore"]
         )
     ]
 )
