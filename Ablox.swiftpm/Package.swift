@@ -6,6 +6,12 @@
 // The repository root also has a Package.swift. That one exists only to build
 // and unit-test `Sources/AbloxCore` off-device — it points at these same
 // source files, so there is one implementation rather than a copy.
+//
+// Deliberately ONE target. Swift Playgrounds App projects are built and
+// navigated as a single module, and splitting the sources into library targets
+// here buys nothing on device while adding a way for the manifest to fail. The
+// off-device test package gets its module boundary from its own manifest
+// instead, which is why no file in Sources/ imports AbloxCore.
 
 import PackageDescription
 import AppleProductTypes
@@ -23,6 +29,12 @@ let package = Package(
             teamIdentifier: "",
             displayVersion: "1.0",
             bundleVersion: "1",
+            // A stock placeholder rather than an asset catalogue. The drawn
+            // Ablox cube is in `design/AppIcon.png`; set it from Swift
+            // Playgrounds' own app-settings screen, which writes the asset
+            // catalogue itself. Wiring one by hand here is a manifest error
+            // waiting to happen, and a broken manifest stops the app opening
+            // at all.
             appIcon: .placeholder(icon: .cube),
             accentColor: .presetColor(.cyan),
             supportedDeviceFamilies: [
@@ -41,26 +53,15 @@ let package = Package(
                 // simply finding nothing.
                 .localNetwork(
                     purposeString: "Ablox finds nearby iPads so you can build and play in the same world together. Nothing leaves your local network.",
-                    bonjourServices: ["_ablox._tcp"]
+                    bonjourServiceTypes: ["_ablox._tcp"]
                 )
             ]
         )
     ],
     targets: [
-        // AbloxCore is a real module, not just a folder, so that the app and
-        // the off-device test package compile it identically — and so that
-        // Ablox Studio, which mirrors these same files, sees the same module
-        // boundary. A stray `import RealityKit` in core would fail here
-        // rather than quietly making the core untestable on Linux.
-        .target(
-            name: "AbloxCore",
-            path: "Sources/AbloxCore"
-        ),
         .executableTarget(
             name: "AbloxApp",
-            dependencies: ["AbloxCore"],
-            path: "Sources",
-            exclude: ["AbloxCore"]
+            path: "Sources"
         )
     ]
 )

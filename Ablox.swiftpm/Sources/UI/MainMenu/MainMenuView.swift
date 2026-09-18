@@ -1,5 +1,4 @@
 import SwiftUI
-import AbloxCore
 
 public enum MenuTab: String, CaseIterable, Identifiable {
     case play = "Play"
@@ -9,12 +8,12 @@ public enum MenuTab: String, CaseIterable, Identifiable {
 
     public var id: String { rawValue }
 
-    var icon: String {
+    var icon: AbloxIcon {
         switch self {
-        case .play: return "gamecontroller.fill"
-        case .worlds: return "square.stack.3d.up.fill"
-        case .avatar: return "person.crop.circle.fill"
-        case .settings: return "gearshape.fill"
+        case .play: return .gamepad
+        case .worlds: return .stack
+        case .avatar: return .person
+        case .settings: return .gearCog
         }
     }
 }
@@ -128,28 +127,9 @@ struct SidebarView: View {
     }
 
     private var brandmark: some View {
-        HStack(spacing: 12) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(Ablox.Palette.brand)
-                    .frame(width: 44, height: 44)
-                Image(systemName: "cube.fill")
-                    .font(.title2)
-                    .foregroundStyle(.black)
-            }
-            VStack(alignment: .leading, spacing: 1) {
-                Text("ABLOX")
-                    .font(.system(size: 23, weight: .black, design: .rounded))
-                    .foregroundStyle(
-                        LinearGradient(colors: [.white, Ablox.Palette.accent], startPoint: .leading, endPoint: .trailing)
-                    )
-                Text("iPad Edition")
-                    .font(.caption2.weight(.bold))
-                    .foregroundStyle(Ablox.Palette.inkFaint)
-            }
-        }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("Ablox for iPad")
+        // The drawn cube rather than a stock SF Symbol, so the sidebar shows
+        // the actual brand mark — see `AbloxMark`.
+        AbloxLockup(subtitle: "iPad Edition", markSize: 44)
     }
 
     private func tabButton(_ tab: MenuTab) -> some View {
@@ -160,7 +140,7 @@ struct SidebarView: View {
             }
         } label: {
             HStack(spacing: 15) {
-                Image(systemName: tab.icon)
+                Image(icon: tab.icon)
                     .font(.title3)
                     .frame(width: 26)
                 Text(tab.rawValue)

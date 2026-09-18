@@ -1,6 +1,5 @@
 import SwiftUI
 import RealityKit
-import AbloxCore
 
 /// Live avatar editor: a rotating 3D preview beside the controls, so a colour
 /// change is visible on the actual rig rather than on a swatch.
