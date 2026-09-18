@@ -18,6 +18,9 @@ public final class AppSettings: ObservableObject {
         static let cameraSensitivity = "ablox.cameraSensitivity"
         static let soundEnabled = "ablox.soundEnabled"
         static let hapticsEnabled = "ablox.hapticsEnabled"
+        static let wallet = "ablox.wallet"
+        static let muteList = "ablox.muteList"
+        static let chatFilterEnabled = "ablox.chatFilterEnabled"
     }
 
     private let defaults: UserDefaults
@@ -51,6 +54,23 @@ public final class AppSettings: ObservableObject {
         didSet { defaults.set(hapticsEnabled, forKey: Key.hapticsEnabled) }
     }
 
+    /// Coins and unlocked items. Local and per-device — there is no server to
+    /// hold a balance, and trusting a peer's claim about its own coins would
+    /// make the first child who reads the protocol very rich.
+    @Published public var wallet: PlayerWallet {
+        didSet { persist(wallet, forKey: Key.wallet) }
+    }
+
+    /// Who this device has chosen not to hear from. Never leaves the iPad.
+    @Published public var muteList: MuteList {
+        didSet { persist(muteList, forKey: Key.muteList) }
+    }
+
+    /// Whether the chat word filter is applied. Muting works either way.
+    @Published public var chatFilterEnabled: Bool {
+        didSet { defaults.set(chatFilterEnabled, forKey: Key.chatFilterEnabled) }
+    }
+
     /// This device's identity, generated once and kept. Stable across launches
     /// so a player's score and avatar survive a reconnect mid-session.
     public let peerID: PeerID
@@ -68,6 +88,12 @@ public final class AppSettings: ObservableObject {
         self.cameraSensitivity = defaults.object(forKey: Key.cameraSensitivity) as? Double ?? 1.0
         self.soundEnabled = defaults.object(forKey: Key.soundEnabled) as? Bool ?? true
         self.hapticsEnabled = defaults.object(forKey: Key.hapticsEnabled) as? Bool ?? true
+
+        self.wallet = AppSettings.decode(PlayerWallet.self, from: defaults, key: Key.wallet) ?? PlayerWallet()
+        self.muteList = AppSettings.decode(MuteList.self, from: defaults, key: Key.muteList) ?? MuteList()
+        // Filtering defaults on. Someone who wants it off can say so; someone
+        // who never opens Settings should get the safer behaviour.
+        self.chatFilterEnabled = defaults.object(forKey: Key.chatFilterEnabled) as? Bool ?? true
 
         if let stored = defaults.string(forKey: Key.peerID), let uuid = UUID(uuidString: stored) {
             self.peerID = PeerID(uuid)
@@ -110,6 +136,16 @@ public final class AppSettings: ObservableObject {
         if !deviceName.isEmpty, deviceName != "iPad" { return deviceName }
         #endif
         return "Builder"
+    }
+
+    /// Banks a round's score as coins. Called when a round ends.
+    public func award(score: Int, completedRound: Bool) {
+        wallet.earn(CoinRate.coins(forScore: score, completedRound: completedRound))
+    }
+
+    /// The moderator built from current preferences.
+    public var chatModerator: ChatModerator {
+        ChatModerator(isFilterEnabled: chatFilterEnabled)
     }
 
     public func resetToDefaults() {

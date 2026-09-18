@@ -16,6 +16,7 @@ public struct PlayScreen: View {
     @State private var showScoreboard = false
     @State private var showChat = false
     @State private var chatDraft = ""
+    @State private var hasBankedThisRound = false
 
     public init(session: SessionCoordinator, activeSession: ActiveSession, onExit: @escaping () -> Void) {
         self.session = session
@@ -50,11 +51,31 @@ public struct PlayScreen: View {
         .statusBarHidden()
         .persistentSystemOverlays(.hidden)
         .onAppear(perform: enterSession)
+        .onChange(of: session.announcement) { _, announcement in
+            // The end-of-round banner is the one signal that the round is
+            // over for everyone, host or client.
+            guard let message = announcement?.message else { return }
+            if message.contains("goal") || message.localizedCaseInsensitiveContains("win") {
+                bankCoins(completed: true)
+            }
+        }
+        .onDisappear { bankCoins(completed: false) }
     }
 
     // MARK: Session entry
 
+    /// Banks the round's score as coins.
+    ///
+    /// Driven from the end-of-round announcement rather than from the score
+    /// itself, so coins are awarded once per round instead of on every point.
+    private func bankCoins(completed: Bool) {
+        guard let score = session.localPlayer?.score, !hasBankedThisRound else { return }
+        hasBankedThisRound = true
+        settings.award(score: score, completedRound: completed)
+    }
+
     private func enterSession() {
+        hasBankedThisRound = false
         switch activeSession.mode {
         case let .solo(world):
             session.startSoloSession(world: world)
@@ -178,7 +199,7 @@ public struct PlayScreen: View {
         .padding(.top, 14)
         .overlay(alignment: .topTrailing) {
             if showScoreboard {
-                scoreboard
+                PlayerListView(session: session)
                     .padding(.top, 64)
                     .padding(.trailing, 18)
                     .transition(.move(edge: .trailing).combined(with: .opacity))
@@ -285,7 +306,7 @@ public struct PlayScreen: View {
 
     private var chatBar: some View {
         VStack(alignment: .leading, spacing: 8) {
-            ForEach(session.chatLog.suffix(5)) { entry in
+            ForEach(session.visibleChatLog.suffix(5)) { entry in
                 HStack(spacing: 6) {
                     Text(entry.senderName)
                         .font(.caption.weight(.bold))
@@ -293,6 +314,13 @@ public struct PlayScreen: View {
                     Text(entry.text)
                         .font(.caption)
                         .foregroundStyle(.white)
+                    if entry.wasFiltered {
+                        // Marked, so a child can see the filter acting rather
+                        // than assume the message arrived that way.
+                        Image(systemName: "shield.lefthalf.filled")
+                            .font(.system(size: 9))
+                            .foregroundStyle(Ablox.Palette.warning)
+                    }
                 }
             }
 

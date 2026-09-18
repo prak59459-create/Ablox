@@ -4,6 +4,7 @@ public enum MenuTab: String, CaseIterable, Identifiable {
     case play = "Play"
     case worlds = "Worlds"
     case avatar = "Avatar"
+    case shop = "Shop"
     case settings = "Settings"
 
     public var id: String { rawValue }
@@ -13,6 +14,7 @@ public enum MenuTab: String, CaseIterable, Identifiable {
         case .play: return .gamepad
         case .worlds: return .stack
         case .avatar: return .person
+        case .shop: return .cart
         case .settings: return .gearCog
         }
     }
@@ -53,6 +55,8 @@ public struct MainMenuView: View {
                         WorldsLobbyView(onEnter: { activeSession = $0 })
                     case .avatar:
                         AvatarCustomizerView()
+                    case .shop:
+                        ShopView()
                     case .settings:
                         SettingsView()
                     }
@@ -71,7 +75,12 @@ public struct MainMenuView: View {
         }
         .onAppear {
             session.profile = settings.profile
+            session.moderator = settings.chatModerator
+            session.muteList = settings.muteList
             session.startBrowsing()
+        }
+        .onChange(of: settings.chatFilterEnabled) { _, _ in
+            session.moderator = settings.chatModerator
         }
         .onDisappear {
             session.stopBrowsing()
