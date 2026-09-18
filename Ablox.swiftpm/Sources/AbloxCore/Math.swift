@@ -347,10 +347,37 @@ public struct BoundingBox: Codable, Hashable, Sendable {
         BoundingBox(min: min - Vec3(repeating: amount), max: max + Vec3(repeating: amount))
     }
 
+    /// Inclusive overlap: boxes that merely touch count as intersecting.
+    /// Right for "does this trigger fire", wrong for collision — see
+    /// `penetrates(_:epsilon:)`.
     public func intersects(_ other: BoundingBox) -> Bool {
         min.x <= other.max.x && max.x >= other.min.x &&
         min.y <= other.max.y && max.y >= other.min.y &&
         min.z <= other.max.z && max.z >= other.min.z
+    }
+
+    /// Strict overlap: the boxes must interpenetrate by more than `epsilon`
+    /// on **every** axis.
+    ///
+    /// Collision resolution needs this rather than `intersects`. A player
+    /// standing on a floor has their feet exactly at the floor's top surface,
+    /// which `intersects` reports as a hit — and the horizontal pass would
+    /// then treat the floor as a wall and push them backwards off it.
+    public func penetrates(_ other: BoundingBox, epsilon: Float = 1e-3) -> Bool {
+        overlapDepth(with: other, on: .x) > epsilon &&
+        overlapDepth(with: other, on: .y) > epsilon &&
+        overlapDepth(with: other, on: .z) > epsilon
+    }
+
+    public enum Axis: Sendable { case x, y, z }
+
+    /// How deeply two boxes overlap on one axis. Negative when they are apart.
+    public func overlapDepth(with other: BoundingBox, on axis: Axis) -> Float {
+        switch axis {
+        case .x: return Swift.min(max.x, other.max.x) - Swift.max(min.x, other.min.x)
+        case .y: return Swift.min(max.y, other.max.y) - Swift.max(min.y, other.min.y)
+        case .z: return Swift.min(max.z, other.max.z) - Swift.max(min.z, other.min.z)
+        }
     }
 
     /// Union of a sequence of boxes, or `nil` when empty. Used for
