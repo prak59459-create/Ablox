@@ -28,7 +28,7 @@ The root manifest points its target at `Ablox.swiftpm/Sources/AbloxCore`, the
 same files the app compiles. There is one implementation, not a vendored copy.
 
 ```
-swift test        # 340 tests, no device or simulator needed
+swift test        # 342 tests, no device or simulator needed
 ```
 
 `AbloxCore` has no `import SwiftUI`, `RealityKit`, `Network` or even `simd`.

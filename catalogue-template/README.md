@@ -10,7 +10,7 @@ review step an upload form would not have.
 
 > **Copy this folder into a new, public repository** and point the app at it:
 > Ablox → Settings → Game list. The app ships expecting
-> `prak59459-create/ablox-games`.
+> `prak59459-create/AbloxGames`.
 
 ## Layout
 
