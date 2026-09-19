@@ -213,7 +213,7 @@ private struct AvatarPreview: UIViewRepresentable {
             anchor.addChild(light)
 
             let pedestal = ModelEntity(
-                mesh: .generateCylinder(height: 0.15, radius: 1.1),
+                mesh: .abloxCylinder(height: 0.15, radius: 1.1),
                 materials: [SimpleMaterial(color: .init(white: 0.15, alpha: 1), roughness: 0.9, isMetallic: false)]
             )
             pedestal.position = SIMD3<Float>(0, -0.075, 0)
