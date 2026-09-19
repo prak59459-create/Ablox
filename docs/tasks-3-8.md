@@ -201,9 +201,60 @@ an idle player suppresses over 80% of ticks in test.
   own on top would mean measuring first.
 - **Entity pooling.** `WorldScene` reuses entities across syncs, which covers
   the editing case. A pool for rapid spawn/despawn is not needed yet.
-- **Background/foreground TLS reconnection.** Keepalive drops a sleeping peer
-  within ~5 s, but there is no automatic re-join on return. This is the most
-  likely thing to bite in real use.
+- ~~**Background/foreground TLS reconnection.**~~ **Now done** — see below.
+
+### Done — session resilience
+
+Backgrounding an iPad kills the TCP connection; keepalive drops it within ~5 s.
+Previously that sent the player back to the lobby to re-enter a room code they
+had already typed. Now:
+
+- `DisconnectReason` classifies *why* a session ended, replacing a bare string.
+  The distinction that matters is retryable versus not — a Wi-Fi blip deserves
+  a quiet reconnect, a wrong room code deserves a message. Retrying an
+  authentication failure five times with backoff only delays telling the player
+  the one thing they can fix.
+- `ReconnectPolicy` supplies exponential backoff, capped, with jitter. The
+  jitter earns its place: when a host's Wi-Fi blips, *every* client drops at
+  the same instant, and without it they would all retry in lockstep against a
+  host that is itself still recovering.
+- `ReconnectCoordinator` steps the sequence — drop, wait, try, wait longer,
+  give up — with an injected clock, so it is tested rather than discovered in
+  a classroom.
+- Returning to the foreground brings the next attempt forward, because the
+  iPad has just regained its network and waiting out a backoff scheduled while
+  it was asleep is delay the player can see.
+- The world and roster stay on screen while reconnecting, behind a light
+  banner rather than a modal. A blip is usually over in under a second.
+
+Two details worth recording, both found by tests:
+
+- **Giving up happens as soon as it is knowable.** An attempt is validated
+  against when it would *run*, not against now — scheduling one the deadline
+  will reject on arrival means the player watches "Reconnecting…" for a full
+  backoff to learn something already known.
+- **A failed attempt is not a fresh drop.** It arrives back through the same
+  disconnect path, and treating it as new would reset the attempt counter to
+  one: the backoff would never escalate and the give-up would never fire. An
+  infinite retry loop that looks like it is working.
+
+### Done — audio and haptics
+
+`EventAction.playSound(name:)` had been reaching clients and going nowhere
+since the first phase. `SoundCue` is now the closed set of names the client can
+play, `FeedbackPlayer` plays them, and Studio's rule editor offers the list
+instead of a free-text field that silently does nothing when misspelled.
+
+Sounds are iOS system sounds via `AudioServicesPlaySystemSoundID` — no bundled
+assets, so the Playground stays readable Swift. They are not bespoke game
+sounds; synthesising tones with `AVAudioEngine` would sound better and still
+need no assets, and is the obvious next step if feel matters more than
+footprint.
+
+Haptics carry equal weight deliberately: these iPads are often muted, so the
+haptic is frequently the only feedback that arrives. The throttle that stops a
+row of coins becoming a buzz rather than a series of taps lives in
+`SoundCue.minimumInterval` and is tested.
 
 ### Test checklist — needs real devices
 
@@ -223,6 +274,11 @@ None of this can be verified in CI; it needs iPads in a room.
 | 10 | Coins across a relaunch | Wallet and purchases survive |
 | 11 | Mute, then relaunch | Mute list survives; muted player still hidden |
 | 12 | Idle 4-player session | `suppressionRate` > 0.8 |
+| 13 | Background an iPad 10 s, return | Rejoins automatically; world still there |
+| 14 | Host Wi-Fi off 3 s, back on | All clients recover, staggered not in lockstep |
+| 15 | Background past the give-up window | Clear message, back to lobby, no hang |
+| 16 | Muted iPad, collect a coin | Haptic still fires |
+| 17 | Collect a row of coins fast | Taps stay distinct, not one buzz |
 
 ### Completion criteria
 
@@ -237,8 +293,8 @@ None of this can be verified in CI; it needs iPads in a room.
 
 | Repository | Tests |
 |---|---|
-| Ablox | 218 |
-| Ablox Studio | 257 (218 mirrored core + 39 editor) |
+| Ablox | 250 |
+| Ablox Studio | 289 (250 mirrored core + 39 editor) |
 
 Everything above that is testable off-device is tested off-device. The
 RealityKit, SwiftUI and Network layers are not — they need the iOS SDK, and

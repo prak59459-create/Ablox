@@ -4,6 +4,7 @@ import SwiftUI
 public struct PlayScreen: View {
     @ObservedObject var session: SessionCoordinator
     @EnvironmentObject private var settings: AppSettings
+    @Environment(\.scenePhase) private var scenePhase
 
     let activeSession: ActiveSession
     let onExit: () -> Void
@@ -34,7 +35,9 @@ public struct PlayScreen: View {
                 session: session,
                 input: .constant(movementInput),
                 cameraYaw: $cameraYaw,
-                cameraPitch: $cameraPitch
+                cameraPitch: $cameraPitch,
+                soundEnabled: settings.soundEnabled,
+                hapticsEnabled: settings.hapticsEnabled
             )
             .ignoresSafeArea()
 
@@ -43,6 +46,9 @@ public struct PlayScreen: View {
 
             if session.status.isBusy {
                 connectingOverlay
+            }
+            if case let .reconnecting(progress) = session.status {
+                reconnectingOverlay(progress)
             }
             if case let .error(message) = session.status {
                 errorOverlay(message)
@@ -60,6 +66,13 @@ public struct PlayScreen: View {
             }
         }
         .onDisappear { bankCoins(completed: false) }
+        .onChange(of: scenePhase) { _, phase in
+            // Backgrounding is what kills the TCP connection, so returning is
+            // the single most likely moment a session needs recovering. Bring
+            // any pending attempt forward rather than waiting out a backoff
+            // scheduled while the iPad was asleep.
+            if phase == .active { session.applicationDidBecomeActive() }
+        }
     }
 
     // MARK: Session entry
@@ -355,6 +368,32 @@ public struct PlayScreen: View {
     }
 
     // MARK: Overlays
+
+    /// Deliberately lighter than the disconnect overlay: the world stays
+    /// visible behind it, because this is usually over in under a second and
+    /// throwing the player back to the lobby for a Wi-Fi blip is worse than
+    /// a moment of waiting.
+    private func reconnectingOverlay(_ progress: String) -> some View {
+        VStack {
+            Spacer()
+            HStack(spacing: 11) {
+                ProgressView().controlSize(.small).tint(Ablox.Palette.warning)
+                Text(progress)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.white)
+                Button("Leave", action: onExit)
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(Ablox.Palette.accent)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 13)
+            .background(.ultraThinMaterial, in: Capsule())
+            .overlay(Capsule().strokeBorder(Ablox.Palette.warning.opacity(0.5), lineWidth: 1.5))
+            .padding(.bottom, 120)
+        }
+        .transition(.opacity)
+        .animation(.easeInOut(duration: 0.2), value: progress)
+    }
 
     private var connectingOverlay: some View {
         ZStack {
