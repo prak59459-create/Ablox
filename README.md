@@ -28,7 +28,7 @@ The root manifest points its target at `Ablox.swiftpm/Sources/AbloxCore`, the
 same files the app compiles. There is one implementation, not a vendored copy.
 
 ```
-swift test        # 296 tests, no device or simulator needed
+swift test        # 340 tests, no device or simulator needed
 ```
 
 `AbloxCore` has no `import SwiftUI`, `RealityKit`, `Network` or even `simd`.
@@ -59,6 +59,7 @@ Further reading:
 
 - [`docs/architecture.md`](docs/architecture.md) — why the pieces are split this way
 - [`docs/networking.md`](docs/networking.md) — the protocol, and the security model in plain terms
+- [`docs/games.md`](docs/games.md) — the published game list, and making a map with an assistant
 - [`docs/localization.md`](docs/localization.md) — English and Japanese, and why there is no `.lproj`
 - [`docs/ipad-build.md`](docs/ipad-build.md) — the errors only an iPad can report
 - [`docs/roadmap.md`](docs/roadmap.md) — what is built and what is not

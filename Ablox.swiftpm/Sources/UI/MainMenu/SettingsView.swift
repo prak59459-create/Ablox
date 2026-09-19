@@ -16,6 +16,7 @@ struct SettingsView: View {
                 }
 
                 languageCard
+                gamesCard
                 controlsCard
                 movementCard
                 networkCard
@@ -47,6 +48,49 @@ struct SettingsView: View {
                 Text(L("Ablox Studio has the same setting."))
                     .font(.caption)
                     .foregroundStyle(Ablox.Palette.inkMuted)
+            }
+        }
+    }
+
+    // MARK: Games
+
+    /// Which repository the Games tab reads.
+    ///
+    /// Here rather than hidden, because a school or a club running its own
+    /// list is a reasonable thing to want, and because someone should be able
+    /// to see where their iPad is fetching from.
+    private var gamesCard: some View {
+        GlassCard {
+            VStack(alignment: .leading, spacing: 13) {
+                SectionHeader(L("Game list"), systemImage: "square.stack.3d.up.fill")
+
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(L("Which GitHub repository the Games tab reads."))
+                        .font(.caption)
+                        .foregroundStyle(Ablox.Palette.inkMuted)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    TextField("owner/repo", text: $settings.catalogueRepository)
+                        .textFieldStyle(.plain)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.never)
+                        .font(.callout.monospaced())
+                        .padding(10)
+                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                }
+
+                // Shown rather than enforced by rejecting keystrokes: someone
+                // mid-way through typing a valid name has not made a mistake.
+                if !CatalogueSource(repository: settings.catalogueRepository).isValidRepository {
+                    Label(L("That is not a repository name. Using the built-in list."), systemImage: "info.circle")
+                        .font(.caption2)
+                        .foregroundStyle(Ablox.Palette.warning)
+                }
+
+                Text(L("Only worlds are downloaded, and only from this repository. Nothing is uploaded."))
+                    .font(.caption2)
+                    .foregroundStyle(Ablox.Palette.inkFaint)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
     }
@@ -147,7 +191,7 @@ struct SettingsView: View {
 
                 Divider().background(Color.white.opacity(0.08))
 
-                Text(L("Ablox never sends anything to a server. Worlds and player positions travel directly between iPads on your local network, encrypted with a key derived from the room code the host shows you. Anyone who knows that code can join and can read that session's traffic, so share it only with the people you want in the world."))
+                Text(L("Play traffic never touches a server. Worlds and player positions travel directly between iPads on your local network, encrypted with a key derived from the room code the host shows you. Anyone who knows that code can join and can read that session's traffic, so share it only with the people you want in the world. The Games tab is the one exception: it downloads published worlds from a public GitHub repository. It only ever reads — nothing about you is sent."))
                     .font(.caption)
                     .foregroundStyle(Ablox.Palette.inkMuted)
                     .fixedSize(horizontal: false, vertical: true)

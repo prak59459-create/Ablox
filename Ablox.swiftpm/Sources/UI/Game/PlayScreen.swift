@@ -400,7 +400,7 @@ public struct PlayScreen: View {
             Color.black.opacity(0.55).ignoresSafeArea()
             VStack(spacing: 15) {
                 ProgressView().controlSize(.large).tint(Ablox.Palette.accent)
-                Text(session.status == .connecting ? "Connecting…" : "Looking for the world…")
+                Text(session.status == .connecting ? L("Connecting…") : L("Looking for the world…"))
                     .font(.headline)
                     .foregroundStyle(.white)
                 Button(L("Cancel"), action: onExit)

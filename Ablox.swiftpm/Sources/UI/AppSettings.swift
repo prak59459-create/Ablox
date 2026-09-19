@@ -22,6 +22,7 @@ public final class AppSettings: ObservableObject {
         static let muteList = "ablox.muteList"
         static let chatFilterEnabled = "ablox.chatFilterEnabled"
         static let language = "ablox.language"
+        static let catalogue = "ablox.catalogueRepository"
     }
 
     private let defaults: UserDefaults
@@ -95,6 +96,23 @@ public final class AppSettings: ObservableObject {
         Localization.language = language.language(preferredCodes: Locale.preferredLanguages)
     }
 
+    /// Which GitHub repository the Games tab reads.
+    ///
+    /// Settable so a school or a club can run its own list instead of the
+    /// shared one. Only the `owner/repo` part is stored, and `CatalogueSource`
+    /// refuses anything that is not two plausible GitHub names — so this can
+    /// never become an arbitrary URL the app fetches from.
+    @Published public var catalogueRepository: String {
+        didSet { defaults.set(catalogueRepository, forKey: Key.catalogue) }
+    }
+
+    /// The validated source, falling back to the built-in list if someone has
+    /// typed something unusable into Settings.
+    public var catalogueSource: CatalogueSource {
+        let chosen = CatalogueSource(repository: catalogueRepository)
+        return chosen.isValidRepository ? chosen : .default
+    }
+
     /// This device's identity, generated once and kept. Stable across launches
     /// so a player's score and avatar survive a reconnect mid-session.
     public let peerID: PeerID
@@ -123,6 +141,9 @@ public final class AppSettings: ObservableObject {
         // of the iPad rather than like an American default.
         self.language = defaults.string(forKey: Key.language)
             .flatMap(LanguagePreference.init(rawValue:)) ?? .system
+
+        self.catalogueRepository = defaults.string(forKey: Key.catalogue)
+            ?? CatalogueSource.default.repository
 
         if let stored = defaults.string(forKey: Key.peerID), let uuid = UUID(uuidString: stored) {
             self.peerID = PeerID(uuid)

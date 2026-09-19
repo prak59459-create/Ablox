@@ -2,6 +2,7 @@ import SwiftUI
 
 public enum MenuTab: String, CaseIterable, Identifiable {
     case play = "Play"
+    case games = "Games"
     case worlds = "Worlds"
     case avatar = "Avatar"
     case shop = "Shop"
@@ -9,9 +10,23 @@ public enum MenuTab: String, CaseIterable, Identifiable {
 
     public var id: String { rawValue }
 
+    /// The sidebar label. `rawValue` is the tab's identity and must not follow
+    /// the interface language.
+    var displayName: String {
+        switch self {
+        case .play: return L("Play")
+        case .games: return L("Games")
+        case .worlds: return L("Worlds")
+        case .avatar: return L("Avatar")
+        case .shop: return L("Shop")
+        case .settings: return L("Settings")
+        }
+    }
+
     var icon: AbloxIcon {
         switch self {
         case .play: return .gamepad
+        case .games: return .compass
         case .worlds: return .stack
         case .avatar: return .person
         case .shop: return .cart
@@ -51,6 +66,8 @@ public struct MainMenuView: View {
                     switch selectedTab {
                     case .play:
                         PlayLobbyView(onEnter: { activeSession = $0 })
+                    case .games:
+                        DiscoverView(onEnter: { activeSession = $0 })
                     case .worlds:
                         WorldsLobbyView(onEnter: { activeSession = $0 })
                     case .avatar:
@@ -138,7 +155,7 @@ struct SidebarView: View {
     private var brandmark: some View {
         // The drawn cube rather than a stock SF Symbol, so the sidebar shows
         // the actual brand mark — see `AbloxMark`.
-        AbloxLockup(subtitle: "iPad Edition", markSize: 44)
+        AbloxLockup(subtitle: L("iPad Edition"), markSize: 44)
     }
 
     private func tabButton(_ tab: MenuTab) -> some View {
@@ -152,7 +169,7 @@ struct SidebarView: View {
                 Image(icon: tab.icon)
                     .font(.title3)
                     .frame(width: 26)
-                Text(tab.rawValue)
+                Text(tab.displayName)
                     .font(.body.weight(.semibold))
                 Spacer()
             }
@@ -189,12 +206,12 @@ struct SidebarView: View {
                 Circle()
                     .fill(unavailable == nil ? Ablox.Palette.success : Ablox.Palette.warning)
                     .frame(width: 8, height: 8)
-                Text(unavailable == nil ? "TLS 1.3 local mesh" : "Discovery paused")
+                Text(unavailable == nil ? L("TLS 1.3 local mesh") : L("Discovery paused"))
                     .font(.caption2.weight(.bold))
                     .foregroundStyle(unavailable == nil ? Ablox.Palette.success : Ablox.Palette.warning)
             }
 
-            Text(unavailable ?? "Searching for nearby iPads over Bonjour.")
+            Text(unavailable ?? L("Searching for nearby iPads over Bonjour."))
                 .font(.system(size: 10))
                 .foregroundStyle(Ablox.Palette.inkFaint)
                 .fixedSize(horizontal: false, vertical: true)

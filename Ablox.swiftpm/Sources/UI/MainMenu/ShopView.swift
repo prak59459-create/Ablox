@@ -137,7 +137,7 @@ struct ShopView: View {
                         .lineLimit(1)
 
                     if owned {
-                        Badge(isEquipped(item) ? "Worn" : "Tap to wear",
+                        Badge(isEquipped(item) ? L("Worn") : L("Tap to wear"),
                               color: isEquipped(item) ? Ablox.Palette.success : Ablox.Palette.accent)
                     } else {
                         HStack(spacing: 5) {
