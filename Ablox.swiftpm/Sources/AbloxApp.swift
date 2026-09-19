@@ -25,6 +25,16 @@ struct AbloxApp: App {
                 .environmentObject(settings)
                 .environmentObject(session)
                 .environmentObject(store)
+                // Rebuilds the interface when the language changes.
+                //
+                // `L(...)` reads a global that SwiftUI knows nothing about, so
+                // nothing would redraw on its own. Changing the identity here
+                // forces one full rebuild — deliberately *below* the state
+                // objects above, so the session, wallet and settings are not
+                // recreated with it. It resets view-local state such as the
+                // open tab, which is acceptable for something that happens
+                // once in a while and arguably wanted.
+                .id(settings.language)
         }
     }
 }

@@ -58,8 +58,8 @@ public struct VirtualJoystick: View {
             )
             .frame(width: proxy.size.width, height: proxy.size.height)
         }
-        .accessibilityLabel("Movement stick")
-        .accessibilityHint("Drag to walk. Push all the way to run.")
+        .accessibilityLabel(L("Movement stick"))
+        .accessibilityHint(L("Drag to walk. Push all the way to run."))
     }
 
     private var ring: some View {
@@ -167,8 +167,8 @@ public struct CameraPad: View {
                         didDrag = false
                     }
             )
-            .accessibilityLabel("Camera")
-            .accessibilityHint("Drag to look around.")
+            .accessibilityLabel(L("Camera"))
+            .accessibilityHint(L("Drag to look around."))
     }
 }
 
@@ -200,7 +200,7 @@ public struct JumpButton: View {
                     .onChanged { _ in isPressed = true }
                     .onEnded { _ in isPressed = false }
             )
-            .accessibilityLabel("Jump")
+            .accessibilityLabel(L("Jump"))
             .accessibilityAddTraits(.isButton)
     }
 }

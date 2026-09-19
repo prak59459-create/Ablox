@@ -26,10 +26,10 @@ struct ShopView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 5) {
-            Text("Shop")
+            Text(L("Shop"))
                 .font(.system(size: 34, weight: .bold, design: .rounded))
                 .foregroundStyle(Ablox.Palette.ink)
-            Text("Earn coins by collecting and finishing rounds, then unlock new colours and hats.")
+            Text(L("Earn coins by collecting and finishing rounds, then unlock new colours and hats."))
                 .font(.subheadline)
                 .foregroundStyle(Ablox.Palette.inkMuted)
         }
@@ -46,7 +46,7 @@ struct ShopView: View {
                         Text("\(settings.wallet.coins)")
                             .font(.system(size: 30, weight: .black, design: .rounded).monospacedDigit())
                             .foregroundStyle(Ablox.Palette.ink)
-                        Text("coins")
+                        Text(L("coins"))
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(Ablox.Palette.inkMuted)
                     }
@@ -58,7 +58,7 @@ struct ShopView: View {
                     Text("\(settings.wallet.lifetimeEarned)")
                         .font(.headline.monospacedDigit())
                         .foregroundStyle(Ablox.Palette.accent)
-                    Text("earned all time")
+                    Text(L("earned all time"))
                         .font(.caption2)
                         .foregroundStyle(Ablox.Palette.inkMuted)
                 }
@@ -76,7 +76,7 @@ struct ShopView: View {
     }
 
     private var kindPicker: some View {
-        Picker("Category", selection: $kind) {
+        Picker(L("Category"), selection: $kind) {
             ForEach(ShopItem.Kind.allCases, id: \.self) { kind in
                 Text(kind.displayName).tag(kind)
             }
@@ -93,7 +93,7 @@ struct ShopView: View {
         return VStack(alignment: .leading, spacing: 20) {
             if !locked.isEmpty {
                 VStack(alignment: .leading, spacing: 13) {
-                    SectionHeader("To unlock", systemImage: "lock.fill")
+                    SectionHeader(L("To unlock"), systemImage: "lock.fill")
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 13)], spacing: 13) {
                         ForEach(locked) { item in
                             itemCard(item, owned: false)
@@ -103,7 +103,7 @@ struct ShopView: View {
             }
 
             VStack(alignment: .leading, spacing: 13) {
-                SectionHeader("Yours", systemImage: "checkmark.seal.fill")
+                SectionHeader(L("Yours"), systemImage: "checkmark.seal.fill")
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 13)], spacing: 13) {
                     ForEach(owned) { item in
                         itemCard(item, owned: true)
@@ -131,7 +131,7 @@ struct ShopView: View {
                 VStack(alignment: .leading, spacing: 11) {
                     preview(item)
 
-                    Text(item.name)
+                    Text(item.displayName)
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Ablox.Palette.ink)
                         .lineLimit(1)
@@ -156,7 +156,7 @@ struct ShopView: View {
         // Unaffordable items stay visible but dimmed: seeing what you are
         // saving for is the point of a shop.
         .opacity(owned || affordable ? 1 : 0.5)
-        .accessibilityLabel(owned ? "\(item.name), owned" : "\(item.name), \(item.price) coins")
+        .accessibilityLabel(owned ? L("{}, owned", item.displayName) : L("{}, {} coins", item.displayName, item.price))
     }
 
     @ViewBuilder

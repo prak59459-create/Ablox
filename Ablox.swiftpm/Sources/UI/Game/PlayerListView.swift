@@ -12,7 +12,7 @@ struct PlayerListView: View {
         GlassCard(padding: 14) {
             VStack(alignment: .leading, spacing: 11) {
                 HStack {
-                    Label("Players", icon: .friends)
+                    Label(L("Players"), icon: .friends)
                         .font(.caption.weight(.bold))
                         .foregroundStyle(Ablox.Palette.inkMuted)
                     Spacer()
@@ -22,7 +22,7 @@ struct PlayerListView: View {
                 }
 
                 if session.roster.isEmpty {
-                    Text("Just you so far.")
+                    Text(L("Just you so far."))
                         .font(.caption)
                         .foregroundStyle(Ablox.Palette.inkFaint)
                 }
@@ -37,7 +37,7 @@ struct PlayerListView: View {
                         settings.muteList.removeAll()
                         session.muteList = settings.muteList
                     } label: {
-                        Label("Unmute everyone (\(settings.muteList.count))", systemImage: "speaker.wave.2.fill")
+                        Label(L("Unmute everyone ({})", settings.muteList.count), systemImage: "speaker.wave.2.fill")
                             .font(.caption2)
                             .foregroundStyle(Ablox.Palette.accent)
                     }
@@ -65,7 +65,7 @@ struct PlayerListView: View {
                     .lineLimit(1)
                     .strikethrough(isMuted, color: Ablox.Palette.inkFaint)
                 if isHost {
-                    Text("Host")
+                    Text(L("Host"))
                         .font(.system(size: 9, weight: .bold))
                         .foregroundStyle(Ablox.Palette.success)
                 }
@@ -103,7 +103,7 @@ struct PlayerListView: View {
             : Ablox.Palette.danger
         return HStack(spacing: 4) {
             Circle().fill(color).frame(width: 6, height: 6)
-            Text("\(Int(ping))ms")
+            Text(L("{}ms", Int(ping)))
                 .font(.caption2.monospacedDigit())
                 .foregroundStyle(color)
         }

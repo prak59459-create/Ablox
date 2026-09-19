@@ -47,19 +47,19 @@ struct WorldsLobbyView: View {
             .padding(Ablox.Metrics.gutter)
         }
         .sheet(isPresented: $isCreating) { createSheet }
-        .alert("Delete this world?", isPresented: .constant(pendingDeletion != nil)) {
-            Button("Cancel", role: .cancel) { pendingDeletion = nil }
-            Button("Delete", role: .destructive) {
+        .alert(L("Delete this world?"), isPresented: .constant(pendingDeletion != nil)) {
+            Button(L("Cancel"), role: .cancel) { pendingDeletion = nil }
+            Button(L("Delete"), role: .destructive) {
                 if let pendingDeletion { store.delete(pendingDeletion) }
                 pendingDeletion = nil
             }
         } message: {
-            Text("“\(pendingDeletion?.name ?? "")” will be removed from this iPad. This cannot be undone.")
+            Text(L("“{}” will be removed from this iPad. This cannot be undone.", pendingDeletion?.name ?? ""))
         }
-        .alert("Rename world", isPresented: .constant(renaming != nil)) {
-            TextField("Name", text: $renameText)
-            Button("Cancel", role: .cancel) { renaming = nil }
-            Button("Rename") {
+        .alert(L("Rename world"), isPresented: .constant(renaming != nil)) {
+            TextField(L("Name"), text: $renameText)
+            Button(L("Cancel"), role: .cancel) { renaming = nil }
+            Button(L("Rename")) {
                 if let renaming, !renameText.trimmingCharacters(in: .whitespaces).isEmpty {
                     store.rename(renaming, to: renameText)
                 }
@@ -71,10 +71,10 @@ struct WorldsLobbyView: View {
     private var header: some View {
         HStack(alignment: .firstTextBaseline) {
             VStack(alignment: .leading, spacing: 5) {
-                Text("Worlds")
+                Text(L("Worlds"))
                     .font(.system(size: 34, weight: .bold, design: .rounded))
                     .foregroundStyle(Ablox.Palette.ink)
-                Text("Play them solo, or host one and let friends join from the Play tab.")
+                Text(L("Play them solo, or host one and let friends join from the Play tab."))
                     .font(.subheadline)
                     .foregroundStyle(Ablox.Palette.inkMuted)
             }
@@ -84,7 +84,7 @@ struct WorldsLobbyView: View {
                 selectedTemplate = .starter
                 isCreating = true
             } label: {
-                Label("New world", systemImage: "plus")
+                Label(L("New world"), systemImage: "plus")
             }
             .buttonStyle(NeonButtonStyle(.primary))
         }
@@ -105,17 +105,17 @@ struct WorldsLobbyView: View {
                         Button {
                             renameText = entry.name
                             renaming = entry
-                        } label: { Label("Rename", systemImage: "pencil") }
+                        } label: { Label(L("Rename"), systemImage: "pencil") }
 
                         Button {
                             store.duplicate(entry)
-                        } label: { Label("Duplicate", systemImage: "doc.on.doc") }
+                        } label: { Label(L("Duplicate"), systemImage: "doc.on.doc") }
 
                         Divider()
 
                         Button(role: .destructive) {
                             pendingDeletion = entry
-                        } label: { Label("Delete", systemImage: "trash") }
+                        } label: { Label(L("Delete"), systemImage: "trash") }
                     } label: {
                         Image(systemName: "ellipsis.circle")
                             .font(.title3)
@@ -140,7 +140,7 @@ struct WorldsLobbyView: View {
                         guard let world = store.load(entry) else { return }
                         onEnter(ActiveSession(mode: .solo(world)))
                     } label: {
-                        Label("Play", systemImage: "play.fill")
+                        Label(L("Play"), systemImage: "play.fill")
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(NeonButtonStyle(.primary, fullWidth: true))
@@ -149,7 +149,7 @@ struct WorldsLobbyView: View {
                         guard let world = store.load(entry) else { return }
                         onEnter(ActiveSession(mode: .hosting(world)))
                     } label: {
-                        Label("Host", systemImage: "antenna.radiowaves.left.and.right")
+                        Label(L("Host"), systemImage: "antenna.radiowaves.left.and.right")
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(NeonButtonStyle(.secondary, fullWidth: true))
@@ -160,12 +160,12 @@ struct WorldsLobbyView: View {
 
     private var createSheet: some View {
         VStack(alignment: .leading, spacing: 22) {
-            Text("New world")
+            Text(L("New world"))
                 .font(.title2.weight(.bold))
 
             VStack(alignment: .leading, spacing: 7) {
-                Text("Name").font(.caption.weight(.semibold)).foregroundStyle(Ablox.Palette.inkMuted)
-                TextField("My World", text: $newWorldName)
+                Text(L("Name")).font(.caption.weight(.semibold)).foregroundStyle(Ablox.Palette.inkMuted)
+                TextField(L("My World"), text: $newWorldName)
                     .textFieldStyle(.plain)
                     .font(.body)
                     .padding(12)
@@ -173,7 +173,7 @@ struct WorldsLobbyView: View {
             }
 
             VStack(alignment: .leading, spacing: 9) {
-                Text("Start from").font(.caption.weight(.semibold)).foregroundStyle(Ablox.Palette.inkMuted)
+                Text(L("Start from")).font(.caption.weight(.semibold)).foregroundStyle(Ablox.Palette.inkMuted)
                 ForEach(ProjectStore.Template.allCases) { template in
                     Button {
                         selectedTemplate = template
@@ -211,9 +211,9 @@ struct WorldsLobbyView: View {
             Spacer(minLength: 0)
 
             HStack(spacing: 11) {
-                Button("Cancel") { isCreating = false }
+                Button(L("Cancel")) { isCreating = false }
                     .buttonStyle(NeonButtonStyle(.secondary, fullWidth: true))
-                Button("Create") {
+                Button(L("Create")) {
                     let name = newWorldName.trimmingCharacters(in: .whitespacesAndNewlines)
                     _ = store.createWorld(
                         named: name.isEmpty ? "My World" : name,

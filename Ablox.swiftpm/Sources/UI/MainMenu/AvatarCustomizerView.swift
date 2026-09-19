@@ -32,9 +32,9 @@ struct AvatarCustomizerView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     VStack(alignment: .leading, spacing: 5) {
-                        Text("Avatar")
+                        Text(L("Avatar"))
                             .font(.system(size: 32, weight: .bold, design: .rounded))
-                        Text("This is how you appear in everyone else's world.")
+                        Text(L("This is how you appear in everyone else's world."))
                             .font(.subheadline)
                             .foregroundStyle(Ablox.Palette.inkMuted)
                     }
@@ -59,10 +59,10 @@ struct AvatarCustomizerView: View {
 
     private var nameField: some View {
         VStack(alignment: .leading, spacing: 7) {
-            Text("Display name")
+            Text(L("Display name"))
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(Ablox.Palette.inkMuted)
-            TextField("Player", text: $settings.profile.displayName)
+            TextField(L("Player"), text: $settings.profile.displayName)
                 .textFieldStyle(.plain)
                 .font(.body.weight(.medium))
                 .padding(12)
@@ -73,11 +73,11 @@ struct AvatarCustomizerView: View {
 
     private var colourSection: some View {
         VStack(alignment: .leading, spacing: 11) {
-            Text("Colours")
+            Text(L("Colours"))
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(Ablox.Palette.inkMuted)
 
-            Picker("Part", selection: $slot) {
+            Picker(L("Part"), selection: $slot) {
                 ForEach(Slot.allCases) { Text($0.rawValue).tag($0) }
             }
             .pickerStyle(.segmented)
@@ -110,7 +110,7 @@ struct AvatarCustomizerView: View {
 
     private var hatSection: some View {
         VStack(alignment: .leading, spacing: 11) {
-            Text("Hat")
+            Text(L("Hat"))
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(Ablox.Palette.inkMuted)
 
@@ -145,7 +145,7 @@ struct AvatarCustomizerView: View {
     private var heightSection: some View {
         VStack(alignment: .leading, spacing: 7) {
             HStack {
-                Text("Height")
+                Text(L("Height"))
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(Ablox.Palette.inkMuted)
                 Spacer()
@@ -168,7 +168,7 @@ struct AvatarCustomizerView: View {
                 settings.profile = generated
             }
         } label: {
-            Label("Surprise me", systemImage: "dice.fill")
+            Label(L("Surprise me"), systemImage: "dice.fill")
                 .frame(maxWidth: .infinity)
         }
         .buttonStyle(NeonButtonStyle(.secondary, fullWidth: true))

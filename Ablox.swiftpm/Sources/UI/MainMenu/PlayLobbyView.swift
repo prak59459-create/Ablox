@@ -29,8 +29,8 @@ struct PlayLobbyView: View {
             .presentationDetents([.height(340)])
             .presentationBackground(.ultraThinMaterial)
         }
-        .alert("Could not join", isPresented: .constant(joinError != nil)) {
-            Button("OK") { joinError = nil }
+        .alert(L("Could not join"), isPresented: .constant(joinError != nil)) {
+            Button(L("OK")) { joinError = nil }
         } message: {
             Text(joinError ?? "")
         }
@@ -58,11 +58,11 @@ struct PlayLobbyView: View {
                 }
 
             VStack(alignment: .leading, spacing: 9) {
-                Badge("NEARBY MULTIPLAYER", color: Ablox.Palette.accent, systemImage: "antenna.radiowaves.left.and.right")
-                Text("Join a friend's world")
+                Badge(L("NEARBY MULTIPLAYER"), color: Ablox.Palette.accent, systemImage: "antenna.radiowaves.left.and.right")
+                Text(L("Join a friend's world"))
                     .font(.system(size: 30, weight: .bold, design: .rounded))
                     .foregroundStyle(.white)
-                Text("Hosts appear here automatically over Bonjour. Type the room code they show you and the connection is encrypted end to end.")
+                Text(L("Hosts appear here automatically over Bonjour. Type the room code they show you and the connection is encrypted end to end."))
                     .font(.subheadline)
                     .foregroundStyle(.white.opacity(0.82))
                     .fixedSize(horizontal: false, vertical: true)
@@ -76,7 +76,7 @@ struct PlayLobbyView: View {
 
     private var nearbySection: some View {
         VStack(alignment: .leading, spacing: 14) {
-            SectionHeader("Nearby worlds", systemImage: "wifi.circle.fill") {
+            SectionHeader(L("Nearby worlds"), systemImage: "wifi.circle.fill") {
                 if session.discoveredPeers.isEmpty && session.browserUnavailableReason == nil {
                     ProgressView().controlSize(.small).tint(Ablox.Palette.accent)
                 }
@@ -88,7 +88,7 @@ struct PlayLobbyView: View {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .foregroundStyle(Ablox.Palette.warning)
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Can't search for iPads")
+                            Text(L("Can't search for iPads"))
                                 .font(.headline)
                             Text(reason)
                                 .font(.subheadline)
@@ -135,9 +135,9 @@ struct PlayLobbyView: View {
                         Image(systemName: "lock.shield.fill")
                             .font(.caption2)
                             .foregroundStyle(Ablox.Palette.success)
-                            .accessibilityLabel("Encrypted")
+                            .accessibilityLabel(L("Encrypted"))
                     }
-                    Text("\(peer.hostName) · \(peer.subtitle)")
+                    Text(L("{} · {}", peer.hostName, peer.subtitle))
                         .font(.caption)
                         .foregroundStyle(Ablox.Palette.inkMuted)
                 }
@@ -145,11 +145,11 @@ struct PlayLobbyView: View {
                 Spacer()
 
                 if !peer.isCompatible {
-                    Badge("Update needed", color: Ablox.Palette.warning)
+                    Badge(L("Update needed"), color: Ablox.Palette.warning)
                 } else if peer.isFull {
-                    Badge("Full", color: Ablox.Palette.inkFaint)
+                    Badge(L("Full"), color: Ablox.Palette.inkFaint)
                 } else {
-                    Button("Join") {
+                    Button(L("Join")) {
                         roomCodeEntry = ""
                         joiningPeer = peer
                     }
@@ -164,7 +164,7 @@ struct PlayLobbyView: View {
 
     private var quickPlaySection: some View {
         VStack(alignment: .leading, spacing: 14) {
-            SectionHeader("Play on your own", systemImage: "play.circle.fill")
+            SectionHeader(L("Play on your own"), systemImage: "play.circle.fill")
 
             if store.entries.isEmpty {
                 GlassCard {
@@ -221,14 +221,14 @@ private struct JoinSheet: View {
             VStack(spacing: 6) {
                 Text(peer.worldName)
                     .font(.title2.weight(.bold))
-                Text("Hosted by \(peer.hostName)")
+                Text(L("Hosted by {}", peer.hostName))
                     .font(.subheadline)
                     .foregroundStyle(Ablox.Palette.inkMuted)
             }
             .padding(.top, 26)
 
             VStack(spacing: 8) {
-                Text("Room code")
+                Text(L("Room code"))
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(Ablox.Palette.inkMuted)
 
@@ -248,12 +248,12 @@ private struct JoinSheet: View {
                     )
                     .onSubmit { if isValid { onJoin() } }
 
-                Text("The host's iPad shows this code.")
+                Text(L("The host's iPad shows this code."))
                     .font(.caption2)
                     .foregroundStyle(Ablox.Palette.inkFaint)
             }
 
-            Button("Join world", action: onJoin)
+            Button(L("Join world"), action: onJoin)
                 .buttonStyle(NeonButtonStyle(.primary, fullWidth: true))
                 .disabled(!isValid)
                 .opacity(isValid ? 1 : 0.5)

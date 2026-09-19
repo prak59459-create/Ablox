@@ -21,6 +21,7 @@ public final class AppSettings: ObservableObject {
         static let wallet = "ablox.wallet"
         static let muteList = "ablox.muteList"
         static let chatFilterEnabled = "ablox.chatFilterEnabled"
+        static let language = "ablox.language"
     }
 
     private let defaults: UserDefaults
@@ -71,6 +72,29 @@ public final class AppSettings: ObservableObject {
         didSet { defaults.set(chatFilterEnabled, forKey: Key.chatFilterEnabled) }
     }
 
+    /// English, Japanese, or whatever the iPad is set to.
+    ///
+    /// Applying it writes a global that every `L(...)` reads, including the
+    /// ones in the portable core that have no SwiftUI to reach into. SwiftUI
+    /// does not observe that global, so `AbloxApp` hangs `.id(language)` on
+    /// the view below its state objects: changing the language rebuilds the
+    /// interface once, and the session, wallet and settings survive it.
+    @Published public var language: LanguagePreference {
+        didSet {
+            defaults.set(language.rawValue, forKey: Key.language)
+            applyLanguage()
+        }
+    }
+
+    /// Pushes the current preference into the global the whole app reads.
+    ///
+    /// `Locale.preferredLanguages` rather than `Locale.current`: the first is
+    /// the ordered list the person actually chose in Settings, and the second
+    /// answers with a region even for a language the app does not have.
+    public func applyLanguage() {
+        Localization.language = language.language(preferredCodes: Locale.preferredLanguages)
+    }
+
     /// This device's identity, generated once and kept. Stable across launches
     /// so a player's score and avatar survive a reconnect mid-session.
     public let peerID: PeerID
@@ -95,6 +119,11 @@ public final class AppSettings: ObservableObject {
         // who never opens Settings should get the safer behaviour.
         self.chatFilterEnabled = defaults.object(forKey: Key.chatFilterEnabled) as? Bool ?? true
 
+        // Nothing saved means a first launch, which should look like the rest
+        // of the iPad rather than like an American default.
+        self.language = defaults.string(forKey: Key.language)
+            .flatMap(LanguagePreference.init(rawValue:)) ?? .system
+
         if let stored = defaults.string(forKey: Key.peerID), let uuid = UUID(uuidString: stored) {
             self.peerID = PeerID(uuid)
         } else {
@@ -102,6 +131,12 @@ public final class AppSettings: ObservableObject {
             defaults.set(fresh.raw.uuidString, forKey: Key.peerID)
             self.peerID = fresh
         }
+
+        // Before anything reads a string. `didSet` does not run during init,
+        // so the stored preference has to be applied by hand here or the first
+        // screen draws in English and only corrects itself when someone opens
+        // Settings.
+        applyLanguage()
 
         // First launch: give the player a name and a look rather than a
         // screen full of defaults called "Player".

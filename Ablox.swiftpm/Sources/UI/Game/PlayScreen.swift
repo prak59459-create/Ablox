@@ -174,7 +174,7 @@ public struct PlayScreen: View {
                     .background(.ultraThinMaterial, in: Circle())
                     .foregroundStyle(.white)
             }
-            .accessibilityLabel("Leave world")
+            .accessibilityLabel(L("Leave world"))
 
             worldChip
 
@@ -195,7 +195,7 @@ public struct PlayScreen: View {
                     .background(.ultraThinMaterial, in: Circle())
                     .foregroundStyle(showScoreboard ? Ablox.Palette.accent : .white)
             }
-            .accessibilityLabel("Scoreboard")
+            .accessibilityLabel(L("Scoreboard"))
 
             Button {
                 withAnimation { showChat.toggle() }
@@ -206,7 +206,7 @@ public struct PlayScreen: View {
                     .background(.ultraThinMaterial, in: Circle())
                     .foregroundStyle(showChat ? Ablox.Palette.accent : .white)
             }
-            .accessibilityLabel("Chat")
+            .accessibilityLabel(L("Chat"))
         }
         .padding(.horizontal, 18)
         .padding(.top, 14)
@@ -229,7 +229,7 @@ public struct PlayScreen: View {
                 .font(.subheadline.weight(.semibold))
                 .lineLimit(1)
             if let ping = session.pingMilliseconds {
-                Text("\(Int(ping))ms")
+                Text(L("{}ms", Int(ping)))
                     .font(.caption.monospacedDigit())
                     .foregroundStyle(ping < 60 ? Ablox.Palette.success : Ablox.Palette.warning)
             }
@@ -246,7 +246,7 @@ public struct PlayScreen: View {
                 .font(.caption)
                 .foregroundStyle(Ablox.Palette.success)
             VStack(alignment: .leading, spacing: 0) {
-                Text("ROOM CODE")
+                Text(L("ROOM CODE"))
                     .font(.system(size: 8, weight: .black))
                     .foregroundStyle(Ablox.Palette.inkFaint)
                 Text(RoomCode.formatted(session.roomCode))
@@ -257,7 +257,7 @@ public struct PlayScreen: View {
         .padding(.vertical, 8)
         .background(.ultraThinMaterial, in: Capsule())
         .foregroundStyle(.white)
-        .accessibilityLabel("Room code \(session.roomCode.map(String.init).joined(separator: " "))")
+        .accessibilityLabel(L("Room code {}", session.roomCode.map(String.init).joined(separator: " ")))
     }
 
     private var scoreChip: some View {
@@ -277,12 +277,12 @@ public struct PlayScreen: View {
     private var scoreboard: some View {
         GlassCard(padding: 14) {
             VStack(alignment: .leading, spacing: 9) {
-                Text("Players")
+                Text(L("Players"))
                     .font(.caption.weight(.bold))
                     .foregroundStyle(Ablox.Palette.inkMuted)
 
                 if session.roster.isEmpty {
-                    Text("Just you so far.")
+                    Text(L("Just you so far."))
                         .font(.caption)
                         .foregroundStyle(Ablox.Palette.inkFaint)
                 }
@@ -338,7 +338,7 @@ public struct PlayScreen: View {
             }
 
             HStack(spacing: 9) {
-                TextField("Say something…", text: $chatDraft)
+                TextField(L("Say something…"), text: $chatDraft)
                     .textFieldStyle(.plain)
                     .padding(.horizontal, 13)
                     .padding(.vertical, 9)
@@ -381,7 +381,7 @@ public struct PlayScreen: View {
                 Text(progress)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.white)
-                Button("Leave", action: onExit)
+                Button(L("Leave"), action: onExit)
                     .font(.caption.weight(.bold))
                     .foregroundStyle(Ablox.Palette.accent)
             }
@@ -403,7 +403,7 @@ public struct PlayScreen: View {
                 Text(session.status == .connecting ? "Connecting…" : "Looking for the world…")
                     .font(.headline)
                     .foregroundStyle(.white)
-                Button("Cancel", action: onExit)
+                Button(L("Cancel"), action: onExit)
                     .buttonStyle(NeonButtonStyle(.secondary))
             }
         }
@@ -418,7 +418,7 @@ public struct PlayScreen: View {
                     Image(systemName: "wifi.exclamationmark")
                         .font(.system(size: 40))
                         .foregroundStyle(Ablox.Palette.warning)
-                    Text("Disconnected")
+                    Text(L("Disconnected"))
                         .font(.title3.weight(.bold))
                         .foregroundStyle(.white)
                     Text(message)
@@ -426,7 +426,7 @@ public struct PlayScreen: View {
                         .multilineTextAlignment(.center)
                         .foregroundStyle(Ablox.Palette.inkMuted)
                         .fixedSize(horizontal: false, vertical: true)
-                    Button("Back to menu", action: onExit)
+                    Button(L("Back to menu"), action: onExit)
                         .buttonStyle(NeonButtonStyle(.primary))
                 }
                 .frame(maxWidth: 340)
