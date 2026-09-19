@@ -29,22 +29,25 @@ let package = Package(
             teamIdentifier: "",
             displayVersion: "1.0",
             bundleVersion: "1",
-            // A stock placeholder rather than an asset catalogue. The drawn
-            // Ablox cube is in `design/AppIcon.png`; set it from Swift
-            // Playgrounds' own app-settings screen, which writes the asset
-            // catalogue itself. Wiring one by hand here is a manifest error
-            // waiting to happen, and a broken manifest stops the app opening
-            // at all.
-            appIcon: .placeholder(icon: .cube),
+            // No `appIcon:` on purpose. The parameter is optional, and two
+            // guesses at `PlaceholderIcon`'s member names (`.hammer`, then
+            // `.cube`) were both rejected on device — a wrong one does not
+            // degrade to a default icon, it stops the manifest compiling and
+            // the project will not open at all. The drawn Ablox cube is in
+            // `design/AppIcon.png`; set it from Swift Playgrounds' own
+            // app-settings screen, which writes the asset catalogue itself.
             accentColor: .presetColor(.cyan),
             supportedDeviceFamilies: [
                 .pad,
                 .phone
             ],
+            // Plain values, not calls: `InterfaceOrientation` exposes static
+            // properties, so `.portrait(upsideDown: false)` is a type error.
+            // Upside-down portrait is simply left out of the list instead.
             supportedInterfaceOrientations: [
                 .landscapeRight,
                 .landscapeLeft,
-                .portrait(upsideDown: false)
+                .portrait
             ],
             capabilities: [
                 // Required on iOS 14+ before Bonjour browsing or any local
