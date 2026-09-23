@@ -18,11 +18,18 @@ public struct PlayScreen: View {
     @State private var showChat = false
     @State private var chatDraft = ""
     @State private var hasBankedThisRound = false
+    @State private var isFiring = false
 
     public init(session: SessionCoordinator, activeSession: ActiveSession, onExit: @escaping () -> Void) {
         self.session = session
         self.activeSession = activeSession
         self.onExit = onExit
+    }
+
+    /// First person may look well up and down; the orbit camera may not go
+    /// under the floor.
+    private var pitchRange: ClosedRange<Float> {
+        session.scripted.camera == .firstPerson ? -80...80 : -75...20
     }
 
     private var movementInput: MovementInput {
@@ -37,11 +44,13 @@ public struct PlayScreen: View {
                 cameraYaw: $cameraYaw,
                 cameraPitch: $cameraPitch,
                 soundEnabled: settings.soundEnabled,
-                hapticsEnabled: settings.hapticsEnabled
+                hapticsEnabled: settings.hapticsEnabled,
+                isFiring: isFiring && session.scripted.weapon != nil
             )
             .ignoresSafeArea()
 
             controlsLayer
+            ScriptHUDLayer(session: session)
             hudLayer
 
             if session.status.isBusy {
@@ -118,7 +127,8 @@ public struct PlayScreen: View {
                             yaw: $cameraYaw,
                             pitch: $cameraPitch,
                             sensitivity: settings.cameraSensitivity,
-                            invertY: settings.invertCameraY
+                            invertY: settings.invertCameraY,
+                            pitchRange: pitchRange
                         )
                         .frame(width: half)
                     } else {
@@ -126,7 +136,8 @@ public struct PlayScreen: View {
                             yaw: $cameraYaw,
                             pitch: $cameraPitch,
                             sensitivity: settings.cameraSensitivity,
-                            invertY: settings.invertCameraY
+                            invertY: settings.invertCameraY,
+                            pitchRange: pitchRange
                         )
                         .frame(width: half)
                         VirtualJoystick(value: $stick) { isRunning = $0 }
@@ -136,6 +147,17 @@ public struct PlayScreen: View {
 
                 VStack {
                     Spacer()
+                    if session.scripted.weapon != nil {
+                        // Above the jump button, on the same side: the thumb
+                        // that is not steering is the one that shoots.
+                        HStack {
+                            if !stickOnLeft { CombatControls(session: session, isFiring: $isFiring) }
+                            Spacer()
+                            if stickOnLeft { CombatControls(session: session, isFiring: $isFiring) }
+                        }
+                        .padding(.horizontal, 30)
+                        .padding(.bottom, 14)
+                    }
                     HStack {
                         if !stickOnLeft { JumpButton(isPressed: $isJumping) }
                         Spacer()
@@ -160,6 +182,12 @@ public struct PlayScreen: View {
                     .padding(.bottom, 30)
             }
             if showChat { chatBar }
+            if session.role == .hosting, !session.scriptLog.isEmpty {
+                ScriptLogBanner(session: session)
+                    .padding(.leading, 18)
+                    .padding(.bottom, 130)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
         }
         .animation(.spring(response: 0.35, dampingFraction: 0.8), value: session.announcement)
         .allowsHitTesting(true)
@@ -308,7 +336,10 @@ public struct PlayScreen: View {
     }
 
     private func announcementBanner(_ message: String) -> some View {
-        Text(message)
+        // Built-in messages ("Checkpoint reached") are catalogue keys and
+        // arrive in English from whichever iPad hosts; a script's own text
+        // is not in the catalogue and shows as written.
+        Text(verbatim: L(message))
             .font(.title3.weight(.bold))
             .padding(.horizontal, 26)
             .padding(.vertical, 13)

@@ -217,50 +217,66 @@ private struct JoinSheet: View {
     private var isValid: Bool { RoomCode.isPlausible(code) }
 
     var body: some View {
-        VStack(spacing: 20) {
-            VStack(spacing: 6) {
-                Text(peer.worldName)
-                    .font(.title2.weight(.bold))
-                Text(L("Hosted by {}", peer.hostName))
-                    .font(.subheadline)
-                    .foregroundStyle(Ablox.Palette.inkMuted)
+        ScrollView {
+            VStack(spacing: 18) {
+                VStack(spacing: 6) {
+                    Text(peer.worldName)
+                        .font(.title2.weight(.bold))
+                    Text(L("Hosted by {}", peer.hostName))
+                        .font(.subheadline)
+                        .foregroundStyle(Ablox.Palette.inkMuted)
+                }
+                .padding(.top, 22)
+
+                VStack(spacing: 8) {
+                    Text(L("Room code"))
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Ablox.Palette.inkMuted)
+
+                    // Still a real text field, so a hardware keyboard types
+                    // straight into it. The pad below edits the same value.
+                    TextField("ABC DEF", text: Binding(
+                        get: { RoomCode.formatted(code) },
+                        set: { code = RoomCode.normalize($0) }
+                    ))
+                        .textFieldStyle(.plain)
+                        .font(.system(size: 30, weight: .bold, design: .monospaced))
+                        .multilineTextAlignment(.center)
+                        .textInputAutocapitalization(.characters)
+                        .autocorrectionDisabled()
+                        .focused($codeFocused)
+                        .padding(.vertical, 12)
+                        .frame(maxWidth: 260)
+                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .strokeBorder(isValid ? Ablox.Palette.success.opacity(0.6) : Color.white.opacity(0.12), lineWidth: 1.5)
+                        )
+                        .onSubmit { if isValid { onJoin() } }
+
+                    Text(L("The host's iPad shows this code."))
+                        .font(.caption2)
+                        .foregroundStyle(Ablox.Palette.inkFaint)
+                }
+
+                CodePad(code: $code)
+
+                Button(L("Join world"), action: onJoin)
+                    .buttonStyle(NeonButtonStyle(.primary, fullWidth: true))
+                    .disabled(!isValid)
+                    .opacity(isValid ? 1 : 0.5)
+                    .padding(.horizontal, 30)
+                    .padding(.bottom, 20)
             }
-            .padding(.top, 26)
-
-            VStack(spacing: 8) {
-                Text(L("Room code"))
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(Ablox.Palette.inkMuted)
-
-                TextField("ABC DEF", text: $code)
-                    .textFieldStyle(.plain)
-                    .font(.system(size: 30, weight: .bold, design: .monospaced))
-                    .multilineTextAlignment(.center)
-                    .textInputAutocapitalization(.characters)
-                    .autocorrectionDisabled()
-                    .focused($codeFocused)
-                    .padding(.vertical, 12)
-                    .frame(maxWidth: 260)
-                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .strokeBorder(isValid ? Ablox.Palette.success.opacity(0.6) : Color.white.opacity(0.12), lineWidth: 1.5)
-                    )
-                    .onSubmit { if isValid { onJoin() } }
-
-                Text(L("The host's iPad shows this code."))
-                    .font(.caption2)
-                    .foregroundStyle(Ablox.Palette.inkFaint)
-            }
-
-            Button(L("Join world"), action: onJoin)
-                .buttonStyle(NeonButtonStyle(.primary, fullWidth: true))
-                .disabled(!isValid)
-                .opacity(isValid ? 1 : 0.5)
-                .padding(.horizontal, 30)
-
-            Spacer(minLength: 0)
         }
-        .onAppear { codeFocused = true }
+        .task {
+            // Asking for focus in `onAppear` is what made the keyboard fail to
+            // appear on some iPads: the sheet is still animating in, and on a
+            // slower device the request is silently dropped. Asking once it
+            // has settled works everywhere the system keyboard can appear at
+            // all — and where it cannot, the pad above is already on screen.
+            try? await Task.sleep(nanoseconds: 600_000_000)
+            codeFocused = true
+        }
     }
 }

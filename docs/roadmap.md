@@ -46,6 +46,18 @@ repository.
 - [x] Host-authoritative scoring
 - [x] Edit ↔ play switching (in Studio)
 
+## Phase 5 — Scripting ✅
+
+- [x] AbloxScript: a sandboxed interpreter with step, depth and size limits,
+      and errors in English and Japanese — see [`scripting.md`](scripting.md)
+- [x] Game API: players, blocks, timers, teams, screen GUI (text, bars, buttons)
+- [x] First-person camera, weapons and host-authoritative hitscan
+- [x] Studio script editor with Check, a headless Test run, samples and a reference
+- [x] Fixed: the host never showed joined players moving; a joining player
+      ignored the spawn point the host gave them (`RosterState`)
+- [x] Room codes can be typed on an on-screen pad when the keyboard does not
+      appear (`CodePad`)
+
 ---
 
 ## Deliberately not built
@@ -91,7 +103,8 @@ colour. A Playground should be readable Swift, not a bundle of binaries.
 ## If work continued
 
 1. Audio — the cheapest large improvement to how the game feels.
-2. Teams and round timers, built on the existing rule vocabulary.
+2. Other players' weapons drawn in their hands — today only tracers show
+   that someone else is shooting.
 3. A world-sharing flow: worlds are single JSON files already, so AirDrop is
    mostly a share sheet away.
 4. Replay recording — the wire format is already a complete event log.

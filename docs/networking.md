@@ -148,6 +148,12 @@ and a peer announcing a 4 GB payload.
 | `chat` | both | must arrive |
 | `ping` / `pong` | both | supersedable |
 | `leave` | both | best effort |
+| `playerInput` | client → host | must arrive |
+
+`playerInput` (protocol version 2) carries a fire, reload or screen-button
+press for the world's script. Like `eventTrigger` it is a claim, not a result:
+a shot says where it came from and which way, and the host decides what it hit
+— see [`scripting.md`](scripting.md).
 
 Only `playerTransform` is dropped when it arrives out of order — the next one
 supersedes it anyway. Everything else is delivered regardless of sequence,

@@ -120,6 +120,10 @@ public struct CameraPad: View {
     @Binding var pitch: Float
     var sensitivity: Double
     var invertY: Bool
+    /// How far up and down the view may tilt. An orbit camera behind the
+    /// player must not dip under the floor; a first-person view needs to look
+    /// up at someone on a ledge.
+    var pitchRange: ClosedRange<Float>
     /// A tap that did not move is forwarded, so tapping a block still works
     /// through the pad.
     var onTap: ((CGPoint) -> Void)?
@@ -132,12 +136,14 @@ public struct CameraPad: View {
         pitch: Binding<Float>,
         sensitivity: Double = 1,
         invertY: Bool = false,
+        pitchRange: ClosedRange<Float> = -75...20,
         onTap: ((CGPoint) -> Void)? = nil
     ) {
         self._yaw = yaw
         self._pitch = pitch
         self.sensitivity = sensitivity
         self.invertY = invertY
+        self.pitchRange = pitchRange
         self.onTap = onTap
     }
 
@@ -159,7 +165,8 @@ public struct CameraPad: View {
 
                         let factor = Float(0.28 * sensitivity)
                         yaw = normalizeDegrees(yaw - Float(dx) * factor)
-                        pitch = max(-75, min(20, pitch + Float(dy) * factor * (invertY ? -1 : 1)))
+                        let tilted = pitch + Float(dy) * factor * (invertY ? -1 : 1)
+                        pitch = max(pitchRange.lowerBound, min(pitchRange.upperBound, tilted))
                     }
                     .onEnded { gesture in
                         if !didDrag { onTap?(gesture.startLocation) }

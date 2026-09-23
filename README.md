@@ -60,6 +60,8 @@ Further reading:
 - [`docs/architecture.md`](docs/architecture.md) — why the pieces are split this way
 - [`docs/networking.md`](docs/networking.md) — the protocol, and the security model in plain terms
 - [`docs/games.md`](docs/games.md) — the published game list, and making a map with an assistant
+- [`docs/scripting.ja.md`](docs/scripting.ja.md) — スクリプトでゲームを作る（1対1シューティング、画面GUI、1人称）
+- [`docs/scripting.md`](docs/scripting.md) — AbloxScript: the language, its limits, and why it is not Swift
 - [`docs/localization.md`](docs/localization.md) — English and Japanese, and why there is no `.lproj`
 - [`docs/ipad-build.md`](docs/ipad-build.md) — the errors only an iPad can report
 - [`docs/roadmap.md`](docs/roadmap.md) — what is built and what is not
