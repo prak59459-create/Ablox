@@ -48,8 +48,11 @@ repository.
 
 ## Phase 5 — Scripting ✅
 
-- [x] AbloxScript: a sandboxed interpreter with step, depth and size limits,
-      and errors in English and Japanese — see [`scripting.md`](scripting.md)
+- [x] AbloxScript (`.absc` files, many per world): a sandboxed interpreter with
+      generous fuses, and errors in English and Japanese — see [`scripting.md`](scripting.md)
+- [x] Free-form screen GUI, camera modes, fades and shakes, hiding the controls
+- [x] Characters: appearance, movement, launching; NPCs that walk, follow and shoot
+- [x] Building the map from a script: create, change, move and destroy blocks; sky and gravity
 - [x] Game API: players, blocks, timers, teams, screen GUI (text, bars, buttons)
 - [x] First-person camera, weapons and host-authoritative hitscan
 - [x] Studio script editor with Check, a headless Test run, samples and a reference

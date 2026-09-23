@@ -1,9 +1,8 @@
 import SwiftUI
 
-/// What a world's script puts on the screen: its own items at nine anchors,
-/// and the shooter furniture — crosshair, health, hit marker — that appears
-/// only once the script involves it. A world without a script shows none of
-/// this.
+/// What a world's script puts on the screen: its own GUI, placed freely, and
+/// the shooter furniture — crosshair, health, hit marker — that appears only
+/// once the script involves it. A world without a script shows none of this.
 struct ScriptHUDLayer: View {
     @ObservedObject var session: SessionCoordinator
 
@@ -12,22 +11,17 @@ struct ScriptHUDLayer: View {
         ZStack {
             DamageFlash(count: state.damageFlashCount)
 
-            ForEach(HUDElement.Anchor.allCases, id: \.self) { anchor in
-                let items = state.elements(at: anchor)
-                if !items.isEmpty {
-                    VStack(alignment: horizontalAlignment(anchor), spacing: 8) {
-                        ForEach(items) { item in
-                            ScriptHUDItem(element: item) {
-                                session.send(input: .button(id: item.id))
-                            }
-                        }
-                    }
-                    .padding(padding(for: anchor))
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: alignment(anchor))
-                }
-            }
+            // Below the top bar while it shows, so a script's "top" is never
+            // under the leave button.
+            ScriptUICanvas(
+                state: state,
+                parent: nil,
+                onButton: { id in session.send(input: .button(id: id)) },
+                onSubmit: { id, text in session.send(input: .text(id: id, value: text)) }
+            )
+            .padding(.top, state.showsDefaultUI ? 64 : 0)
 
-            if state.weapon != nil || state.camera == .firstPerson {
+            if state.weapon != nil || state.camera.mode == .firstPerson {
                 Crosshair(hitCount: state.hitMarkerCount, knockedOut: state.lastHitWasKnockout)
                     .allowsHitTesting(false)
             }
@@ -42,6 +36,8 @@ struct ScriptHUDLayer: View {
             if state.isKnockedOut {
                 knockedOutBanner
             }
+
+            FadeOverlay(fade: state.fade)
         }
     }
 
@@ -60,112 +56,205 @@ struct ScriptHUDLayer: View {
         .allowsHitTesting(false)
         .transition(.opacity)
     }
+}
 
-    // MARK: Layout
+/// The elements inside one parent — the screen, or a panel — each placed at
+/// its `x`, `y` (fractions of this canvas), `pivot` and offset.
+struct ScriptUICanvas: View {
+    let state: ScriptedPlayerState
+    let parent: String?
+    let onButton: (String) -> Void
+    let onSubmit: (String, String) -> Void
 
-    private func alignment(_ anchor: HUDElement.Anchor) -> Alignment {
-        switch anchor {
-        case .topLeft: return .topLeading
-        case .top: return .top
-        case .topRight: return .topTrailing
-        case .left: return .leading
-        case .center: return .center
-        case .right: return .trailing
-        case .bottomLeft: return .bottomLeading
-        case .bottom: return .bottom
-        case .bottomRight: return .bottomTrailing
+    var body: some View {
+        GeometryReader { proxy in
+            ZStack {
+                ForEach(state.children(of: parent)) { element in
+                    ScriptUIElementView(element: element, state: state, onButton: onButton, onSubmit: onSubmit)
+                        .fixedSize()
+                        // A zero-size frame aligned on the pivot, then placed:
+                        // the element's pivot point lands exactly on (x, y)
+                        // without needing to know the element's own size.
+                        .frame(width: 0, height: 0, alignment: Self.alignment(element))
+                        .position(
+                            x: proxy.size.width * element.x + element.offsetX,
+                            y: proxy.size.height * element.y + element.offsetY
+                        )
+                }
+            }
+            .frame(width: proxy.size.width, height: proxy.size.height)
         }
     }
 
-    private func horizontalAlignment(_ anchor: HUDElement.Anchor) -> HorizontalAlignment {
-        switch anchor {
-        case .topLeft, .left, .bottomLeft: return .leading
-        case .top, .center, .bottom: return .center
-        case .topRight, .right, .bottomRight: return .trailing
-        }
+    /// The nearest of the nine alignments to the element's pivot.
+    static func alignment(_ element: UIElement) -> Alignment {
+        let column = element.pivotX < 0.34 ? 0 : element.pivotX > 0.66 ? 2 : 1
+        let row = element.pivotY < 0.34 ? 0 : element.pivotY > 0.66 ? 2 : 1
+        let grid: [[Alignment]] = [
+            [.topLeading, .top, .topTrailing],
+            [.leading, .center, .trailing],
+            [.bottomLeading, .bottom, .bottomTrailing]
+        ]
+        return grid[row][column]
+    }
+}
+
+/// One element: a panel (with its own canvas inside), text, a button, an
+/// icon, a bar or a text box.
+struct ScriptUIElementView: View {
+    let element: UIElement
+    let state: ScriptedPlayerState
+    let onButton: (String) -> Void
+    let onSubmit: (String, String) -> Void
+
+    private var foreground: Color { element.color.map { Color($0) } ?? .white }
+    private var font: Font { .system(size: CGFloat(element.fontSize), weight: element.bold ? .bold : .regular) }
+    private var radius: CGFloat { CGFloat(element.cornerRadius) }
+
+    var body: some View {
+        content
+            .opacity(element.opacity)
     }
 
-    /// Clear of the top bar, the joystick and the buttons, which were there
-    /// first. A script cannot move its text under a control.
-    private func padding(for anchor: HUDElement.Anchor) -> EdgeInsets {
-        switch anchor {
-        case .topLeft, .top, .topRight: return EdgeInsets(top: 74, leading: 18, bottom: 0, trailing: 18)
-        case .left, .right: return EdgeInsets(top: 0, leading: 18, bottom: 0, trailing: 18)
-        // Below the crosshair rather than on it.
-        case .center: return EdgeInsets(top: 120, leading: 0, bottom: 0, trailing: 0)
-        case .bottomLeft, .bottomRight: return EdgeInsets(top: 0, leading: 170, bottom: 190, trailing: 170)
-        case .bottom: return EdgeInsets(top: 0, leading: 0, bottom: 70, trailing: 0)
+    @ViewBuilder
+    private var content: some View {
+        switch element.kind {
+        case .panel:
+            ZStack {
+                RoundedRectangle(cornerRadius: radius, style: .continuous)
+                    .fill(element.background.map { Color($0) } ?? Color.black.opacity(0.5))
+                AnyView(ScriptUICanvas(state: state, parent: element.id, onButton: onButton, onSubmit: onSubmit))
+            }
+            .frame(width: CGFloat(element.width ?? 320), height: CGFloat(element.height ?? 220))
+
+        case .text:
+            Text(verbatim: element.text)
+                .font(font)
+                .foregroundStyle(foreground)
+                .multilineTextAlignment(.center)
+                .shadow(color: element.background == nil ? .black.opacity(0.7) : .clear, radius: 2)
+                .padding(element.background == nil ? 0 : 10)
+                .frame(width: element.width.map { CGFloat($0) }, height: element.height.map { CGFloat($0) })
+                .background(element.background.map { Color($0) } ?? .clear,
+                            in: RoundedRectangle(cornerRadius: radius, style: .continuous))
+                .allowsHitTesting(false)
+
+        case .button:
+            Button {
+                onButton(element.id)
+            } label: {
+                Text(verbatim: element.text)
+                    .font(font)
+                    .foregroundStyle(foreground)
+                    .padding(.horizontal, 18)
+                    .padding(.vertical, 10)
+                    .frame(width: element.width.map { CGFloat($0) }, height: element.height.map { CGFloat($0) })
+                    .frame(minWidth: Ablox.Metrics.minimumTapTarget, minHeight: Ablox.Metrics.minimumTapTarget)
+                    .background(element.background.map { Color($0) } ?? Ablox.Palette.accentDeep,
+                                in: RoundedRectangle(cornerRadius: radius, style: .continuous))
+            }
+            .buttonStyle(.plain)
+
+        case .image:
+            Image(systemName: element.text)
+                .font(.system(size: CGFloat(element.fontSize), weight: element.bold ? .bold : .regular))
+                .foregroundStyle(foreground)
+                .frame(width: element.width.map { CGFloat($0) }, height: element.height.map { CGFloat($0) })
+                .background(element.background.map { Color($0) } ?? .clear,
+                            in: RoundedRectangle(cornerRadius: radius, style: .continuous))
+                .allowsHitTesting(false)
+
+        case .bar:
+            let width = CGFloat(element.width ?? 200)
+            let height = CGFloat(element.height ?? 14)
+            ZStack(alignment: .leading) {
+                RoundedRectangle(cornerRadius: radius, style: .continuous)
+                    .fill(element.background.map { Color($0) } ?? Color.black.opacity(0.4))
+                RoundedRectangle(cornerRadius: radius, style: .continuous)
+                    .fill(element.color.map { Color($0) } ?? Ablox.Palette.accent)
+                    .frame(width: width * CGFloat(element.fraction))
+            }
+            .frame(width: width, height: height)
+            .animation(.easeOut(duration: 0.2), value: element.fraction)
+            .allowsHitTesting(false)
+
+        case .input:
+            ScriptInputField(element: element, font: font, foreground: foreground, onSubmit: onSubmit)
         }
     }
 }
 
-/// One item: a line of text, a bar, or a button.
-private struct ScriptHUDItem: View {
-    let element: HUDElement
-    let onPress: () -> Void
+/// A script's text box: typed into, then sent with the return key or the
+/// arrow button.
+struct ScriptInputField: View {
+    let element: UIElement
+    let font: Font
+    let foreground: Color
+    let onSubmit: (String, String) -> Void
+    @State private var draft = ""
 
-    private var tint: Color {
-        element.color.map { Color($0) } ?? .white
+    init(element: UIElement, font: Font, foreground: Color, onSubmit: @escaping (String, String) -> Void) {
+        self.element = element
+        self.font = font
+        self.foreground = foreground
+        self.onSubmit = onSubmit
     }
 
     var body: some View {
-        switch element.kind {
-        case let .text(text):
-            Text(verbatim: text)
+        HStack(spacing: 8) {
+            TextField(element.text, text: $draft)
+                .textFieldStyle(.plain)
                 .font(font)
-                .foregroundStyle(tint)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 7)
-                .background(.ultraThinMaterial, in: Capsule())
-                .allowsHitTesting(false)
-
-        case let .bar(value, maximum):
-            let fraction = maximum > 0 ? Swift.min(Swift.max(value / maximum, 0), 1) : 0
-            ZStack(alignment: .leading) {
-                Capsule().fill(.black.opacity(0.35))
-                Capsule()
-                    .fill(element.color.map { Color($0) } ?? Ablox.Palette.accent)
-                    .frame(width: barWidth * fraction)
-            }
-            .frame(width: barWidth, height: barHeight)
-            .overlay(Capsule().strokeBorder(.white.opacity(0.35), lineWidth: 1))
-            .animation(.easeOut(duration: 0.2), value: fraction)
-            .allowsHitTesting(false)
-
-        case let .button(label):
-            Button(action: onPress) {
-                Text(verbatim: label)
-                    .font(font)
-                    .padding(.horizontal, 18)
-                    .padding(.vertical, 11)
-                    .frame(minHeight: Ablox.Metrics.minimumTapTarget)
-                    .background(element.color.map { Color($0).opacity(0.85) } ?? Ablox.Palette.accentDeep.opacity(0.85),
-                                in: Capsule())
-                    .foregroundStyle(.white)
+                .foregroundStyle(foreground)
+                .autocorrectionDisabled()
+                .onSubmit(send)
+            Button(action: send) {
+                Image(systemName: "arrow.up.circle.fill")
+                    .font(.title2)
+                    .foregroundStyle(Ablox.Palette.accent)
             }
             .buttonStyle(.plain)
+            .disabled(draft.trimmingCharacters(in: .whitespaces).isEmpty)
         }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .frame(width: CGFloat(element.width ?? 260))
+        .background(element.background.map { Color($0) } ?? Color.black.opacity(0.5),
+                    in: RoundedRectangle(cornerRadius: CGFloat(element.cornerRadius), style: .continuous))
     }
 
-    private var font: Font {
-        switch element.size {
-        case .small: return .footnote.weight(.semibold)
-        case .medium: return .headline
-        case .large: return .title.weight(.heavy)
-        }
+    private func send() {
+        let text = draft.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return }
+        onSubmit(element.id, text)
+        draft = ""
+    }
+}
+
+/// The whole screen fading to a colour and back, for scene changes.
+private struct FadeOverlay: View {
+    let fade: ScriptedPlayerState.Fade
+    @State private var shown: Double = 0
+    @State private var color: Color = .black
+
+    init(fade: ScriptedPlayerState.Fade) {
+        self.fade = fade
     }
 
-    private var barWidth: CGFloat {
-        switch element.size {
-        case .small: return 110
-        case .medium: return 190
-        case .large: return 300
-        }
-    }
-
-    private var barHeight: CGFloat {
-        element.size == .large ? 16 : 11
+    var body: some View {
+        Rectangle()
+            .fill(color)
+            .opacity(shown)
+            .ignoresSafeArea()
+            .allowsHitTesting(false)
+            .onChange(of: fade) { _, fade in
+                if let target = fade.color {
+                    color = Color(target)
+                    withAnimation(.easeInOut(duration: fade.seconds)) { shown = 1 }
+                } else {
+                    withAnimation(.easeInOut(duration: fade.seconds)) { shown = 0 }
+                }
+            }
     }
 }
 
@@ -175,6 +264,11 @@ private struct Crosshair: View {
     let hitCount: Int
     let knockedOut: Bool
     @State private var showingHit = false
+
+    init(hitCount: Int, knockedOut: Bool) {
+        self.hitCount = hitCount
+        self.knockedOut = knockedOut
+    }
 
     var body: some View {
         ZStack {
@@ -204,6 +298,10 @@ private struct Crosshair: View {
 private struct DamageFlash: View {
     let count: Int
     @State private var opacity: Double = 0
+
+    init(count: Int) {
+        self.count = count
+    }
 
     var body: some View {
         Rectangle()

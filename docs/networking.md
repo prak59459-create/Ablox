@@ -150,8 +150,8 @@ and a peer announcing a 4 GB payload.
 | `leave` | both | best effort |
 | `playerInput` | client → host | must arrive |
 
-`playerInput` (protocol version 2) carries a fire, reload or screen-button
-press for the world's script. Like `eventTrigger` it is a claim, not a result:
+`playerInput` (protocol version 2; text boxes added in 3) carries a fire,
+reload, screen-button or text-box press for the world's scripts. Like `eventTrigger` it is a claim, not a result:
 a shot says where it came from and which way, and the host decides what it hit
 — see [`scripting.md`](scripting.md).
 

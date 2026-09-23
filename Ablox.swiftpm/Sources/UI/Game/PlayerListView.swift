@@ -21,13 +21,13 @@ struct PlayerListView: View {
                     }
                 }
 
-                if session.roster.isEmpty {
+                if session.people.isEmpty {
                     Text(L("Just you so far."))
                         .font(.caption)
                         .foregroundStyle(Ablox.Palette.inkFaint)
                 }
 
-                ForEach(session.roster.sorted { $0.score > $1.score }) { player in
+                ForEach(session.people.sorted { $0.score > $1.score }) { player in
                     row(player)
                 }
 

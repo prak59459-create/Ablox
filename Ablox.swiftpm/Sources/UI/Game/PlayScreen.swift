@@ -29,7 +29,7 @@ public struct PlayScreen: View {
     /// First person may look well up and down; the orbit camera may not go
     /// under the floor.
     private var pitchRange: ClosedRange<Float> {
-        session.scripted.camera == .firstPerson ? -80...80 : -75...20
+        session.scripted.camera.mode == .firstPerson ? -80...80 : -75...20
     }
 
     private var movementInput: MovementInput {
@@ -49,7 +49,11 @@ public struct PlayScreen: View {
             )
             .ignoresSafeArea()
 
-            controlsLayer
+            // A script can hide the joystick and buttons — a title screen,
+            // a cutscene — and the top bar and chat.
+            if session.scripted.showsControls {
+                controlsLayer
+            }
             ScriptHUDLayer(session: session)
             hudLayer
 
@@ -174,14 +178,31 @@ public struct PlayScreen: View {
 
     private var hudLayer: some View {
         VStack(spacing: 0) {
-            topBar
+            if session.scripted.showsDefaultUI {
+                topBar
+            } else {
+                // A script may hide the top bar, but never the way out.
+                HStack {
+                    Button(action: onExit) {
+                        Image(systemName: "xmark")
+                            .font(.caption.weight(.bold))
+                            .frame(width: 30, height: 30)
+                            .background(.ultraThinMaterial, in: Circle())
+                            .foregroundStyle(.white.opacity(0.7))
+                    }
+                    .accessibilityLabel(L("Leave world"))
+                    Spacer()
+                }
+                .padding(.horizontal, 12)
+                .padding(.top, 10)
+            }
             Spacer()
             if let announcement = session.announcement {
                 announcementBanner(announcement.message)
                     .transition(.move(edge: .top).combined(with: .opacity))
                     .padding(.bottom, 30)
             }
-            if showChat { chatBar }
+            if showChat, session.scripted.showsDefaultUI { chatBar }
             if session.role == .hosting, !session.scriptLog.isEmpty {
                 ScriptLogBanner(session: session)
                     .padding(.leading, 18)
@@ -309,13 +330,13 @@ public struct PlayScreen: View {
                     .font(.caption.weight(.bold))
                     .foregroundStyle(Ablox.Palette.inkMuted)
 
-                if session.roster.isEmpty {
+                if session.people.isEmpty {
                     Text(L("Just you so far."))
                         .font(.caption)
                         .foregroundStyle(Ablox.Palette.inkFaint)
                 }
 
-                ForEach(session.roster.sorted { $0.score > $1.score }) { player in
+                ForEach(session.people.sorted { $0.score > $1.score }) { player in
                     HStack(spacing: 9) {
                         Circle()
                             .fill(Color(player.profile.bodyColor))

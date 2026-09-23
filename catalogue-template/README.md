@@ -20,6 +20,7 @@ games/
   sky-temple/
     world.ablox                  the world, exactly as Ablox Studio saved it
     cover.png                    1200 × 675
+    main.absc                    optional: script files, listed under "scripts"
     listing.json                 this game's entry, for convenience
 ```
 
@@ -64,6 +65,7 @@ publish delay — the app reads the file directly.
 | `summary` | ≤ 280 characters |
 | `world` | a path inside this repository, ending `.ablox` or `.json` |
 | `cover` | optional, ending `.png`, `.jpg` or `.jpeg` |
+| `scripts` | optional list of `.absc` files in this repository, run with the world (up to 32, 1 MB each) |
 | `tags` | at most 8, each ≤ 24 characters |
 | `blockCount` | the real number — the app compares it and says so if it is wrong |
 | `schemaVersion` | the world file's own version. An app too old to read it shows the game greyed out rather than failing. |

@@ -25,6 +25,21 @@ into a new public repo, then point the app at it in **Settings → Game list**
 
 The setting exists so a school or a club can run its own list.
 
+## Script files
+
+A world saved by Studio already carries its `.absc` scripts. A listing may also
+name script files kept in the repository — handy for scripts written on a
+computer:
+
+```json
+"scripts": ["games/zombies/main.absc", "games/zombies/ui.absc"]
+```
+
+Each must end in `.absc`, pass the same path rules as the world and cover, and
+be at most 1 MB; a listing may name up to 32. A file with the same name as a
+script inside the world replaces it. Indexes written before this field still
+decode.
+
 ## Everything downloaded is untrusted
 
 This is the first part of Ablox that reads bytes written by someone who is not

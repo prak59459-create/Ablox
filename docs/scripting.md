@@ -1,150 +1,162 @@
-# AbloxScript
+# AbloxScript (`.absc`)
 
-A small scripting language for Ablox worlds, written in Ablox Studio and run
-by whichever iPad hosts the game. It covers what the rule pickers cannot:
-first-person shooters, teams, weapons, timers, and a screen GUI.
+The scripting language for Ablox worlds. Scripts are `.absc` files, written in
+Ablox Studio (or anywhere, and imported), carried inside the world, and run by
+whichever iPad hosts the game. Anything the rule pickers cannot express is
+meant to be expressible here: free-form screen GUI, camera and screen control,
+character appearance and movement, NPCs, building and changing the map, the
+world's sky and gravity, weapons, raycasts and general computation.
 
-> 日本語版: [`scripting.ja.md`](scripting.ja.md) — the guide for people
-> making games. This page is the reference and the reasoning.
+> 日本語ガイド: [`scripting.ja.md`](scripting.ja.md) — for people making
+> games. This page is the reference and the reasoning.
 
 ## Why not Swift?
 
-The obvious request, and the one iOS rules out. Running Swift typed on an iPad
-means compiling it on the iPad, and an App Store app may not generate or load
-native code at runtime; Swift Playgrounds can do it only because it *is* the
-compiler. JavaScriptCore was the other candidate. It was turned down because:
+Running Swift typed on an iPad means compiling it on the iPad, and an app may
+not generate or load native code at runtime; Swift Playgrounds can only
+because it *is* the compiler. JavaScriptCore was the other candidate and was
+turned down: it cannot run under `swift test` on Linux where the rest of the
+game is tested, it has no public way to stop an infinite loop on the host
+everyone's game depends on, and its errors are written for programmers, in
+English. AbloxScript is a tree-walking interpreter in plain Swift
+(`AbloxCore/Script*.swift`) with errors in English and Japanese.
 
-- it cannot run under `swift test` on Linux, where every other rule of the
-  game is tested;
-- it has no public way to stop an infinite loop, and scripts run on the host —
-  the one iPad everyone else's game depends on;
-- its error messages are written for programmers, in English.
+## Files
 
-So AbloxScript is a tree-walking interpreter in plain Swift
-(`AbloxCore/Script*.swift`): about the size of a Lua subset, with errors in
-English and Japanese that say what to do.
+- A world has up to 32 `ScriptFile`s (`WorldDocument.scripts`), each a name
+  ending `.absc`, a source, and an on/off switch.
+- They run as **one program**: every file's top level in order, sharing
+  globals; each file may have its own `on join` etc., and all of them run, in
+  file order. A second `on tick` *within one file* is still an error.
+- Errors carry their file: `ui.absc, line 12: …`. Line numbers are packed
+  into the AST's existing `Int` (`ScriptLocation`) rather than widening every
+  node.
+- Worlds saved before scripts have no `scripts` key; worlds from the first
+  scripting build have a single `script` string, decoded as `main.absc`.
+- Studio imports `.absc` from the Files app and exports through the share
+  sheet. A game-list entry may list `"scripts": ["games/x/main.absc"]` in
+  `index.json`; the client downloads them with the world, and a repository
+  file replaces a same-named one inside the world.
 
 ## Safety
 
-Worlds come from strangers through the game list. Every limit below is a test
-in `ScriptLanguageTests` or `GameRuntimeTests`.
+Worlds come from strangers, and scripts run on the host. The limits are fuses
+rather than rules — each is far beyond what a game needs:
 
-| Limit | Value | Why |
-|---|---|---|
-| Steps per handler call | 50,000 | An endless loop stops within a frame or two, with an error on its line |
-| Call depth | 100 | Runaway recursion is an error, not a crash |
-| List / map size | 10,000 | A script cannot exhaust the host's memory |
-| Text length | 100,000 | Same |
-| Timers | 200 | `every` inside `on tick` would otherwise grow forever |
-| Screen items per player | 24 | Readable on an iPad, and bounded |
-| Weapon numbers | clamped | A fire rate of a million would be a million raycasts |
+| Limit | Value |
+|---|---|
+| Steps per handler call | 2,000,000 (`while true do end` stops with an error) |
+| Call depth | 200 |
+| List / map size | 100,000 |
+| Text length | 1,000,000 |
+| Source per file | 1,000,000 characters |
+| Timers alive | 1,000 |
+| Screen items per player | 300 |
+| NPCs | 100 |
+| Blocks in the world | 20,000 |
+| Weapons | clamped: damage ≤ 1e6, rate 0.1–30/s, range ≤ 1 km |
 
-There is no file, network or clock access: the only way out of a script is the
-game API. A handler that errors is reported once and the game carries on.
+No file, network or clock access: the only way out of a script is the game
+API. A handler that errors is reported once, on the host's screen, and the
+game carries on.
 
 ## How it runs
 
 ```
-client iPad                         host iPad
-───────────                         ─────────
-fire button ── playerInput ──────▶  GameRuntime
-                                      ├─ EventMachine (rules, scores)
-                                      ├─ ScriptInterpreter (the world's script)
-                                      └─ Hitscan / ArmedState (shots)
-◀────────────── eventEffect ──────  EventAction.script(ScriptEffect)
-ScriptedPlayerState → HUD, camera, weapon
+client iPad                          host iPad
+───────────                          ─────────
+fire / button / text / chat ──────▶  GameRuntime
+                                       ├─ EventMachine (rules, scores)
+                                       ├─ ScriptInterpreter (all .absc files)
+                                       ├─ NPC simulation (WorldCollider, 10 Hz)
+                                       └─ Hitscan / ArmedState (shots)
+◀── eventEffect: EventAction.script(ScriptEffect)  — per player or everyone
+◀── worldDelta: blocks and environment the script changed
+◀── playerTransform: NPC movement, like any avatar
+◀── roster: appearance, visibility, NPCs coming and going
+ScriptedPlayerState → GUI, camera, weapon, health, movement
 ```
 
-- **Host-authoritative.** A client says where it fired from and which way; the
-  host checks the fire rate (with 35% jitter allowance), the ammo, that the
-  muzzle is within 2.5 m of where it believes the shooter's eyes are, and then
-  decides what the shot met. Blocks stop shots.
-- **One effect path.** Everything a script does to a player — HUD, camera,
-  weapon, health, ammo, tracers — rides `EventAction.script`, targeted or
-  broadcast by the same `groupedIntoPayloads()` as rule effects.
-- **Late joiners** get the shared screen items replayed, then `on join`.
-- **Protocol version 2** added `PacketKind.playerInput` (12) and the script
-  effects. Older iPads are refused at the handshake with a readable message.
-
-`GameRuntime` owns both the rule machine and the script so they share one
-world and one set of players: a script setting `p.score` trips a
-`scoreReached` rule, and a rule teleport moves the player where the next shot
-will look.
+- **Host-authoritative.** Clients report inputs; the host decides. A shot is
+  checked for fire rate (35% jitter allowance), ammo, and a muzzle within
+  2.5 m of the shooter's eyes (scaled by their size), then cast against every
+  character's capsule (scaled) and every solid block.
+- **NPCs** are `PlayerState`s with `isNPC`, simulated on the host with the
+  same `WorldCollider` players use — so they climb the same steps — and
+  broadcast as ordinary transforms. `PlayerSnapshot.isNPC` keeps them off the
+  scoreboard and out of the player limit.
+- **Map edits** go through `WorldDelta`, the same deltas Studio's co-editing
+  uses, so every iPad's world document — and therefore its collision — agrees
+  with the host's. An animated `move` is animated on each iPad first and the
+  end position sent when it finishes. `restart_round()` restores the map from
+  a copy taken before the first round.
+- **Protocol version 3**: `playerInput` (fire, reload, button, text),
+  `ScriptEffect`, `scriptsReplaced`, NPC and hidden flags in the roster.
 
 ## The language
 
 ```lua
 let score = 0
 if score > 3 then … elif … else … end
-while ready do … end
-for i in 1 to 10 do … end        -- counts down too: for i in 10 to 1
-for p in players() do … end
-func add(a, b) return a + b end
-let f = func(x) return x * 2 end
+while ready do … end        for i in 1 to 10 do … end        for p in players() do … end
+func add(a, b) return a + b end        let f = func(x) return x * 2 end
 [1, 2, 3]   {x: 1, y: 2}   list[1]   map.x   map["x"]
+{x: 1, y: 2, z: 3} + {x: 0, y: 5, z: 0} * 2        -- positions are arithmetic
 -- comment      # comment
 ```
 
 Lists start at 1. `nil` and `false` are the only false values. `+` joins text
-when either side is text. `a or "default"` returns an operand. Identifiers may
-be in any script, so `let 点数 = 0` works. The lexer accepts the curly quotes
-the iPad keyboard inserts and full-width symbols from a Japanese keyboard.
+when either side is text. Identifiers may be in any script (`let 点数 = 0`).
+The lexer accepts the iPad keyboard's curly quotes and full-width symbols.
 
 ## Reference
 
-Studio shows this beside the editor (`ScriptReference.swift`), and a test
-fails if an event or function is missing from it.
+Studio shows the full reference beside the editor (`ScriptReference.swift`);
+tests fail if any event, function, member or option is missing from it.
 
-### Events
+**Events**: `start tick(dt) join(p) leave(p) touch(p, block) tap(p, block)
+fire(p) hit(victim, attacker, damage) hit_block(p, block) death(victim, killer)
+respawn(p) button(p, id) input(p, id, text) chat(p, text)`.
 
-`start()`, `tick(dt)`, `join(p)`, `leave(p)`, `touch(p, block)`,
-`tap(p, block)`, `fire(p)`, `hit(victim, attacker, damage)` — return a number
-to change the damage, `hit_block(p, block)`, `death(victim, killer)`,
-`respawn(p)`, `button(p, id)`.
+**Globals**: `players npcs find_player block blocks create_block create_npc
+distance raycast time after every cancel announce sound chat fade shake
+end_round restart_round weapon ui_text ui_button ui_panel ui_image ui_bar
+ui_input ui_set ui_remove ui_clear game world`.
 
-### Globals
+**Characters** (players and NPCs): `name id is_npc health max_health alive
+score team position x y z yaw look velocity weapon ammo speed jump gravity
+frozen color head_color leg_color size hat visible`, and `give take reload
+teleport damage heal kill respawn launch look_at`. Players only: `camera
+camera_distance fov controls default_ui camera_look camera_reset message sound
+chat fade shake ui_*`. NPCs only: `move_to follow stop jump_now shoot say
+destroy`. Any other name stores a value on the character (`p.kills = 0`).
 
-`players()`, `block(name)`, `blocks(tag)`, `distance(a, b)`, `time()`,
-`after(s, f)`, `every(s, f)`, `cancel(id)`, `announce(text, s)`,
-`sound(name)`, `end_round(text)`, `weapon(name, {…})`,
-`hud_text(id, text, {…})`, `hud_bar(id, value, max, {…})`,
-`hud_button(id, label, {…})`, `hud_remove(id)`, `hud_clear()`,
-`game.respawn_time`, `game.friendly_fire`, `game.time`, `game.round_over`.
+**Blocks**: `name id position x y z size rotation color material shape visible
+solid tags opacity`, and `move move_to rotate clone destroy`.
 
-Standard library: `print type str num floor ceil round abs sqrt sin cos min
-max clamp random len append remove contains keys join shuffle upper lower
-trim split`.
+**World**: `gravity sky sky_top sky_bottom light sun sun_yaw ground
+ground_color fall_height`. **Game**: `respawn_time friendly_fire time
+round_over`.
 
-### Players
+**Screen items** take options `at x y pivot dx dy w h color bg size bold
+radius opacity visible layer parent text value max`. `x` and `y` are fractions
+of the parent (the screen or a panel); `at` names one of nine edge positions.
+Calling a `ui_` function again with the same id updates that item and keeps
+every option not given. Each returns a handle (`t.text = …`, `t.remove()`).
 
-Read: `name id health max_health alive score team position yaw weapon ammo
-camera speed jump`. Set: `health max_health score team camera speed jump
-ammo`, plus any name of your own (`p.kills = 0`). Call: `give take reload
-teleport damage heal kill respawn message sound hud_text hud_bar hud_button
-hud_remove hud_clear`.
-
-### Blocks
-
-Read: `name id position visible solid color tags`. Set: `visible solid
-color`. Call: `move(x, y, z, seconds)`.
-
-### Weapons
-
-Presets `blaster`, `rifle`, `shotgun`, `pistol`. `weapon("sniper",
-{model: "rifle", damage: 90})` starts from the model and changes what it
-names: `damage rate range ammo reload spread model`.
-
-### Screen items
-
-Options: `at` (`top_left top top_right left center right bottom_left bottom
-bottom_right`), `color` (a name in English or Japanese, or `#RRGGBB`),
-`size` (`small medium large`). Anchors rather than pixels, because a script
-written on one iPad is played on every size of another.
+**Standard library**: `print type str num floor ceil round abs sqrt sin cos
+tan asin acos atan atan2 pow log exp sign lerp pi min max clamp random vec
+magnitude normalize dot cross len append remove insert contains index_of keys
+join shuffle range slice reverse copy sum sort map filter upper lower trim
+split replace starts_with ends_with fixed`. Angles are in degrees.
 
 ## Studio
 
-The **Script** tab opens the editor: **Check** parses and flags handlers for
-events that never happen (`on joni` → "did you mean `on join`?"); **Test run**
-plays the script headlessly for five seconds with two idle players and reports
-the camera, weapon, screen items, messages and printed lines. The samples in
-the **Examples** menu are played by `ScriptSampleTests` on every test run.
+The **Script** tab lists the world's `.absc` files (new, import, export,
+rename, switch off, delete) and five complete sample games — 1v1 shooter, team
+battle, zombie waves (NPCs), title screen and shop (GUI), and an obstacle
+course that builds itself (map editing). The editor has **Check** (syntax
+errors and misspelled events across all files) and **Test run** (plays every
+file headlessly for five seconds with two idle players and reports the camera,
+weapon, screen items, NPCs, created blocks, messages and printed lines). A
+visit to the editor is one undo step.
