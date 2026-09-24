@@ -110,7 +110,7 @@ public struct MainMenuView: View {
 public struct ActiveSession: Identifiable, Equatable {
     public enum Mode: Equatable {
         case solo(WorldDocument)
-        case hosting(WorldDocument)
+        case hosting(WorldDocument, isPublic: Bool)
         case joining(DiscoveredPeer, code: String)
     }
 

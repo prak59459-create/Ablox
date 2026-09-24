@@ -233,6 +233,7 @@ private struct GameDetailSheet: View {
     @State private var cover: Data?
     @State private var isWorking = false
     @State private var problem: String?
+    @State private var askingVisibility = false
 
     var body: some View {
         NavigationStack {
@@ -325,13 +326,16 @@ private struct GameDetailSheet: View {
             .disabled(isWorking || !listing.isSupported)
 
             Button {
-                Task { await play(hosting: true) }
+                askingVisibility = true
             } label: {
                 Label(L("Host for friends"), systemImage: "antenna.radiowaves.left.and.right")
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(NeonButtonStyle(.secondary, fullWidth: true))
             .disabled(isWorking || !listing.isSupported)
+            .roomVisibilityDialog(isPresented: $askingVisibility) { isPublic in
+                Task { await play(hosting: true, isPublic: isPublic) }
+            }
 
             if !listing.isSupported {
                 Text(L("That world was made with a newer version of Ablox Studio."))
@@ -341,7 +345,7 @@ private struct GameDetailSheet: View {
         }
     }
 
-    private func play(hosting: Bool) async {
+    private func play(hosting: Bool, isPublic: Bool = false) async {
         isWorking = true
         defer { isWorking = false }
         problem = nil
@@ -366,6 +370,6 @@ private struct GameDetailSheet: View {
         }
 
         dismiss()
-        onEnter(ActiveSession(mode: hosting ? .hosting(world) : .solo(world)))
+        onEnter(ActiveSession(mode: hosting ? .hosting(world, isPublic: isPublic) : .solo(world)))
     }
 }

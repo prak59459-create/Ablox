@@ -107,8 +107,8 @@ public struct PlayScreen: View {
         switch activeSession.mode {
         case let .solo(world):
             session.startSoloSession(world: world)
-        case let .hosting(world):
-            session.startHosting(world: world)
+        case let .hosting(world, isPublic):
+            session.startHosting(world: world, isPublic: isPublic)
         case let .joining(peer, code):
             session.join(peer, roomCode: code)
         }
@@ -291,24 +291,43 @@ public struct PlayScreen: View {
         .foregroundStyle(.white)
     }
 
+    /// The room code, and whether the room is public. Tapping it lets the
+    /// host open or close the room without leaving.
     private var roomCodeChip: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "lock.shield.fill")
-                .font(.caption)
-                .foregroundStyle(Ablox.Palette.success)
-            VStack(alignment: .leading, spacing: 0) {
-                Text(L("ROOM CODE"))
-                    .font(.system(size: 8, weight: .black))
-                    .foregroundStyle(Ablox.Palette.inkFaint)
-                Text(RoomCode.formatted(session.roomCode))
-                    .font(.system(.subheadline, design: .monospaced).weight(.bold))
+        Menu {
+            Button {
+                session.setRoomPublic(true)
+            } label: {
+                Label(L("Public — anyone nearby can join"), systemImage: session.isRoomPublic ? "checkmark" : "globe")
             }
+            Button {
+                session.setRoomPublic(false)
+            } label: {
+                Label(L("Private — only people with the room code"), systemImage: session.isRoomPublic ? "lock.fill" : "checkmark")
+            }
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: session.isRoomPublic ? "globe" : "lock.fill")
+                    .font(.caption)
+                    .foregroundStyle(session.isRoomPublic ? Ablox.Palette.accent : Ablox.Palette.success)
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(session.isRoomPublic ? L("PUBLIC ROOM") : L("PRIVATE ROOM"))
+                        .font(.system(size: 8, weight: .black))
+                        .foregroundStyle(Ablox.Palette.inkFaint)
+                    Text(RoomCode.formatted(session.roomCode))
+                        .font(.system(.subheadline, design: .monospaced).weight(.bold))
+                }
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 9, weight: .bold))
+                    .foregroundStyle(Ablox.Palette.inkFaint)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(.ultraThinMaterial, in: Capsule())
+            .foregroundStyle(.white)
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 8)
-        .background(.ultraThinMaterial, in: Capsule())
-        .foregroundStyle(.white)
         .accessibilityLabel(L("Room code {}", session.roomCode.map(String.init).joined(separator: " ")))
+        .accessibilityValue(session.isRoomPublic ? L("Public") : L("Private"))
     }
 
     private var scoreChip: some View {

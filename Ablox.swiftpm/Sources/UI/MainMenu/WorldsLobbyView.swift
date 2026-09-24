@@ -14,6 +14,11 @@ struct WorldsLobbyView: View {
     @State private var pendingDeletion: ProjectStore.Entry?
     @State private var renaming: ProjectStore.Entry?
     @State private var renameText = ""
+    /// The world waiting for the host to pick public or private. Kept apart
+    /// from the dialog's own flag, so closing the dialog cannot clear it
+    /// before the chosen button reads it.
+    @State private var hostCandidate: WorldDocument?
+    @State private var askingVisibility = false
 
     var body: some View {
         ScrollView {
@@ -47,6 +52,12 @@ struct WorldsLobbyView: View {
             .padding(Ablox.Metrics.gutter)
         }
         .sheet(isPresented: $isCreating) { createSheet }
+        .roomVisibilityDialog(isPresented: $askingVisibility) { isPublic in
+            if let world = hostCandidate {
+                onEnter(ActiveSession(mode: .hosting(world, isPublic: isPublic)))
+            }
+            hostCandidate = nil
+        }
         .alert(L("Delete this world?"), isPresented: .constant(pendingDeletion != nil)) {
             Button(L("Cancel"), role: .cancel) { pendingDeletion = nil }
             Button(L("Delete"), role: .destructive) {
@@ -147,7 +158,8 @@ struct WorldsLobbyView: View {
 
                     Button {
                         guard let world = store.load(entry) else { return }
-                        onEnter(ActiveSession(mode: .hosting(world)))
+                        hostCandidate = world
+                        askingVisibility = true
                     } label: {
                         Label(L("Host"), systemImage: "antenna.radiowaves.left.and.right")
                             .frame(maxWidth: .infinity)

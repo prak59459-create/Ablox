@@ -7,7 +7,8 @@ leaves the local network.
 
 One iPad **hosts**. It opens an `NWListener`, advertises `_ablox._tcp` over
 Bonjour, and shows a six-character room code. Other iPads **browse** with
-`NWBrowser`, see the world in their Play tab, type the code, and connect.
+`NWBrowser`, see the world in their Play tab, and connect — with one tap if the
+room is public, or by typing the code if it is private (see below).
 
 ```
   Host iPad                                  Guest iPad
@@ -75,6 +76,8 @@ is strictly better here — it is what Apple's own peer-to-peer samples use.
   Diffie-Hellman would fix this; it needs certificates, which is where we came
   in.
 - **Peers are trusted once joined.** See "trust boundaries" below.
+- **A public room gives the code away.** That is what public means; see
+  "public and private rooms".
 
 For *children building worlds together in the same room*, this is the right
 trade. It would not be for anything carrying real personal data, and Ablox
@@ -162,10 +165,27 @@ because losing a world edit would desync the world permanently.
 `isSequence(_:newerThan:)` compares in the wrapping half-space, so sequence 1
 is correctly newer than 0xFFFFFFFF.
 
+## Public and private rooms
+
+The host picks one when the room opens, and can switch at any time from the
+room code at the top of the screen. Players already inside stay either way.
+
+- **Private** (the default, and the only choice for Studio co-editing): the
+  code is only on the host's screen. The room is listed nearby with a lock, and
+  joining asks for the code.
+- **Public**: the TXT record also carries the code (`access=public`,
+  `code=…`), so the lobby joins with one tap. The connection is still TLS with
+  the same key — a sniffer still sees ciphertext — but anyone in Bonjour range
+  can read the code, so anyone nearby can come in. That is the point.
+
+A host that predates the setting sends neither key and is treated as private,
+which is what it always was. `setPublic(_:)` re-advertises the TXT record, and
+browsers pick the change up without reconnecting.
+
 ## Discovery details
 
 The Bonjour TXT record carries world name, host name, player count, capacity,
-mode and protocol version. That is what lets the lobby show a useful row —
+mode, protocol version and whether the room is public (with its code, if so). That is what lets the lobby show a useful row —
 "Taro's World · 3/8 players" — *before* anyone connects. A host running a build
 that predates a key falls back to a default rather than failing to list.
 

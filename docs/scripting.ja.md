@@ -187,6 +187,8 @@ z.stop()   z.jump_now()   z.shoot(p)   z.say("グルル…")   z.destroy()
 for n in npcs() do ... end
 ```
 
+`z.say("こんにちは")` は、NPCの頭の上に白いふきだしを数秒出し、チャットにもNPCの名前で表示します（プレイヤーがチャットしたときと同じふきだしです）。
+
 NPCは撃たれると倒れ、`on death` で復活させない限り消えます。
 
 ## マップとワールド

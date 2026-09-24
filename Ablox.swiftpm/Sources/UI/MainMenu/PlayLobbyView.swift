@@ -62,7 +62,7 @@ struct PlayLobbyView: View {
                 Text(L("Join a friend's world"))
                     .font(.system(size: 30, weight: .bold, design: .rounded))
                     .foregroundStyle(.white)
-                Text(L("Hosts appear here automatically over Bonjour. Type the room code they show you and the connection is encrypted end to end."))
+                Text(L("Hosts appear here automatically. Public rooms open with one tap; a private room needs the code its host shows you. Either way the connection is encrypted."))
                     .font(.subheadline)
                     .foregroundStyle(.white.opacity(0.82))
                     .fixedSize(horizontal: false, vertical: true)
@@ -132,10 +132,13 @@ struct PlayLobbyView: View {
                         Text(peer.worldName)
                             .font(.headline)
                             .foregroundStyle(Ablox.Palette.ink)
-                        Image(systemName: "lock.shield.fill")
-                            .font(.caption2)
-                            .foregroundStyle(Ablox.Palette.success)
-                            .accessibilityLabel(L("Encrypted"))
+                        if !peer.isStudioSession {
+                            Badge(
+                                peer.isPublic ? L("Public") : L("Private"),
+                                color: peer.isPublic ? Ablox.Palette.accent : Ablox.Palette.warning,
+                                systemImage: peer.isPublic ? "globe" : "lock.fill"
+                            )
+                        }
                     }
                     Text(L("{} · {}", peer.hostName, peer.subtitle))
                         .font(.caption)
@@ -148,10 +151,18 @@ struct PlayLobbyView: View {
                     Badge(L("Update needed"), color: Ablox.Palette.warning)
                 } else if peer.isFull {
                     Badge(L("Full"), color: Ablox.Palette.inkFaint)
-                } else {
+                } else if let code = peer.publicCode {
+                    // Public: the host published the code, so no typing.
                     Button(L("Join")) {
+                        onEnter(ActiveSession(mode: .joining(peer, code: code)))
+                    }
+                    .buttonStyle(NeonButtonStyle(.primary))
+                } else {
+                    Button {
                         roomCodeEntry = ""
                         joiningPeer = peer
+                    } label: {
+                        Label(L("Enter code"), systemImage: "lock.fill")
                     }
                     .buttonStyle(NeonButtonStyle(.primary))
                 }
