@@ -37,6 +37,36 @@ English. AbloxScript is a tree-walking interpreter in plain Swift
   sheet. A game-list entry may list `"scripts": ["games/x/main.absc"]` in
   `index.json`; the client downloads them with the world, and a repository
   file replaces a same-named one inside the world.
+- A world can pull its files from a GitHub folder — see below.
+
+## Getting files from GitHub
+
+Scripts are easier to write on a computer, and a computer keeps them in a
+repository. A world's `scriptSource` (`ScriptSource.swift`) names a public
+repository, a branch and a folder:
+
+- **Studio → Script → Get .absc files from GitHub** sets it; **Get the latest
+  now** brings in every `.absc` in the folder. A file with the same name
+  (ignoring case) is replaced, keeping its on/off switch; a new name is added;
+  a file only on the iPad is never deleted. One pull is one undo step and
+  reaches co-editors as a single `scriptsReplaced` delta.
+- **Get the latest every time the game starts** (`updatesOnPlay`) makes the
+  hosting iPad pull again in `SessionCoordinator.startHosting` before the
+  round begins. If GitHub cannot be reached, the saved files are used and the
+  host's log says so. Clients never fetch; they get the host's world.
+- The folder is listed with GitHub's contents API
+  (`api.github.com/repos/{owner}/{repo}/contents/{folder}?ref={branch}`) and
+  each file is read from `raw.githubusercontent.com`. The API allows sixty
+  unauthenticated requests an hour per network; when it refuses, the files the
+  world already has are refreshed straight from the raw server, which has no
+  such limit. The raw server caches for a few minutes, so a push can take
+  that long to show up.
+- Everything GitHub answers is untrusted. Every URL is built on the iPad from
+  checked parts — a folder cannot climb out with `..`, a branch cannot carry a
+  query, and a file name from the listing must already be a clean `.absc`
+  name. The `download_url` in the listing is ignored. Files over 1 MB, more
+  than 32 files, and anything that is not UTF-8 are left out. Nothing is ever
+  uploaded, and there is no token.
 
 ## Safety
 

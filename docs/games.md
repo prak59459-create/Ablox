@@ -21,9 +21,16 @@ Ablox Studio ──▶ three files ──▶ pull request ──▶ index.json �
 
 `catalogue-template/` in this repository is the repository to create. Copy it
 into a new public repo, then point the app at it in **Settings → Game list**
-(`owner/repo`). The app ships expecting `prak59459-create/AbloxGames`.
+(`owner/repo`, and a branch — `main` unless you type another). The app ships
+expecting `prak59459-create/AbloxGames` on `main`.
 
-The setting exists so a school or a club can run its own list.
+The setting exists so a school or a club can run its own list; the branch so a
+list can be tried out on, say, `test` before it reaches every iPad. Studio
+shares both settings (they are the same keys on one iPad) and uses them for
+**Open a published game**, which downloads a listing — world, rules and
+`.absc` files — as a new project to edit. An unusable repository falls back to
+the built-in list, and an unusable branch to `main`
+(`CatalogueSource.chosen(repository:branch:)`).
 
 ## Script files
 
@@ -39,6 +46,13 @@ Each must end in `.absc`, pass the same path rules as the world and cover, and
 be at most 1 MB; a listing may name up to 32. A file with the same name as a
 script inside the world replaces it. Indexes written before this field still
 decode.
+
+A world can also carry a **script source** (`WorldDocument.scriptSource`: a
+repository, branch and folder) set in Studio's Script tab. With *Get the latest
+every time the game starts* on, the hosting iPad pulls the folder's `.absc`
+files before each game — so a fix pushed to that folder reaches players
+without publishing the world again. See
+[`scripting.md`](scripting.md#getting-files-from-github).
 
 ## Everything downloaded is untrusted
 

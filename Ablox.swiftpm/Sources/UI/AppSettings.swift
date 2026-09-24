@@ -23,6 +23,7 @@ public final class AppSettings: ObservableObject {
         static let chatFilterEnabled = "ablox.chatFilterEnabled"
         static let language = "ablox.language"
         static let catalogue = "ablox.catalogueRepository"
+        static let catalogueBranch = "ablox.catalogueBranch"
     }
 
     private let defaults: UserDefaults
@@ -106,11 +107,16 @@ public final class AppSettings: ObservableObject {
         didSet { defaults.set(catalogueRepository, forKey: Key.catalogue) }
     }
 
+    /// Which branch of that repository. A list can be tried out on a branch
+    /// before it goes to `main` and everyone's iPad.
+    @Published public var catalogueBranch: String {
+        didSet { defaults.set(catalogueBranch, forKey: Key.catalogueBranch) }
+    }
+
     /// The validated source, falling back to the built-in list if someone has
     /// typed something unusable into Settings.
     public var catalogueSource: CatalogueSource {
-        let chosen = CatalogueSource(repository: catalogueRepository)
-        return chosen.isValidRepository ? chosen : .default
+        CatalogueSource.chosen(repository: catalogueRepository, branch: catalogueBranch)
     }
 
     /// This device's identity, generated once and kept. Stable across launches
@@ -144,6 +150,8 @@ public final class AppSettings: ObservableObject {
 
         self.catalogueRepository = defaults.string(forKey: Key.catalogue)
             ?? CatalogueSource.default.repository
+        self.catalogueBranch = defaults.string(forKey: Key.catalogueBranch)
+            ?? CatalogueSource.default.reference
 
         if let stored = defaults.string(forKey: Key.peerID), let uuid = UUID(uuidString: stored) {
             self.peerID = PeerID(uuid)

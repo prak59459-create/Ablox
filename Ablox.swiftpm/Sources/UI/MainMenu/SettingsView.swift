@@ -70,19 +70,26 @@ struct SettingsView: View {
                         .foregroundStyle(Ablox.Palette.inkMuted)
                         .fixedSize(horizontal: false, vertical: true)
 
-                    TextField("owner/repo", text: $settings.catalogueRepository)
-                        .textFieldStyle(.plain)
-                        .autocorrectionDisabled()
-                        .textInputAutocapitalization(.never)
-                        .font(.callout.monospaced())
-                        .padding(10)
-                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    HStack(spacing: 8) {
+                        repositoryField("owner/repo", text: $settings.catalogueRepository)
+                        Image(systemName: "arrow.triangle.branch")
+                            .font(.caption)
+                            .foregroundStyle(Ablox.Palette.inkMuted)
+                        repositoryField("main", text: $settings.catalogueBranch)
+                            .frame(maxWidth: 170)
+                    }
                 }
 
                 // Shown rather than enforced by rejecting keystrokes: someone
                 // mid-way through typing a valid name has not made a mistake.
-                if !CatalogueSource(repository: settings.catalogueRepository).isValidRepository {
+                if !CatalogueSource(repository: settings.catalogueRepository
+                    .trimmingCharacters(in: .whitespacesAndNewlines)).isValidRepository {
                     Label(L("That is not a repository name. Using the built-in list."), systemImage: "info.circle")
+                        .font(.caption2)
+                        .foregroundStyle(Ablox.Palette.warning)
+                } else if !CatalogueSource.isValidReference(settings.catalogueBranch
+                    .trimmingCharacters(in: .whitespacesAndNewlines)) {
+                    Label(L("That is not a branch name. Using main."), systemImage: "info.circle")
                         .font(.caption2)
                         .foregroundStyle(Ablox.Palette.warning)
                 }
@@ -93,6 +100,16 @@ struct SettingsView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
+    }
+
+    private func repositoryField(_ placeholder: String, text: Binding<String>) -> some View {
+        TextField(placeholder, text: text)
+            .textFieldStyle(.plain)
+            .autocorrectionDisabled()
+            .textInputAutocapitalization(.never)
+            .font(.callout.monospaced())
+            .padding(10)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 
     // MARK: Controls
@@ -191,7 +208,7 @@ struct SettingsView: View {
 
                 Divider().background(Color.white.opacity(0.08))
 
-                Text(L("Play traffic never touches a server. Worlds and player positions travel directly between iPads on your local network, encrypted with a key derived from the room code the host shows you. Anyone who knows that code can join and can read that session's traffic, so share it only with the people you want in the world. The Games tab is the one exception: it downloads published worlds from a public GitHub repository. It only ever reads — nothing about you is sent."))
+                Text(L("Play traffic never touches a server. Worlds and player positions travel directly between iPads on your local network, encrypted with a key derived from the room code the host shows you. Anyone who knows that code can join and can read that session's traffic, so share it only with the people you want in the world. There are two exceptions, and both only read from public GitHub repositories: the Games tab downloads published worlds, and a world set to get its scripts from GitHub fetches them when you host it. Nothing about you is sent."))
                     .font(.caption)
                     .foregroundStyle(Ablox.Palette.inkMuted)
                     .fixedSize(horizontal: false, vertical: true)
