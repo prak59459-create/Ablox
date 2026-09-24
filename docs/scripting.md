@@ -162,7 +162,10 @@ chat fade shake ui_*`. NPCs only: `move_to follow stop jump_now shoot say
 destroy`. Any other name stores a value on the character (`p.kills = 0`).
 
 **Blocks**: `name id position x y z size rotation color material shape visible
-solid tags opacity`, and `move move_to rotate clone destroy`.
+solid tags opacity behavior`, and `move move_to rotate clone destroy`. Only a
+block with a behavior (`trigger`, `hazard`, `checkpoint`, `bounce`,
+`collectible`, …) is reported by the iPad when touched, so a script-made coin
+needs `create_block({…, behavior: "trigger"})` for `on touch` to see it.
 
 **World**: `gravity sky sky_top sky_bottom light sun sun_yaw ground
 ground_color fall_height`. **Game**: `respawn_time friendly_fire time

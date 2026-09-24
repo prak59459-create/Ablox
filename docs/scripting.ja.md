@@ -196,8 +196,11 @@ let b = create_block({shape: "sphere", position: {x: 0, y: 5, z: 0}, size: 2,
 b.position = {x: 3, y: 5, z: 0}   b.size = {x: 2, y: 1, z: 2}   b.rotation = {x: 0, y: 45, z: 0}
 b.move(0, 3, 0, 1)   b.rotate(0, 90, 0)   b.clone()   b.destroy()
 b.visible = false    b.solid = false      b.opacity = 0.5
+b.behavior = "trigger"   -- さわったら on touch が動く（すり抜ける）。hazard / bounce / checkpoint なども
 world.sky = "#87CEEB"   world.gravity = -3   world.light = 0.2   world.fall_height = -20
 ```
+
+- `on touch` が動くのは **behavior があるブロックだけ**。スクリプトで作ったコインなどは `behavior: "trigger"` をつけよう
 
 `restart_round()` でやり直すと、スクリプトが変えたマップは元に戻ります。
 
