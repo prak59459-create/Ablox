@@ -348,8 +348,13 @@ private struct GameDetailSheet: View {
 
         // The cached copy when there is one, so a second play costs nothing
         // and works with no network at all.
-        let world = library.cachedWorld(for: listing) ?? (await library.download(listing))
-        guard let world else {
+        // (`??` runs its right side in a closure that cannot `await`, so
+        // the download is a separate step.)
+        var found = library.cachedWorld(for: listing)
+        if found == nil {
+            found = await library.download(listing)
+        }
+        guard let world = found else {
             if case let .failed(message) = library.status { problem = message }
             return
         }
