@@ -24,6 +24,8 @@ public final class AppSettings: ObservableObject {
         static let language = "ablox.language"
         static let catalogue = "ablox.catalogueRepository"
         static let catalogueBranch = "ablox.catalogueBranch"
+        static let graphicsQuality = "ablox.graphicsQuality"
+        static let showFrameRate = "ablox.showFrameRate"
     }
 
     private let defaults: UserDefaults
@@ -113,6 +115,17 @@ public final class AppSettings: ObservableObject {
         didSet { defaults.set(catalogueBranch, forKey: Key.catalogueBranch) }
     }
 
+    /// Settings → Graphics. Auto by default: it starts high and steps down
+    /// by itself when a big world would otherwise drop below 30 fps.
+    @Published public var graphicsQuality: GraphicsQuality {
+        didSet { defaults.set(graphicsQuality.rawValue, forKey: Key.graphicsQuality) }
+    }
+
+    /// A small frame-rate counter while playing.
+    @Published public var showFrameRate: Bool {
+        didSet { defaults.set(showFrameRate, forKey: Key.showFrameRate) }
+    }
+
     /// The validated source, falling back to the built-in list if someone has
     /// typed something unusable into Settings.
     public var catalogueSource: CatalogueSource {
@@ -152,6 +165,10 @@ public final class AppSettings: ObservableObject {
             ?? CatalogueSource.default.repository
         self.catalogueBranch = defaults.string(forKey: Key.catalogueBranch)
             ?? CatalogueSource.default.reference
+
+        self.graphicsQuality = defaults.string(forKey: Key.graphicsQuality)
+            .flatMap(GraphicsQuality.init(rawValue:)) ?? .auto
+        self.showFrameRate = defaults.object(forKey: Key.showFrameRate) as? Bool ?? false
 
         if let stored = defaults.string(forKey: Key.peerID), let uuid = UUID(uuidString: stored) {
             self.peerID = PeerID(uuid)
@@ -219,6 +236,8 @@ public final class AppSettings: ObservableObject {
         cameraSensitivity = 1.0
         soundEnabled = true
         hapticsEnabled = true
+        graphicsQuality = .auto
+        showFrameRate = false
     }
 }
 

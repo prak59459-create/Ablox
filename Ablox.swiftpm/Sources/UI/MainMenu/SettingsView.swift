@@ -17,6 +17,7 @@ struct SettingsView: View {
 
                 languageCard
                 gamesCard
+                graphicsCard
                 controlsCard
                 movementCard
                 networkCard
@@ -110,6 +111,33 @@ struct SettingsView: View {
             .font(.callout.monospaced())
             .padding(10)
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+    }
+
+    // MARK: Graphics
+
+    private var graphicsCard: some View {
+        GlassCard {
+            VStack(alignment: .leading, spacing: 15) {
+                SectionHeader(L("Graphics"), systemImage: "sparkles.tv")
+
+                Picker(L("Graphics"), selection: $settings.graphicsQuality) {
+                    ForEach(GraphicsQuality.allCases, id: \.self) { quality in
+                        Text(quality.displayName).tag(quality)
+                    }
+                }
+                .pickerStyle(.segmented)
+
+                Text(settings.graphicsQuality.detail)
+                    .font(.caption)
+                    .foregroundStyle(Ablox.Palette.inkMuted)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Toggle(isOn: $settings.showFrameRate) {
+                    settingLabel(L("Show frame rate"), L("A small counter at the top of the screen while you play."))
+                }
+                .tint(Ablox.Palette.accent)
+            }
+        }
     }
 
     // MARK: Controls

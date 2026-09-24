@@ -45,7 +45,9 @@ public struct PlayScreen: View {
                 cameraPitch: $cameraPitch,
                 soundEnabled: settings.soundEnabled,
                 hapticsEnabled: settings.hapticsEnabled,
-                isFiring: isFiring && session.scripted.weapon != nil
+                isFiring: isFiring && session.scripted.weapon != nil,
+                graphicsQuality: settings.graphicsQuality,
+                showFrameRate: settings.showFrameRate
             )
             .ignoresSafeArea()
 

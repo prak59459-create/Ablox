@@ -105,7 +105,22 @@ answer from the same inputs, with no reconciliation machinery at all.
 
 Blocks still use RealityKit physics — an unanchored crate is a dynamic body.
 The player is the special case, because the player is the thing that has to
-agree across devices.
+agree across devices. A game only turns RealityKit physics on when its world
+has an unanchored part at all; otherwise it would simulate a static body per
+part every frame for nothing.
+
+### Big worlds: `WorldIndex`
+
+`WorldDocument.worldBounds(of:)` searches the block list for the block and for
+each ancestor, so asking it about every block is quadratic. The collider, the
+camera and the host's NPCs used to do exactly that every frame, which is what
+pulled worlds of a thousand parts well under 30 fps. `WorldIndex` measures every
+block once (a dictionary makes parent lookups constant) and keeps a 4 m grid on
+the ground plane, so a question like "what does this box touch" only looks at
+the nearby cells. Answers come back in document order, so "the first solid the
+player sinks into" is the same block it always was — `WorldIndexTests` checks
+the collider step against the full-list version. `WorldIndexCache` rebuilds only
+when the blocks change, which an array comparison tells instantly.
 
 ## Rendering
 
@@ -119,6 +134,25 @@ Meshes are cached one per `BlockShape`, always generated at unit size and
 scaled by the entity transform. So `BlockShape.unitBounds` is the single source
 of truth for how big a block is — the same numbers used by picking, by the
 physics collider, and by `WorldCollider`.
+
+Materials are shared too, one per colour and material kind, so a world
+painted from a dozen colours hands RealityKit a dozen materials rather than
+one per part.
+
+### Graphics settings
+
+Settings → Graphics picks **Auto**, **High**, **Medium** or **Low**
+(`GraphicsQuality`, `GraphicsProfile`). Lower levels shorten or drop the sun's
+shadows, draw at a lower resolution, use plain boxes and fewer-sided spheres
+and cylinders, turn off HDR and depth of field, and stop drawing parts (and
+characters) beyond a view distance — measured to each part's nearest edge, so
+the ground under you never disappears. **Auto** starts at High;
+`FrameRateGovernor` steps down after two slow seconds and only steps back up
+after a long fast run, never to a level that was too slow in the last minute.
+**Show frame rate** puts a small counter at the top of the play screen.
+
+In a game the parts get no RealityKit colliders at all: taps are picked with
+the view's ray against `WorldIndex`, as shots and the camera already were.
 
 `ARView` in `.nonAR` mode rather than `RealityView`, so the app runs on
 iPadOS 17 as well as 18, and because `ARView` exposes the
@@ -141,6 +175,8 @@ touches a `DispatchQueue`.
 | Triggers and actions | `AbloxCore/EventRule.swift` |
 | Rule evaluation | `AbloxCore/EventMachine.swift` |
 | Character collision | `AbloxCore/WorldCollider.swift` |
+| Bounds and a grid for big worlds | `AbloxCore/WorldIndex.swift` |
+| Graphics levels and auto quality | `AbloxCore/Graphics.swift` |
 | Packet vocabulary | `AbloxCore/Packets.swift` |
 | Codec and reassembly | `AbloxCore/WireFormat.swift` |
 | TLS and room codes | `Net/TLSPeerSecurity.swift` |
