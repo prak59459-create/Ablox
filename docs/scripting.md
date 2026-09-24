@@ -135,8 +135,9 @@ func add(a, b) return a + b end        let f = func(x) return x * 2 end
 -- comment      # comment
 ```
 
-Lists start at 1. `nil` and `false` are the only false values. `+` joins text
-when either side is text. Identifiers may be in any script (`let 点数 = 0`).
+Lists start at 1. `nil` and `false` are the only false values. Setting a map
+entry to `nil` (`map.x = nil`) removes it, so `keys` and `len` no longer count
+it. `+` joins text when either side is text. Identifiers may be in any script (`let 点数 = 0`).
 The lexer accepts the iPad keyboard's curly quotes and full-width symbols.
 
 ## Reference
