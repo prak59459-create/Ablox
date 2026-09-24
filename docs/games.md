@@ -30,7 +30,11 @@ shares both settings (they are the same keys on one iPad) and uses them for
 **Open a published game**, which downloads a listing — world, rules and
 `.absc` files — as a new project to edit. An unusable repository falls back to
 the built-in list, and an unusable branch to `main`
-(`CatalogueSource.chosen(repository:branch:)`).
+(`CatalogueSource.chosen(repository:branch:)`). A branch that has no
+`index.json` — a repository with no `main`, most often — falls back to the
+repository's default branch as GitHub reports it, and worlds, scripts and
+covers then come from that branch too; only when that fails does the list say
+which branch it looked on.
 
 ## Script files
 
