@@ -167,6 +167,7 @@ p.default_ui = false    -- 上のバーとチャットを隠す（退出ボタ�
 p.color = "red"   p.head_color = "#FFD60A"   p.leg_color = "blue"
 p.size = 3        p.hat = "crown"            p.visible = false    p.name = "ボス"
 p.speed = 2       p.jump = 1.5               p.gravity = 0.3      p.frozen = true
+p.ride = "car"    p.ride_color = "red"       -- 乗り物の見た目（car sports truck kart bike scooter jetpack hoverboard / none）
 p.position = {x: 0, y: 10, z: 0}             -- 瞬間移動
 p.launch(0, 20, 0)                           -- 吹き飛ばす
 p.look_at(block("Goal"))                     -- 向かせる

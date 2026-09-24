@@ -156,7 +156,7 @@ ui_input ui_set ui_remove ui_clear game world`.
 
 **Characters** (players and NPCs): `name id is_npc health max_health alive
 score team position x y z yaw look velocity weapon ammo speed jump gravity
-frozen color head_color leg_color size hat visible`, and `give take reload
+frozen color head_color leg_color size hat ride ride_color visible`, and `give take reload
 teleport damage heal kill respawn launch look_at`. Players only: `camera
 camera_distance fov controls default_ui camera_look camera_reset message sound
 chat fade shake ui_*`. NPCs only: `move_to follow stop jump_now shoot say
@@ -164,6 +164,9 @@ destroy`. Any other name stores a value on the character (`p.kills = 0`).
 `n.say("Hello!")` shows a speech bubble over the NPC's head for a few seconds,
 the same white bubble players get when they chat, and puts the line in the
 chat under the NPC's name.
+`p.ride = "car"` draws the character riding something — `car`, `sports`,
+`truck`, `kart`, `bike`, `scooter`, `jetpack` or `hoverboard` (`none` to get
+off) — in `p.ride_color`. It is only the look: set `p.speed` as well.
 
 **Blocks**: `name id position x y z size rotation color material shape visible
 solid tags opacity behavior`, and `move move_to rotate clone destroy`. Only a
