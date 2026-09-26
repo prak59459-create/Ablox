@@ -30,6 +30,21 @@ public struct PlayScreen: View {
     @State private var closingIn: Int?
     private let playClock = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
 
+    // The play screen's extras (see PlayExtras.swift).
+    @StateObject private var clips = ClipRecorder()
+    @State private var link = ViewportLink()
+    @State private var showEmotes = false
+    @State private var mapExpanded = false
+    @State private var showMenu = false
+    @State private var photoMode = false
+    @State private var photoFilter: PhotoFilter = .none
+    @State private var preferFirstPerson = false
+    @State private var spectating: PeerID?
+    @State private var editingButtons = false
+    @State private var sharing: SharedFile?
+    @State private var toast: String?
+    @State private var zoomAtPinchStart: Float?
+
     public init(session: SessionCoordinator, activeSession: ActiveSession, onExit: @escaping () -> Void) {
         self.session = session
         self.activeSession = activeSession
@@ -39,7 +54,13 @@ public struct PlayScreen: View {
     /// First person may look well up and down; the orbit camera may not go
     /// under the floor.
     private var pitchRange: ClosedRange<Float> {
-        session.scripted.camera.mode == .firstPerson ? -80...80 : -75...20
+        if photoMode { return -85...60 }
+        return isFirstPerson ? -80...80 : -75...20
+    }
+
+    private var isFirstPerson: Bool {
+        session.scripted.camera.mode == .firstPerson
+            || (session.scripted.camera.mode == .thirdPerson && preferFirstPerson && spectating == nil)
     }
 
     private var movementInput: MovementInput {
@@ -58,7 +79,11 @@ public struct PlayScreen: View {
                 isFiring: isFiring && session.scripted.weapon != nil,
                 graphicsQuality: settings.graphicsQuality,
                 showFrameRate: settings.showFrameRate,
-                preferences: settings.preferences
+                preferences: settings.preferences,
+                spectating: spectating,
+                preferFirstPerson: preferFirstPerson,
+                photoMode: photoMode,
+                link: link
             )
             .ignoresSafeArea()
 
@@ -75,14 +100,43 @@ public struct PlayScreen: View {
                     .allowsHitTesting(false)
             }
 
+            if photoMode {
+                photoLayer
+            } else {
             // A script can hide the joystick and buttons — a title screen,
             // a cutscene — and the top bar and chat.
-            if session.scripted.showsControls {
+            if session.scripted.showsControls && !editingButtons {
                 controlsLayer
             }
             ScriptHUDLayer(session: session, reduceFlashing: settings.preferences.reduceFlashing)
             hudLayer
             familyNotices
+            spectateBar
+            if showMenu {
+                PauseMenu(
+                    session: session,
+                    clips: clips,
+                    preferFirstPerson: $preferFirstPerson,
+                    playSeconds: sessionSeconds,
+                    onResume: closeMenu,
+                    onScreenshot: { closeMenu(); takePicture() },
+                    onSaveClip: { closeMenu(); saveClip() },
+                    onPhotoMode: { closeMenu(); withAnimation { photoMode = true } },
+                    onReturnToStart: { closeMenu(); link.returnToStart() },
+                    onEditButtons: { closeMenu(); editingButtons = true },
+                    onLeave: onExit
+                )
+                .transition(.opacity)
+            }
+            if editingButtons {
+                ButtonLayoutEditor(preferences: $settings.preferences, stickOnLeft: !settings.joystickOnRight) {
+                    editingButtons = false
+                }
+            }
+            }
+            if let toast {
+                toastView(toast)
+            }
 
             if session.status.isBusy {
                 connectingOverlay
@@ -97,6 +151,13 @@ public struct PlayScreen: View {
         .statusBarHidden()
         .persistentSystemOverlays(.hidden)
         .onAppear(perform: enterSession)
+        .sheet(item: $sharing) { file in
+            ActivityShareSheet(items: [file.url])
+        }
+        .onChange(of: session.roster) { _, roster in
+            // Whoever was being watched has gone.
+            if let watched = spectating, !roster.contains(where: { $0.peerID == watched }) { spectating = nil }
+        }
         .onReceive(playClock) { _ in countPlay(seconds: 5) }
         .onChange(of: session.announcement) { _, announcement in
             // The end-of-round banner is the one signal that the round is
@@ -221,23 +282,11 @@ public struct PlayScreen: View {
                     if stickOnLeft {
                         VirtualJoystick(value: $stick) { isRunning = $0 }
                             .frame(width: half)
-                        CameraPad(
-                            yaw: $cameraYaw,
-                            pitch: $cameraPitch,
-                            sensitivity: settings.cameraSensitivity,
-                            invertY: settings.invertCameraY,
-                            pitchRange: pitchRange
-                        )
-                        .frame(width: half)
+                        cameraPad
+                            .frame(width: half)
                     } else {
-                        CameraPad(
-                            yaw: $cameraYaw,
-                            pitch: $cameraPitch,
-                            sensitivity: settings.cameraSensitivity,
-                            invertY: settings.invertCameraY,
-                            pitchRange: pitchRange
-                        )
-                        .frame(width: half)
+                        cameraPad
+                            .frame(width: half)
                         VirtualJoystick(value: $stick) { isRunning = $0 }
                             .frame(width: half)
                     }
@@ -256,14 +305,214 @@ public struct PlayScreen: View {
                         .padding(.horizontal, 30)
                         .padding(.bottom, 14)
                     }
+                    // One-handed: the jump button moves over the stick, so one
+                    // thumb walks and jumps.
+                    let jumpOnLeft = settings.preferences.oneHanded ? stickOnLeft : !stickOnLeft
                     HStack {
-                        if !stickOnLeft { JumpButton(isPressed: $isJumping) }
+                        if jumpOnLeft { jumpButton }
                         Spacer()
-                        if stickOnLeft { JumpButton(isPressed: $isJumping) }
+                        if !jumpOnLeft { jumpButton }
                     }
-                    .padding(.horizontal, 44)
-                    .padding(.bottom, 44)
+                    .padding(.horizontal, settings.preferences.oneHanded ? 150 : 44)
+                    .padding(.bottom, settings.preferences.oneHanded ? 150 : 44)
                 }
+            }
+        }
+    }
+
+    /// Dragging turns the camera; pinching moves it nearer or further.
+    private var cameraPad: some View {
+        CameraPad(
+            yaw: $cameraYaw,
+            pitch: $cameraPitch,
+            sensitivity: settings.cameraSensitivity,
+            invertY: settings.invertCameraY,
+            pitchRange: pitchRange
+        )
+        .simultaneousGesture(zoomGesture)
+    }
+
+    private var zoomGesture: some Gesture {
+        MagnificationGesture()
+            .onChanged { scale in
+                let start = zoomAtPinchStart ?? settings.preferences.cameraZoom
+                if zoomAtPinchStart == nil { zoomAtPinchStart = start }
+                let range = PlayPreferences.cameraZoomRange
+                settings.preferences.cameraZoom = min(range.upperBound, max(range.lowerBound, start / Float(max(scale, 0.1))))
+            }
+            .onEnded { _ in zoomAtPinchStart = nil }
+    }
+
+    /// Where Settings (or the layout editor) put it, at the size chosen.
+    private var jumpButton: some View {
+        JumpButton(isPressed: $isJumping)
+            .scaleEffect(settings.preferences.buttonScale)
+            .offset(x: settings.preferences.jumpButtonOffset.x, y: settings.preferences.jumpButtonOffset.y)
+    }
+
+    // MARK: Menu, pictures, watching
+
+    private func openMenu() {
+        withAnimation { showMenu = true }
+        session.setPaused(true)
+    }
+
+    private func closeMenu() {
+        withAnimation { showMenu = false }
+        session.setPaused(false)
+    }
+
+    /// Takes a picture of the world (no buttons), keeps it in the album and
+    /// offers to share it.
+    private func takePicture() {
+        let filter = photoFilter
+        let game = session.world.name
+        link.snapshot { image in
+            guard let image else {
+                showToast(L("The picture could not be taken."))
+                return
+            }
+            let finished = filter.apply(to: image)
+            if let url = ScreenshotStore.save(finished, game: game) {
+                showToast(L("Saved to your album"))
+                sharing = SharedFile(url: url)
+            } else {
+                showToast(L("The picture could not be saved."))
+            }
+        }
+    }
+
+    private func saveClip() {
+        clips.saveClip(game: session.world.name) { url in
+            if let url {
+                showToast(L("Clip saved to your album"))
+                sharing = SharedFile(url: url)
+            } else {
+                showToast(clips.lastError ?? L("The clip could not be saved."))
+            }
+        }
+    }
+
+    private func showToast(_ text: String) {
+        withAnimation { toast = text }
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 2_500_000_000)
+            withAnimation { if toast == text { toast = nil } }
+        }
+    }
+
+    private func toastView(_ text: String) -> some View {
+        VStack {
+            Spacer()
+            Text(text)
+                .font(.subheadline.weight(.semibold))
+                .padding(.horizontal, 18)
+                .padding(.vertical, 11)
+                .background(.ultraThinMaterial, in: Capsule())
+                .foregroundStyle(.white)
+                .padding(.bottom, 170)
+        }
+        .allowsHitTesting(false)
+        .transition(.opacity)
+    }
+
+    /// Other players, for watching.
+    private var watchable: [PlayerSnapshot] {
+        session.people.filter { $0.peerID != session.localPeerID && !$0.isHidden }
+    }
+
+    /// Knocked out, hidden, or already watching: a bar for watching others.
+    @ViewBuilder private var spectateBar: some View {
+        let out = session.scripted.isKnockedOut || (session.localPlayer?.isHidden ?? false)
+        if (out || spectating != nil), !watchable.isEmpty {
+            VStack {
+                Spacer()
+                HStack(spacing: 12) {
+                    Image(systemName: "eye.fill")
+                        .foregroundStyle(Ablox.Palette.accent)
+                    if let watched = spectating, let person = watchable.first(where: { $0.peerID == watched }) {
+                        Button { cycleSpectate(-1) } label: { Image(systemName: "chevron.left") }
+                        Text(L("Watching {}", person.profile.displayName))
+                            .font(.subheadline.weight(.semibold))
+                        Button { cycleSpectate(1) } label: { Image(systemName: "chevron.right") }
+                        Button(L("Stop")) { spectating = nil }
+                            .font(.caption.weight(.bold))
+                            .foregroundStyle(Ablox.Palette.accent)
+                    } else {
+                        Button(L("Watch the others")) { cycleSpectate(1) }
+                            .font(.subheadline.weight(.semibold))
+                    }
+                }
+                .foregroundStyle(.white)
+                .padding(.horizontal, 18)
+                .padding(.vertical, 11)
+                .background(.ultraThinMaterial, in: Capsule())
+                .padding(.bottom, 24)
+            }
+        }
+    }
+
+    private func cycleSpectate(_ step: Int) {
+        let people = watchable
+        guard !people.isEmpty else { spectating = nil; return }
+        let current = people.firstIndex { $0.peerID == spectating } ?? (step > 0 ? -1 : 0)
+        let next = ((current + step) % people.count + people.count) % people.count
+        spectating = people[next].peerID
+    }
+
+    /// Photo mode: the world, a camera to move, filters and a shutter.
+    private var photoLayer: some View {
+        ZStack {
+            photoFilter.previewTint
+                .ignoresSafeArea()
+                .allowsHitTesting(false)
+            cameraPad
+            VStack {
+                HStack {
+                    Button {
+                        withAnimation { photoMode = false }
+                    } label: {
+                        Label(L("Done"), systemImage: "xmark")
+                            .font(.subheadline.weight(.bold))
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 10)
+                            .background(.ultraThinMaterial, in: Capsule())
+                            .foregroundStyle(.white)
+                    }
+                    Spacer()
+                    Text(L("Drag to move the camera, pinch to zoom"))
+                        .font(.caption.weight(.semibold))
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(.ultraThinMaterial, in: Capsule())
+                        .foregroundStyle(.white)
+                }
+                .padding(18)
+                Spacer()
+                HStack(spacing: 8) {
+                    ForEach(PhotoFilter.allCases) { filter in
+                        Button {
+                            photoFilter = filter
+                        } label: {
+                            Text(filter.displayName)
+                                .font(.caption.weight(.semibold))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                                .background(photoFilter == filter ? Ablox.Palette.accent.opacity(0.45) : Color.black.opacity(0.35), in: Capsule())
+                                .foregroundStyle(.white)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    Spacer()
+                    Button(action: takePicture) {
+                        Circle()
+                            .strokeBorder(.white, lineWidth: 5)
+                            .background(Circle().fill(Color.white.opacity(0.35)))
+                            .frame(width: 78, height: 78)
+                    }
+                    .accessibilityLabel(L("Take a picture"))
+                }
+                .padding(24)
             }
         }
     }
@@ -319,7 +568,25 @@ public struct PlayScreen: View {
             }
             .accessibilityLabel(L("Leave world"))
 
+            Button {
+                openMenu()
+            } label: {
+                Image(systemName: "line.3.horizontal")
+                    .font(.headline)
+                    .frame(width: 42, height: 42)
+                    .background(.ultraThinMaterial, in: Circle())
+                    .foregroundStyle(.white)
+            }
+            .accessibilityLabel(L("Menu"))
+
             worldChip
+
+            if settings.preferences.showClock {
+                PlayClockChip(seconds: sessionSeconds)
+            }
+            if settings.preferences.showNetworkStatus, session.role == .joined {
+                NetworkBadge(ping: session.pingMilliseconds, isReconnecting: session.status.isReconnecting)
+            }
 
             Spacer()
 
@@ -328,6 +595,28 @@ public struct PlayScreen: View {
             }
 
             scoreChip
+
+            Button {
+                takePicture()
+            } label: {
+                Image(systemName: "camera.fill")
+                    .font(.headline)
+                    .frame(width: 42, height: 42)
+                    .background(.ultraThinMaterial, in: Circle())
+                    .foregroundStyle(.white)
+            }
+            .accessibilityLabel(L("Take a picture"))
+
+            Button {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { showEmotes.toggle() }
+            } label: {
+                Image(systemName: "face.smiling")
+                    .font(.headline)
+                    .frame(width: 42, height: 42)
+                    .background(.ultraThinMaterial, in: Circle())
+                    .foregroundStyle(showEmotes ? Ablox.Palette.accent : .white)
+            }
+            .accessibilityLabel(L("Emotes"))
 
             Button {
                 withAnimation { showScoreboard.toggle() }
@@ -356,11 +645,37 @@ public struct PlayScreen: View {
         .padding(.horizontal, 18)
         .padding(.top, 14)
         .overlay(alignment: .topTrailing) {
-            if showScoreboard {
-                PlayerListView(session: session)
-                    .padding(.top, 64)
-                    .padding(.trailing, 18)
-                    .transition(.move(edge: .trailing).combined(with: .opacity))
+            VStack(alignment: .trailing, spacing: 10) {
+                if showScoreboard {
+                    PlayerListView(session: session)
+                        .transition(.move(edge: .trailing).combined(with: .opacity))
+                }
+                if showEmotes {
+                    EmotePanel { gesture in
+                        session.send(gesture: gesture)
+                        withAnimation { showEmotes = false }
+                    }
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                }
+                if settings.preferences.showMap, !showScoreboard, !showEmotes {
+                    MiniMapView(world: session.world, players: session.roster, localPeerID: session.localPeerID, expanded: false)
+                        .frame(width: 150, height: 150)
+                        .onTapGesture { withAnimation { mapExpanded = true } }
+                }
+            }
+            .padding(.top, 64)
+            .padding(.trailing, 18)
+        }
+        .overlay {
+            if mapExpanded {
+                ZStack {
+                    Color.black.opacity(0.4).ignoresSafeArea()
+                        .onTapGesture { withAnimation { mapExpanded = false } }
+                    MiniMapView(world: session.world, players: session.roster, localPeerID: session.localPeerID, expanded: true)
+                        .frame(width: 520, height: 520)
+                        .onTapGesture { withAnimation { mapExpanded = false } }
+                }
+                .transition(.opacity)
             }
         }
     }
