@@ -72,8 +72,10 @@ Further reading:
 cannot obtain a `sec_identity_t`, so certificate-based TLS would mean telling
 clients to trust any certificate — TLS with the security taken out. Instead the
 host shows a six-character room code; both sides derive the session key from it
-with HMAC-SHA256. That gives real TLS 1.3 encryption *and* mutual
-authentication. The trade-offs are written out honestly in
+with PBKDF2 (120 000 rounds, salted per session), so a recorded handshake
+cannot be brute-forced in seconds. That gives real TLS 1.3 encryption *and*
+mutual authentication, and the host rate-limits, validates and times out
+whatever a guest sends. The trade-offs are written out honestly in
 [`docs/networking.md`](docs/networking.md) — the code is the whole secret, and
 there is no forward secrecy if it leaks.
 

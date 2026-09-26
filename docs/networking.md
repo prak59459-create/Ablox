@@ -33,16 +33,25 @@ room is public, or by typing the code if it is private (see below).
 ### What Ablox does
 
 TLS 1.3 with a **pre-shared key**. The host displays a room code; both sides
-run it through HMAC-SHA256 with a domain-separation string to derive a 32-byte
-key, and the TLS handshake only completes if both derived the same one.
+stretch it with PBKDF2 into a 32-byte key, and the TLS handshake only
+completes if both derived the same one.
 
 ```
-PSK = HMAC-SHA256(key: roomCode, message: "ablox.psk.v1")
+salt = "ablox.psk.v2:" + sessionSalt        (16 random bytes, hex, in the TXT record)
+PSK  = PBKDF2-HMAC-SHA256(password: roomCode, salt: salt, rounds: 120 000)
 ```
 
 Room codes use a 30-character alphabet with no `I`, `L`, `O`, `U`, `0` or `1`,
 so a code read across a table cannot be mistyped into a *different valid* code.
 Six characters is about 29 bits.
+
+29 bits is not much against a computer. Someone who records a handshake can
+try every code offline; with a single HMAC (protocol 5 and earlier) that took
+seconds. The stretching makes each guess cost 120 000 hashes — about a tenth
+of a second on an iPad, paid once when the room opens and once per join — so
+the same search takes years of one machine's time. The salt is new every
+session and is not a secret: it only makes sure nobody can precompute a table
+of every code's key once and reuse it on every room.
 
 ### Why not certificates
 
@@ -71,6 +80,9 @@ is strictly better here — it is what Apple's own peer-to-peer samples use.
 
 - **The code is the whole secret.** Anyone who learns it can join and can
   decrypt that session. Codes are per-session, but a shoulder surfer is in.
+- **Stretching slows guessing, it does not stop it.** A determined attacker
+  with a recording and a lot of computers could still get there. For a
+  session that lasts an afternoon, that is far past the point of mattering.
 - **No forward secrecy against a leaked code.** Someone who records traffic
   *and* later learns the code can decrypt the recording. Ephemeral
   Diffie-Hellman would fix this; it needs certificates, which is where we came
@@ -100,6 +112,24 @@ The host validates what it can:
 | Protocol version must match, with a readable error | `AbloxHost.handleHandshake` |
 | Oversized messages drop the connection | `StreamReassembler`, `AbloxFramer` |
 | Chat is length-clamped before it is stored | `ChatPayload.init` |
+| Relayed chat carries the real sender and the name the host knows them by | `AbloxHost.handle`, `chat` |
+| Nothing but a handshake is read, or sent, before the handshake | `AbloxHost.handle`, `relay` |
+| Nobody may join as the host; a connection keeps its first identity | `AbloxHost.handleHandshake`, `PeerConnection` |
+| Names, sizes and colours are made safe before anyone sees them | `AvatarProfile.sanitizedForNetwork` |
+| NaN or absurd positions and speeds are dropped | `PlayerTransformPayload.isPlausible` |
+| Each kind of packet has a rate limit; a flood cuts the connection | `PacketBudget` |
+| Connections that never finish getting in time out after 10 s | `AbloxHost.accept` |
+| An address that fails 15 times in a minute waits 2 minutes | `AttemptLimiter` |
+| At most 6 connections may be getting in at once | `AbloxHost.accept` |
+| Saved data is bounded both ways (keys, size, depth) | `SaveData` |
+
+The rate limits are a token bucket per packet kind and per connection. Steady
+play never comes near them — transforms are allowed at 40 a second against the
+15 a client sends, chat at a sustained one and a half lines a second with room
+for a burst of six. A packet over the limit is dropped before the game or
+anyone else sees it; 300 drops in ten seconds means the connection is broken
+or hostile, and it is closed. The tests for all of this are in
+`NetworkSafetyTests`.
 
 What the host does **not** do is verify that a reported position is physically
 reachable. A modified client could teleport its own avatar. Fixing that means
@@ -185,7 +215,8 @@ browsers pick the change up without reconnecting.
 ## Discovery details
 
 The Bonjour TXT record carries world name, host name, player count, capacity,
-mode, protocol version and whether the room is public (with its code, if so). That is what lets the lobby show a useful row —
+mode, protocol version, the session's key salt and whether the room is public
+(with its code, if so). That is what lets the lobby show a useful row —
 "Taro's World · 3/8 players" — *before* anyone connects. A host running a build
 that predates a key falls back to a default rather than failing to list.
 
@@ -211,3 +242,6 @@ an instruction naming the exact Settings panel.
 | Keepalive | 2 s idle, 3 probes | Notice a sleeping iPad quickly |
 | `connectionDropTime` | 5 s | Drop a peer that walked away |
 | Max payload | 8 MB | A big world snapshot fits; anything larger is a bug or an attack |
+| Key stretching | PBKDF2, 120 000 rounds | ~0.1 s per join; each offline guess costs the same |
+| Handshake deadline | 10 s | A connection that never says hello does not hold a place |
+| Pending connections | 6 at once | One device cannot tie up the host |
