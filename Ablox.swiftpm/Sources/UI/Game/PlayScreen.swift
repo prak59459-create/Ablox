@@ -4,6 +4,7 @@ import SwiftUI
 public struct PlayScreen: View {
     @ObservedObject var session: SessionCoordinator
     @EnvironmentObject private var settings: AppSettings
+    @EnvironmentObject private var store: ProjectStore
     @Environment(\.scenePhase) private var scenePhase
 
     let activeSession: ActiveSession
@@ -44,6 +45,8 @@ public struct PlayScreen: View {
     @State private var sharing: SharedFile?
     @State private var toast: String?
     @State private var zoomAtPinchStart: Float?
+    /// Whether this visit has already taken the world's picture for the list.
+    @State private var tookThumbnail = false
 
     public init(session: SessionCoordinator, activeSession: ActiveSession, onExit: @escaping () -> Void) {
         self.session = session
@@ -202,6 +205,7 @@ public struct PlayScreen: View {
         }
         settings.recordPlay(seconds: seconds, game: game)
         sessionSeconds += seconds
+        if sessionSeconds >= 20 { takeThumbnailIfMine() }
 
         if PlayGate.breakDue(settings.parental, sessionSeconds: sessionSeconds, lastReminder: lastRestReminder) {
             lastRestReminder = sessionSeconds
@@ -379,6 +383,22 @@ public struct PlayScreen: View {
             } else {
                 showToast(L("The picture could not be saved."))
             }
+        }
+    }
+
+    /// A picture of one of the player's own worlds for the Worlds list, once
+    /// per visit and a little after arriving (so the world has loaded and
+    /// the camera has settled). Not while a menu or photo mode is up.
+    private func takeThumbnailIfMine() {
+        guard !tookThumbnail, !showMenu, !photoMode else { return }
+        let id = session.world.id
+        guard store.entries.contains(where: { $0.id == id }) else { return }
+        tookThumbnail = true
+        link.snapshot { image in
+            guard let image,
+                  let small = image.preparingThumbnail(of: CGSize(width: 480, height: 480 * image.size.height / max(1, image.size.width))),
+                  let png = small.pngData() else { return }
+            store.saveThumbnail(png, for: id)
         }
     }
 

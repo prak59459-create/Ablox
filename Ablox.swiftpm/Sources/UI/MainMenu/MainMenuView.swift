@@ -55,6 +55,8 @@ public struct MainMenuView: View {
     @State private var installing: UpdateInstall?
     /// Why a game could not start (Settings → Family).
     @State private var blockedMessage: String?
+    /// Today's coins for coming back, to say so.
+    @State private var dailyBonus: Int?
 
     public init() {}
 
@@ -65,6 +67,12 @@ public struct MainMenuView: View {
             HStack(spacing: 0) {
                 SidebarView(selectedTab: $selectedTab)
                     .frame(width: Ablox.Metrics.sidebarWidth)
+                    // On the sidebar rather than the screen: one alert per view.
+                    .alert(L("Welcome back!"), isPresented: Binding(get: { dailyBonus != nil }, set: { if !$0 { dailyBonus = nil } })) {
+                        Button(L("Thanks!"), role: .cancel) { dailyBonus = nil }
+                    } message: {
+                        Text(L("Here are {} coins for coming back. Day {} in a row!", dailyBonus ?? 0, settings.memory.dailyBonus.streak))
+                    }
 
                 Divider().background(Color.white.opacity(0.08))
 
@@ -99,6 +107,9 @@ public struct MainMenuView: View {
                 session.leave()
                 activeSession = nil
             }
+            .environmentObject(settings)
+            .environmentObject(store)
+            .environmentObject(saves)
         }
         .alert(L("Not now"), isPresented: Binding(get: { blockedMessage != nil }, set: { if !$0 { blockedMessage = nil } })) {
             Button(L("OK"), role: .cancel) { blockedMessage = nil }
@@ -115,6 +126,13 @@ public struct MainMenuView: View {
         }
         .onAppear {
             updater.start()
+            let remembered = settings
+            session.saveSlotFor = { id in remembered.memory.saveSlots[id.uuidString] ?? 1 }
+            // Coins for coming back today.
+            if let coins = settings.claimDailyBonus() {
+                dailyBonus = coins
+            }
+            AutoBackup.runIfDue(settings: settings, saves: saves, store: store)
             session.profile = settings.profile
             session.moderator = settings.chatModerator
             session.muteList = settings.muteList

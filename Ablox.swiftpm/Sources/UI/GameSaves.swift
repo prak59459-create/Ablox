@@ -24,6 +24,11 @@ public final class GameSaves: ObservableObject {
         summaries = store.summaries()
     }
 
+    /// Shows a message under the saved-data card.
+    func lastMessageOverride(_ message: String) {
+        lastMessage = message
+    }
+
     public func delete(_ summary: GameSaveStore.Summary) {
         store.delete(worldID: summary.id)
         reload()

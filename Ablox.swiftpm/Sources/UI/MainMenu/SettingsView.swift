@@ -13,6 +13,10 @@ struct SettingsView: View {
     @State private var backupFile: BackupFile?
     @State private var choosingBackup = false
     @State private var installing: UpdateInstall?
+    @State private var sharingSave: SharedFile?
+    @State private var choosingSaveFile = false
+    @State private var choosingBackupFolder = false
+    @State private var moving = false
 
     var body: some View {
         ScrollView {
@@ -32,6 +36,7 @@ struct SettingsView: View {
                 FamilyCard()
                 gamesCard
                 dataCard
+                StorageCard()
                 ComfortCard()
                 graphicsCard
                 controlsCard
@@ -185,6 +190,49 @@ struct SettingsView: View {
                     .buttonStyle(NeonButtonStyle(.secondary))
                 }
 
+                HStack(spacing: 10) {
+                    Button { choosingSaveFile = true } label: {
+                        Label(L("Add one game's save"), systemImage: "doc.badge.plus")
+                    }
+                    .buttonStyle(NeonButtonStyle(.secondary))
+                    Button { moving = true } label: {
+                        Label(L("Move to another iPad"), systemImage: "ipad.and.arrow.forward")
+                    }
+                    .buttonStyle(NeonButtonStyle(.secondary))
+                }
+
+                Divider().background(Color.white.opacity(0.08))
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(L("Automatic backup"))
+                        .font(.subheadline.weight(.semibold))
+                    Text(AutoBackup.folderName(settings: settings).map { L("Once a day, to “{}” in Files.", $0) }
+                         ?? L("Choose a folder in Files (iCloud Drive keeps it safe even if this iPad is lost), and a backup is written there once a day."))
+                        .font(.caption)
+                        .foregroundStyle(Ablox.Palette.inkMuted)
+                        .fixedSize(horizontal: false, vertical: true)
+                    HStack(spacing: 10) {
+                        Button { choosingBackupFolder = true } label: {
+                            Label(AutoBackup.folderName(settings: settings) == nil ? L("Choose a folder") : L("Change folder"), systemImage: "folder.badge.plus")
+                        }
+                        .buttonStyle(NeonButtonStyle(.secondary))
+                        if settings.memory.autoBackupBookmark != nil {
+                            Button {
+                                AutoBackup.runIfDue(settings: settings, saves: saves, store: store, force: true)
+                            } label: {
+                                Label(L("Back up now"), systemImage: "arrow.clockwise")
+                            }
+                            .buttonStyle(NeonButtonStyle(.secondary))
+                            Button(L("Stop"), role: .destructive) { settings.memory.autoBackupBookmark = nil }
+                        }
+                    }
+                    if let last = settings.memory.lastAutoBackup {
+                        Text(L("Last backup {}", last.formatted(.relative(presentation: .named))))
+                            .font(.caption2)
+                            .foregroundStyle(Ablox.Palette.inkFaint)
+                    }
+                }
+
                 if let kept = saves.keptBackupFiles.first {
                     Button {
                         saves.restoreBackup(from: kept, settings: settings, worlds: store)
@@ -223,6 +271,32 @@ struct SettingsView: View {
         .sheet(item: $backupFile) { file in
             BackupShareSheet(url: file.url)
         }
+        .sheet(item: $sharingSave) { file in
+            ActivityShareSheet(items: [file.url])
+        }
+        .sheet(isPresented: $moving) {
+            MoveWizardSheet()
+                .environmentObject(settings)
+                .environmentObject(saves)
+                .environmentObject(store)
+        }
+        .background(
+            // A second file picker needs its own view: one per view.
+            Color.clear.fileImporter(isPresented: $choosingSaveFile, allowedContentTypes: [.data, .json]) { result in
+                if case let .success(url) = result {
+                    saves.lastMessageOverride(saves.importSave(from: url))
+                }
+            }
+        )
+        .overlay(
+            Color.clear.fileImporter(isPresented: $choosingBackupFolder, allowedContentTypes: [.folder]) { result in
+                if case let .success(url) = result {
+                    _ = AutoBackup.choose(folder: url, settings: settings)
+                    AutoBackup.runIfDue(settings: settings, saves: saves, store: store, force: true)
+                }
+            }
+            .allowsHitTesting(false)
+        )
         .fileImporter(isPresented: $choosingBackup, allowedContentTypes: [.data, .json]) { result in
             if case let .success(url) = result {
                 saves.restoreBackup(from: url, settings: settings, worlds: store)
@@ -245,6 +319,16 @@ struct SettingsView: View {
                     .foregroundStyle(Ablox.Palette.inkMuted)
             }
             Spacer()
+            Button {
+                if let url = saves.exportSave(summary) { sharingSave = SharedFile(url: url) }
+            } label: {
+                Image(systemName: "square.and.arrow.up")
+                    .foregroundStyle(Ablox.Palette.inkMuted)
+                    .frame(width: Ablox.Metrics.minimumTapTarget, height: Ablox.Metrics.minimumTapTarget)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(L("Share this game's save"))
             Button { deletingSave = summary } label: {
                 Image(systemName: "trash")
                     .foregroundStyle(Ablox.Palette.inkMuted)

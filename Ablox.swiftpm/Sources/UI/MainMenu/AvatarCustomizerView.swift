@@ -11,16 +11,27 @@ struct AvatarCustomizerView: View {
         case body = "Body"
         case head = "Head & arms"
         case accent = "Legs & hat"
+        case hat = "Hat"
+        case pet = "Pet"
 
         var id: String { rawValue }
     }
 
     @State private var slot: Slot = .body
+    @EnvironmentObject private var store: ProjectStore
+    @State private var previewLink = AvatarPreviewLink()
+    @State private var boothOpen = false
+    @State private var profileOpen = false
+    @State private var sharing: SharedFile?
+    @State private var outfitMessage: String?
 
     var body: some View {
         HStack(spacing: 0) {
-            AvatarPreview(profile: settings.profile)
+            AvatarPreview(profile: settings.profile, link: previewLink, still: boothOpen)
                 .frame(maxWidth: .infinity)
+                .overlay(alignment: .bottom) {
+                    if boothOpen { photoBooth }
+                }
                 .background(
                     LinearGradient(
                         colors: [Ablox.Palette.accentDeep.opacity(0.22), .clear],
@@ -40,10 +51,29 @@ struct AvatarCustomizerView: View {
                     }
 
                     nameField
+                    outfitsSection
                     colourSection
                     hatSection
+                    faceSection
+                    petSection
                     heightSection
                     randomiseButton
+                    HStack(spacing: 10) {
+                        Button {
+                            withAnimation { boothOpen.toggle() }
+                        } label: {
+                            Label(L("Photo booth"), systemImage: "camera.fill")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(NeonButtonStyle(.secondary, fullWidth: true))
+                        Button {
+                            profileOpen = true
+                        } label: {
+                            Label(L("Badges & album"), systemImage: "rosette")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(NeonButtonStyle(.secondary, fullWidth: true))
+                    }
                 }
                 .padding(Ablox.Metrics.gutter)
             }
@@ -55,6 +85,165 @@ struct AvatarCustomizerView: View {
             // change without a reconnect.
             session.profile = newValue
         }
+        .sheet(isPresented: $profileOpen) {
+            ProfileSheet()
+                .environmentObject(settings)
+                .environmentObject(store)
+        }
+        .sheet(item: $sharing) { file in
+            ActivityShareSheet(items: [file.url])
+        }
+    }
+
+    // MARK: Outfits
+
+    /// Three saved looks: tap to wear, hold to save the current one.
+    private var outfitsSection: some View {
+        VStack(alignment: .leading, spacing: 9) {
+            Text(L("Outfits"))
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(Ablox.Palette.inkMuted)
+            HStack(spacing: 9) {
+                ForEach(0..<3, id: \.self) { index in
+                    let saved = settings.memory.outfits[index]
+                    Menu {
+                        if saved != nil {
+                            Button(L("Wear it")) { wear(index) }
+                        }
+                        Button(L("Save what I'm wearing here")) {
+                            var look = settings.profile
+                            look.displayName = ""
+                            settings.memory.outfits[index] = look
+                            outfitMessage = L("Saved in outfit {}", index + 1)
+                        }
+                        if saved != nil {
+                            Button(L("Clear"), role: .destructive) { settings.memory.outfits[index] = nil }
+                        }
+                    } label: {
+                        VStack(spacing: 4) {
+                            HStack(spacing: 2) {
+                                ForEach([saved?.bodyColor, saved?.headColor, saved?.accentColor].indices, id: \.self) { i in
+                                    let colour = [saved?.bodyColor, saved?.headColor, saved?.accentColor][i]
+                                    Circle()
+                                        .fill(colour.map { Color($0) } ?? Color.white.opacity(0.12))
+                                        .frame(width: 12, height: 12)
+                                }
+                            }
+                            Text(L("Outfit {}", index + 1))
+                                .font(.system(size: 10, weight: .semibold))
+                        }
+                        .frame(maxWidth: .infinity, minHeight: 52)
+                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .foregroundStyle(saved == nil ? Ablox.Palette.inkFaint : Ablox.Palette.ink)
+                    }
+                }
+            }
+            if let outfitMessage {
+                Text(outfitMessage)
+                    .font(.caption2)
+                    .foregroundStyle(Ablox.Palette.accent)
+            }
+        }
+    }
+
+    private func wear(_ index: Int) {
+        guard var look = settings.memory.outfits[index] else { return }
+        look.displayName = settings.profile.displayName
+        look.title = settings.profile.title
+        withAnimation { settings.profile = look }
+    }
+
+    // MARK: Face and pet
+
+    private var faceSection: some View {
+        VStack(alignment: .leading, spacing: 11) {
+            Text(L("Face"))
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(Ablox.Palette.inkMuted)
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 70), spacing: 9)], spacing: 9) {
+                ForEach(AvatarProfile.Face.allCases, id: \.self) { face in
+                    let owned = settings.wallet.owns("face.\(face.rawValue)")
+                    choice(face.displayName, face.symbolName, selected: settings.profile.face == face, locked: !owned) {
+                        settings.profile.face = face
+                    }
+                }
+            }
+        }
+    }
+
+    private var petSection: some View {
+        VStack(alignment: .leading, spacing: 11) {
+            Text(L("Pet"))
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(Ablox.Palette.inkMuted)
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 70), spacing: 9)], spacing: 9) {
+                ForEach(AvatarProfile.Pet.allCases, id: \.self) { pet in
+                    let owned = settings.wallet.owns("pet.\(pet.rawValue)")
+                    choice(pet.displayName, pet.symbolName, selected: settings.profile.pet == pet, locked: !owned) {
+                        settings.profile.pet = pet
+                    }
+                }
+            }
+        }
+    }
+
+    /// One option: tap to wear it, or — locked — a hint that the shop has it.
+    private func choice(_ title: String, _ symbol: String, selected: Bool, locked: Bool, action: @escaping () -> Void) -> some View {
+        Button {
+            if !locked { action() }
+        } label: {
+            VStack(spacing: 5) {
+                Image(systemName: locked ? "lock.fill" : symbol)
+                    .font(.title3)
+                Text(title)
+                    .font(.system(size: 10, weight: .semibold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
+            .frame(maxWidth: .infinity, minHeight: 58)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .strokeBorder(selected ? Ablox.Palette.accent : Color.white.opacity(0.1), lineWidth: selected ? 2 : 1)
+            )
+            .foregroundStyle(selected ? Ablox.Palette.accent : (locked ? Ablox.Palette.inkFaint : Ablox.Palette.inkMuted))
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint(locked ? L("In the shop") : "")
+    }
+
+    // MARK: Photo booth
+
+    private var photoBooth: some View {
+        VStack(spacing: 10) {
+            HStack(spacing: 8) {
+                ForEach(Emote.allCases.filter { $0 != .sit }, id: \.self) { emote in
+                    Button {
+                        previewLink.play(emote)
+                    } label: {
+                        Image(systemName: emote.symbolName)
+                            .font(.headline)
+                            .frame(width: 40, height: 40)
+                            .background(.ultraThinMaterial, in: Circle())
+                            .foregroundStyle(.white)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(emote.displayName)
+                }
+            }
+            Button {
+                previewLink.snapshot { image in
+                    guard let image, let url = ScreenshotStore.save(image, game: L("Photo booth")) else { return }
+                    sharing = SharedFile(url: url)
+                }
+            } label: {
+                Label(L("Take a picture"), systemImage: "camera.fill")
+            }
+            .buttonStyle(NeonButtonStyle(.primary))
+        }
+        .padding(14)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .padding(.bottom, 24)
     }
 
     private var nameField: some View {
@@ -78,7 +267,7 @@ struct AvatarCustomizerView: View {
                 .foregroundStyle(Ablox.Palette.inkMuted)
 
             Picker(L("Part"), selection: $slot) {
-                ForEach(Slot.allCases) { Text($0.rawValue).tag($0) }
+                ForEach(Slot.allCases) { Text(L($0.rawValue)).tag($0) }
             }
             .pickerStyle(.segmented)
 
@@ -97,6 +286,8 @@ struct AvatarCustomizerView: View {
         case .body: return settings.profile.bodyColor
         case .head: return settings.profile.headColor
         case .accent: return settings.profile.accentColor
+        case .hat: return settings.profile.hatColor ?? settings.profile.accentColor
+        case .pet: return settings.profile.petColor
         }
     }
 
@@ -105,6 +296,8 @@ struct AvatarCustomizerView: View {
         case .body: settings.profile.bodyColor = color
         case .head: settings.profile.headColor = color
         case .accent: settings.profile.accentColor = color
+        case .hat: settings.profile.hatColor = color
+        case .pet: settings.profile.petColor = color
         }
     }
 
@@ -163,9 +356,21 @@ struct AvatarCustomizerView: View {
     private var randomiseButton: some View {
         Button {
             withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
-                var generated = AvatarProfile.generated(for: PeerID(), name: settings.profile.displayName)
-                generated.displayName = settings.profile.displayName
-                settings.profile = generated
+                // Only from what they own, so a surprise never wears
+                // something they have not got.
+                var look = settings.profile
+                func pick<T>(_ kind: ShopItem.Kind, _ value: (ShopItem) -> T?) -> T? {
+                    settings.wallet.ownedItems(of: kind).compactMap(value).randomElement()
+                }
+                look.bodyColor = pick(.bodyColor) { $0.color } ?? look.bodyColor
+                look.headColor = pick(.headColor) { $0.color } ?? look.headColor
+                look.accentColor = pick(.accentColor) { $0.color } ?? look.accentColor
+                look.hat = pick(.hat) { $0.hat } ?? look.hat
+                look.face = pick(.face) { $0.face } ?? look.face
+                look.pet = pick(.pet) { $0.pet } ?? look.pet
+                look.hatColor = ColorRGBA.palette.randomElement()
+                look.petColor = ColorRGBA.palette.randomElement() ?? look.petColor
+                settings.profile = look
             }
         } label: {
             Label(L("Surprise me"), systemImage: "dice.fill")
@@ -177,19 +382,47 @@ struct AvatarCustomizerView: View {
 
 // MARK: - 3D preview
 
+/// Takes a picture of the avatar preview, for the photo booth.
+@MainActor
+final class AvatarPreviewLink {
+    fileprivate weak var view: ARView?
+    fileprivate weak var coordinator: AvatarPreview.Coordinator?
+
+    // Nonisolated so a view can make one as a `@State` default.
+    nonisolated init() {}
+
+    func snapshot(_ completion: @escaping (UIImage?) -> Void) {
+        guard let view else { return completion(nil) }
+        view.snapshot(saveToHDR: false) { completion($0) }
+    }
+
+    /// A pose for the picture.
+    func play(_ emote: Emote) {
+        coordinator?.play(emote)
+    }
+}
+
 /// A slowly turning avatar on a pedestal.
-private struct AvatarPreview: UIViewRepresentable {
+struct AvatarPreview: UIViewRepresentable {
     let profile: AvatarProfile
+    var link: AvatarPreviewLink?
+    /// Stop turning (the photo booth faces the camera).
+    var still = false
 
     func makeUIView(context: Context) -> ARView {
         let view = ARView(frame: .zero, cameraMode: .nonAR, automaticallyConfigureSession: false)
         view.environment.background = .color(.clear)
         context.coordinator.attach(to: view, profile: profile)
+        link?.view = view
+        link?.coordinator = context.coordinator
         return view
     }
 
     func updateUIView(_ view: ARView, context: Context) {
         context.coordinator.update(profile: profile)
+        context.coordinator.still = still
+        link?.view = view
+        link?.coordinator = context.coordinator
     }
 
     func makeCoordinator() -> Coordinator { Coordinator() }
@@ -203,6 +436,11 @@ private struct AvatarPreview: UIViewRepresentable {
         private var avatar: AvatarEntity?
         private var subscription: Cancellable?
         private var spin: Float = 0
+        var still = false
+
+        func play(_ emote: Emote) {
+            avatar?.play(emote)
+        }
 
         func attach(to view: ARView, profile: AvatarProfile) {
             let anchor = AnchorEntity(world: .zero)
@@ -233,8 +471,14 @@ private struct AvatarPreview: UIViewRepresentable {
             subscription = view.scene.subscribe(to: SceneEvents.Update.self) { [weak self] event in
                 MainActor.assumeIsolated {
                     guard let self, let avatar = self.avatar else { return }
-                    self.spin += Float(event.deltaTime) * 28
-                    avatar.orientation = Quat.yaw(degrees: self.spin).simd
+                    if self.still {
+                        // Ease round to face the camera.
+                        self.spin += (0 - self.spin.truncatingRemainder(dividingBy: 360)) * 0.15
+                    } else {
+                        self.spin += Float(event.deltaTime) * 28
+                    }
+                    avatar.orientation = Quat.yaw(degrees: self.spin + 180).simd
+                    avatar.animate(travelled: 0, deltaTime: Float(event.deltaTime))
                 }
             }
         }

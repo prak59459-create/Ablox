@@ -30,6 +30,7 @@ public final class AppSettings: ObservableObject {
         static let playtime = "ablox.playtime"
         static let ledger = "ablox.coinLedger"
         static let preferences = "ablox.playPreferences"
+        static let memory = "ablox.menuMemory"
     }
 
     private let defaults: UserDefaults
@@ -151,6 +152,12 @@ public final class AppSettings: ObservableObject {
         didSet { persist(preferences, forKey: Key.preferences) }
     }
 
+    /// Everything the menus remember: wishlist, outfits, favourite games,
+    /// notes, what has been seen, save slots… See `MenuMemory`.
+    @Published public var memory: MenuMemory {
+        didSet { persist(memory, forKey: Key.memory) }
+    }
+
     /// The validated source, falling back to the built-in list if someone has
     /// typed something unusable into Settings.
     public var catalogueSource: CatalogueSource {
@@ -198,6 +205,7 @@ public final class AppSettings: ObservableObject {
         self.playtime = AppSettings.decode(PlaytimeLog.self, from: defaults, key: Key.playtime) ?? PlaytimeLog()
         self.coinLedger = AppSettings.decode(CoinLedger.self, from: defaults, key: Key.ledger) ?? CoinLedger()
         self.preferences = AppSettings.decode(PlayPreferences.self, from: defaults, key: Key.preferences) ?? PlayPreferences()
+        self.memory = AppSettings.decode(MenuMemory.self, from: defaults, key: Key.memory) ?? MenuMemory()
 
         if let stored = defaults.string(forKey: Key.peerID), let uuid = UUID(uuidString: stored) {
             self.peerID = PeerID(uuid)
@@ -273,6 +281,30 @@ public final class AppSettings: ObservableObject {
         return result
     }
 
+    /// Today's coins for coming back, if not yet given — added to the wallet
+    /// and returned so the menu can say so.
+    public func claimDailyBonus() -> Int? {
+        guard let coins = memory.dailyBonus.claim() else { return nil }
+        memory.bestStreak = max(memory.bestStreak, memory.dailyBonus.streak)
+        give(coins: coins, reason: L("Daily bonus"))
+        return coins
+    }
+
+    /// Everything the badges look at.
+    public func progressStats(worldsMade: Int, pictures: Int) -> ProgressStats {
+        ProgressStats(
+            gamesPlayed: playtime.timesPlayed.count,
+            totalMinutes: Int(playtime.totalSeconds.values.reduce(0, +) / 60),
+            daysPlayed: playtime.days.filter { $0.seconds > 0 }.count,
+            lifetimeCoins: wallet.lifetimeEarned,
+            itemsOwned: wallet.ownedItemIDs.count,
+            pictures: pictures,
+            worldsMade: worldsMade,
+            hasPet: ShopCatalogue.items(of: .pet).contains { $0.pet != AvatarProfile.Pet.none && wallet.owns($0) },
+            bestStreak: memory.bestStreak
+        )
+    }
+
     /// Whether a game may start now, and if not, why.
     public var playVerdict: PlayGate.Verdict {
         PlayGate.verdict(parental, log: playtime)
@@ -298,6 +330,65 @@ public final class AppSettings: ObservableObject {
         graphicsQuality = .auto
         showFrameRate = false
         preferences = PlayPreferences()
+    }
+}
+
+// MARK: - What the menus remember
+
+/// A player's own note on a game: liked, and a few words.
+public struct GameNote: Codable, Hashable, Sendable {
+    public var liked = false
+    public var memo = ""
+    public init() {}
+}
+
+/// The menus' memory, in one piece so a new field is one line here.
+public struct MenuMemory: Codable, Hashable, Sendable {
+    /// Shop items wanted, by id.
+    public var wishlist: Set<String> = []
+    /// Three saved looks.
+    public var outfits: [AvatarProfile?] = [nil, nil, nil]
+    public var dailyBonus = DailyBonus()
+    public var bestStreak = 0
+    /// Catalogue games, by listing id.
+    public var favoriteGames: Set<String> = []
+    /// Newest first.
+    public var recentGames: [String] = []
+    public var gameNotes: [String: GameNote] = [:]
+    /// The revision each game had when last seen, for "new" and "updated".
+    public var seenGames: [String: String] = [:]
+    /// More game lists to switch between, as "owner/repo".
+    public var extraCatalogues: [String] = []
+    /// Which save slot each world plays with, by world id.
+    public var saveSlots: [String: Int] = [:]
+    /// A folder chosen in Files for automatic backups.
+    public var autoBackupBookmark: Data?
+    public var lastAutoBackup: Date?
+
+    public init() {}
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        wishlist = (try? c.decodeIfPresent(Set<String>.self, forKey: .wishlist)) ?? []
+        outfits = (try? c.decodeIfPresent([AvatarProfile?].self, forKey: .outfits)) ?? [nil, nil, nil]
+        while outfits.count < 3 { outfits.append(nil) }
+        dailyBonus = (try? c.decodeIfPresent(DailyBonus.self, forKey: .dailyBonus)) ?? DailyBonus()
+        bestStreak = (try? c.decodeIfPresent(Int.self, forKey: .bestStreak)) ?? 0
+        favoriteGames = (try? c.decodeIfPresent(Set<String>.self, forKey: .favoriteGames)) ?? []
+        recentGames = (try? c.decodeIfPresent([String].self, forKey: .recentGames)) ?? []
+        gameNotes = (try? c.decodeIfPresent([String: GameNote].self, forKey: .gameNotes)) ?? [:]
+        seenGames = (try? c.decodeIfPresent([String: String].self, forKey: .seenGames)) ?? [:]
+        extraCatalogues = (try? c.decodeIfPresent([String].self, forKey: .extraCatalogues)) ?? []
+        saveSlots = (try? c.decodeIfPresent([String: Int].self, forKey: .saveSlots)) ?? [:]
+        autoBackupBookmark = try? c.decodeIfPresent(Data.self, forKey: .autoBackupBookmark)
+        lastAutoBackup = try? c.decodeIfPresent(Date.self, forKey: .lastAutoBackup)
+    }
+
+    /// Puts a game at the front of "recently played".
+    public mutating func played(_ gameID: String) {
+        recentGames.removeAll { $0 == gameID }
+        recentGames.insert(gameID, at: 0)
+        if recentGames.count > 20 { recentGames.removeLast(recentGames.count - 20) }
     }
 }
 
