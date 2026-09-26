@@ -124,6 +124,7 @@ let up = pos + {x: 0, y: 1, z: 0} * 2    -- 位置は足し算・かけ算でき
 | `on death(victim, killer)` / `on respawn(p)` | 倒された／復活した |
 | `on button(p, id)` / `on input(p, id, text)` | 画面のボタン／テキストボックス |
 | `on chat(p, text)` | チャット（`/fly` のようなコマンドにも） |
+| `on loaded(p)` | その人のセーブデータがとどいた（ここで `p.saved` を読む） |
 
 ## 画面GUI
 
@@ -174,8 +175,32 @@ p.look_at(block("Goal"))                     -- 向かせる
 p.health = 50   p.damage(10)   p.heal(10)   p.kill()   p.respawn()
 p.give("rifle")   p.take()   p.reload()
 p.message("やった！", 2)   p.chat("こんにちは")   p.sound("hit")
-p.coins = 0                                  -- 自分の値を保存できる
+p.coins = 0                                  -- 自分の値を持たせられる（このラウンドのあいだ）
 ```
+
+## セーブ（進みぐあいを次も使う）
+
+`p.save("coins", 120)` で、その人のiPadに値を保存できます。`p.saved`（マップ）で、そのワールドで保存したものを全部読めます。
+次に遊ぶときも、友だちの部屋で遊んでも同じゲームならつづきからです。`p.save("coins")` でその名前を消します。
+
+```lua
+on loaded(p)                 -- セーブデータがとどいた
+  p.coins = p.saved.coins or 0
+end
+
+on button(p, id)
+  if id == "buy" then
+    p.coins = p.coins - 10
+    p.save("coins", p.coins)  -- 何回よんでも大丈夫（送るのは1秒に1回まで）
+  end
+end
+```
+
+- データは `on join` の少しあとにとどくので、`on loaded(p)` で読む。それまで `p.saved` は nil で、`p.save` は保存せずに false を返す（新しい回の初期値で前のセーブを上書きしないため）
+- 保存できるのは数・文字・true/false・それらのリストとマップ。プレイヤーやブロック、関数はだめ。1ワールドにつき200項目・64KBまで
+- Studioのテストプレイでは保存されない。NPCにはセーブはない
+- セーブは遊ぶ人のiPadにあるデータなので、進みぐあいや解放したものにはぴったり。でも書きかえようと思えばできるので、ほかの人に関係する大事なものには使わない
+- カタログのキット（`lib/kit.absc`）を使うと、コイン・クエスト・実績は自動で保存される。ゲーム独自のものは `kit_keep(["fans", "best"])` で登録する
 
 ## NPC
 

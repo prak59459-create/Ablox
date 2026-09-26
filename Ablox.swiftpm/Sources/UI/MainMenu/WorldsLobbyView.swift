@@ -14,6 +14,8 @@ struct WorldsLobbyView: View {
     @State private var pendingDeletion: ProjectStore.Entry?
     @State private var renaming: ProjectStore.Entry?
     @State private var renameText = ""
+    @State private var showingVersions: ProjectStore.Entry?
+    @State private var showingDeleted = false
     /// The world waiting for the host to pick public or private. Kept apart
     /// from the dialog's own flag, so closing the dialog cannot clear it
     /// before the chosen button reads it.
@@ -52,6 +54,12 @@ struct WorldsLobbyView: View {
             .padding(Ablox.Metrics.gutter)
         }
         .sheet(isPresented: $isCreating) { createSheet }
+        .sheet(item: $showingVersions) { entry in
+            WorldVersionsSheet(entry: entry).environmentObject(store)
+        }
+        .sheet(isPresented: $showingDeleted) {
+            RecentlyDeletedSheet().environmentObject(store)
+        }
         .roomVisibilityDialog(isPresented: $askingVisibility) { isPublic in
             if let world = hostCandidate {
                 onEnter(ActiveSession(mode: .hosting(world, isPublic: isPublic)))
@@ -65,7 +73,7 @@ struct WorldsLobbyView: View {
                 pendingDeletion = nil
             }
         } message: {
-            Text(L("“{}” will be removed from this iPad. This cannot be undone.", pendingDeletion?.name ?? ""))
+            Text(L("“{}” moves to Recently Deleted, where it can be put back for 30 days.", pendingDeletion?.name ?? ""))
         }
         .alert(L("Rename world"), isPresented: .constant(renaming != nil)) {
             TextField(L("Name"), text: $renameText)
@@ -90,6 +98,12 @@ struct WorldsLobbyView: View {
                     .foregroundStyle(Ablox.Palette.inkMuted)
             }
             Spacer()
+            if !store.deleted.isEmpty {
+                Button { showingDeleted = true } label: {
+                    Label(L("Recently deleted"), systemImage: "trash")
+                }
+                .buttonStyle(NeonButtonStyle(.secondary))
+            }
             Button {
                 newWorldName = store.uniqueName(basedOn: "My World")
                 selectedTemplate = .starter
@@ -121,6 +135,10 @@ struct WorldsLobbyView: View {
                         Button {
                             store.duplicate(entry)
                         } label: { Label(L("Duplicate"), systemImage: "doc.on.doc") }
+
+                        Button {
+                            showingVersions = entry
+                        } label: { Label(L("Earlier versions"), systemImage: "clock.arrow.circlepath") }
 
                         Divider()
 

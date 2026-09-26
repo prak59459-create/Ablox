@@ -5,6 +5,7 @@ struct AbloxApp: App {
     @StateObject private var settings: AppSettings
     @StateObject private var session: SessionCoordinator
     @StateObject private var store = ProjectStore()
+    @StateObject private var saves: GameSaves
 
     init() {
         // `AppSettings` owns the persisted peer identity, so it must exist
@@ -13,10 +14,15 @@ struct AbloxApp: App {
         // every re-render.
         let settings = AppSettings()
         _settings = StateObject(wrappedValue: settings)
-        _session = StateObject(wrappedValue: SessionCoordinator(
+        let session = SessionCoordinator(
             localPeerID: settings.peerID,
             profile: settings.profile
-        ))
+        )
+        // Games played here keep their progress on this iPad.
+        let saves = GameSaves()
+        session.saveStore = saves.store
+        _session = StateObject(wrappedValue: session)
+        _saves = StateObject(wrappedValue: saves)
     }
 
     var body: some Scene {
@@ -25,6 +31,7 @@ struct AbloxApp: App {
                 .environmentObject(settings)
                 .environmentObject(session)
                 .environmentObject(store)
+                .environmentObject(saves)
                 // Rebuilds the interface when the language changes.
                 //
                 // `L(...)` reads a global that SwiftUI knows nothing about, so

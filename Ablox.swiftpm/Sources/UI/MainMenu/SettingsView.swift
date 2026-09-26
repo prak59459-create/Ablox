@@ -1,8 +1,16 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct SettingsView: View {
     @EnvironmentObject private var settings: AppSettings
     @EnvironmentObject private var session: SessionCoordinator
+    @EnvironmentObject private var store: ProjectStore
+    @EnvironmentObject private var saves: GameSaves
+
+    @State private var deletingSave: GameSaveStore.Summary?
+    @State private var confirmingDeleteAll = false
+    @State private var backupFile: BackupFile?
+    @State private var choosingBackup = false
 
     var body: some View {
         ScrollView {
@@ -17,6 +25,7 @@ struct SettingsView: View {
 
                 languageCard
                 gamesCard
+                dataCard
                 graphicsCard
                 controlsCard
                 movementCard
@@ -111,6 +120,119 @@ struct SettingsView: View {
             .font(.callout.monospaced())
             .padding(10)
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+    }
+
+    // MARK: Saved data
+
+    /// What games have saved here, and the backup file that moves everything
+    /// — avatar, coins, saves, worlds — to another iPad.
+    private var dataCard: some View {
+        GlassCard {
+            VStack(alignment: .leading, spacing: 14) {
+                SectionHeader(L("Saved data"), systemImage: "externaldrive.fill")
+
+                Text(L("Games keep your progress — coins, quests, what you unlocked — on this iPad by themselves, even in a friend's room. It comes back next time you play the same game."))
+                    .font(.caption)
+                    .foregroundStyle(Ablox.Palette.inkMuted)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                if saves.summaries.isEmpty {
+                    Label(L("No game has saved anything yet."), systemImage: "tray")
+                        .font(.subheadline)
+                        .foregroundStyle(Ablox.Palette.inkFaint)
+                } else {
+                    VStack(spacing: 8) {
+                        ForEach(saves.summaries) { summary in
+                            saveRow(summary)
+                        }
+                    }
+                    Button(role: .destructive) { confirmingDeleteAll = true } label: {
+                        Label(L("Delete all saved games"), systemImage: "trash")
+                            .font(.caption.weight(.semibold))
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(Ablox.Palette.danger)
+                }
+
+                Divider().background(Color.white.opacity(0.08))
+
+                Text(L("A backup file holds your avatar, coins, saved games and worlds. Keep it in Files or send it to another iPad, then open it there with “Restore from a backup”."))
+                    .font(.caption)
+                    .foregroundStyle(Ablox.Palette.inkMuted)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                HStack(spacing: 10) {
+                    Button {
+                        if let url = saves.makeBackup(settings: settings, worlds: store) { backupFile = BackupFile(url: url) }
+                    } label: {
+                        Label(L("Make a backup"), systemImage: "square.and.arrow.up")
+                    }
+                    .buttonStyle(NeonButtonStyle(.primary))
+
+                    Button { choosingBackup = true } label: {
+                        Label(L("Restore from a backup"), systemImage: "square.and.arrow.down")
+                    }
+                    .buttonStyle(NeonButtonStyle(.secondary))
+                }
+
+                if let message = saves.lastMessage {
+                    Label(message, systemImage: "info.circle")
+                        .font(.caption)
+                        .foregroundStyle(Ablox.Palette.accent)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+        .onAppear { saves.reload() }
+        .alert(L("Delete this saved game?"), isPresented: Binding(get: { deletingSave != nil }, set: { if !$0 { deletingSave = nil } })) {
+            Button(L("Cancel"), role: .cancel) { deletingSave = nil }
+            Button(L("Delete"), role: .destructive) {
+                if let deletingSave { saves.delete(deletingSave) }
+                deletingSave = nil
+            }
+        } message: {
+            Text(L("Your progress in “{}” will start again from nothing.", deletingSave?.worldName ?? ""))
+        }
+        .alert(L("Delete every saved game?"), isPresented: $confirmingDeleteAll) {
+            Button(L("Cancel"), role: .cancel) {}
+            Button(L("Delete"), role: .destructive) { saves.deleteAll() }
+        } message: {
+            Text(L("Every game starts again from nothing. Worlds and coins are not touched."))
+        }
+        .sheet(item: $backupFile) { file in
+            BackupShareSheet(url: file.url)
+        }
+        .fileImporter(isPresented: $choosingBackup, allowedContentTypes: [.data, .json]) { result in
+            if case let .success(url) = result {
+                saves.restoreBackup(from: url, settings: settings, worlds: store)
+            }
+        }
+    }
+
+    private func saveRow(_ summary: GameSaveStore.Summary) -> some View {
+        HStack(spacing: 11) {
+            Image(systemName: "gamecontroller.fill")
+                .font(.footnote)
+                .frame(width: 20)
+                .foregroundStyle(Ablox.Palette.accent)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(summary.worldName)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(Ablox.Palette.ink)
+                Text(summary.savedAt.formatted(date: .abbreviated, time: .shortened))
+                    .font(.caption2)
+                    .foregroundStyle(Ablox.Palette.inkMuted)
+            }
+            Spacer()
+            Button { deletingSave = summary } label: {
+                Image(systemName: "trash")
+                    .foregroundStyle(Ablox.Palette.inkMuted)
+                    .frame(width: Ablox.Metrics.minimumTapTarget, height: Ablox.Metrics.minimumTapTarget)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(L("Delete"))
+        }
     }
 
     // MARK: Graphics
@@ -289,5 +411,40 @@ struct SettingsView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
+    }
+}
+
+/// A backup written and waiting to be shared.
+private struct BackupFile: Identifiable {
+    let url: URL
+    var id: URL { url }
+}
+
+private struct BackupShareSheet: View {
+    let url: URL
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(spacing: 18) {
+            Image(systemName: "externaldrive.badge.checkmark")
+                .font(.system(size: 44))
+                .foregroundStyle(Ablox.Palette.accent)
+            Text(verbatim: url.lastPathComponent)
+                .font(.headline.monospaced())
+                .multilineTextAlignment(.center)
+            Text(L("Save it to Files, or AirDrop it to the iPad you are moving to."))
+                .font(.subheadline)
+                .foregroundStyle(Ablox.Palette.inkMuted)
+                .multilineTextAlignment(.center)
+            ShareLink(item: url) {
+                Label(L("Share or save to Files"), systemImage: "square.and.arrow.up")
+                    .frame(maxWidth: 280)
+            }
+            .buttonStyle(NeonButtonStyle(.primary))
+            Button(L("Done")) { dismiss() }
+                .buttonStyle(NeonButtonStyle(.secondary))
+        }
+        .padding(30)
+        .presentationDetents([.medium])
     }
 }

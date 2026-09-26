@@ -147,7 +147,7 @@ tests fail if any event, function, member or option is missing from it.
 
 **Events**: `start tick(dt) join(p) leave(p) touch(p, block) tap(p, block)
 fire(p) hit(victim, attacker, damage) hit_block(p, block) death(victim, killer)
-respawn(p) button(p, id) input(p, id, text) chat(p, text)`.
+respawn(p) button(p, id) input(p, id, text) chat(p, text) loaded(p)`.
 
 **Globals**: `players npcs find_player block blocks create_block create_npc
 distance raycast time after every cancel announce sound chat fade shake
@@ -159,7 +159,7 @@ score team position x y z yaw look velocity weapon ammo speed jump gravity
 frozen color head_color leg_color size hat ride ride_color visible`, and `give take reload
 teleport damage heal kill respawn launch look_at`. Players only: `camera
 camera_distance fov controls default_ui camera_look camera_reset message sound
-chat fade shake ui_*`. NPCs only: `move_to follow stop jump_now shoot say
+chat fade shake ui_* saved save`. NPCs only: `move_to follow stop jump_now shoot say
 destroy`. Any other name stores a value on the character (`p.kills = 0`).
 `n.say("Hello!")` shows a speech bubble over the NPC's head for a few seconds,
 the same white bubble players get when they chat, and puts the line in the
@@ -173,6 +173,9 @@ solid tags opacity behavior`, and `move move_to rotate clone destroy`. Only a
 block with a behavior (`trigger`, `hazard`, `checkpoint`, `bounce`,
 `collectible`, …) is reported by the iPad when touched, so a script-made coin
 needs `create_block({…, behavior: "trigger"})` for `on touch` to see it.
+A trigger is also something you walk *through*, never stand on: a floor tile
+that has to hold people up and still know who is on it stays an ordinary
+block, and `on tick` works out the tile under each player from `p.x` and `p.z`.
 
 **World**: `gravity sky sky_top sky_bottom light sun sun_yaw ground
 ground_color fall_height`. **Game**: `respawn_time friendly_fire time
@@ -189,6 +192,40 @@ tan asin acos atan atan2 pow log exp sign lerp pi min max clamp random vec
 magnitude normalize dot cross len append remove insert contains index_of keys
 join shuffle range slice reverse copy sum sort map filter upper lower trim
 split replace starts_with ends_with fixed`. Angles are in degrees.
+
+## Saving progress
+
+`p.save("coins", 120)` keeps a value on that player's own iPad, and
+`p.saved` (a map) reads everything they have saved in this world — next
+session, and in anyone's room, because a catalogue game keeps its world id
+whoever hosts it. `p.save("coins")` forgets a key.
+
+```lua
+on loaded(p)                 -- their saved data has arrived
+  p.coins = p.saved.coins or 0
+end
+
+on button(p, id)
+  if id == "buy" then
+    p.coins = p.coins - 10
+    p.save("coins", p.coins)  -- cheap: sent back at most once a second
+  end
+end
+```
+
+- The data arrives a moment after `on join`, so read it in `on loaded(p)`.
+  Until then `p.saved` is nil and `p.save` returns false without saving, so
+  a new session can never overwrite older progress with its defaults.
+- Numbers, text, true/false and lists and maps of those can be saved — not
+  players, blocks or functions. Up to 200 names and 64 KB per world.
+- Nothing is saved in Studio's play test, and NPCs have nothing to save.
+- It is the player's own data, sent by their iPad: fine for progress and
+  unlocks, but a determined player could edit it, so it is not a place for
+  anything other players rely on.
+
+The catalogue kit (`lib/kit.absc` in the games repository) does this for
+you: coins, quests and badges are kept automatically, and a game lists its
+own progress with `kit_keep(["fans", "best"])`.
 
 ## Studio
 

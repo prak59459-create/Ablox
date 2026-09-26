@@ -135,6 +135,7 @@ public struct GameViewport: UIViewRepresentable {
         /// nowhere since the first phase; this is what finally plays them.
         private let feedback = FeedbackPlayer()
         private var lastWorldRevision: Date?
+        private var lastWorldID: UUID?
 
         /// Blocks currently overlapped, so a touch is reported on entry rather
         /// than every frame the player stands there.
@@ -221,7 +222,14 @@ public struct GameViewport: UIViewRepresentable {
             // `modifiedAt` is the cheap revision check; a full diff of every
             // block on every SwiftUI update would be wasteful, and WorldScene
             // does its own per-block diffing anyway.
-            guard world.modifiedAt != lastWorldRevision else { return }
+            //
+            // The world's id is checked too. Every catalogue game carries the
+            // same `modifiedAt` — the day the catalogue was built — and the
+            // viewport is made before the session switches to the new game,
+            // so a date-only check kept drawing the previous game's map while
+            // the player walked (and collided) in the new one.
+            guard world.id != lastWorldID || world.modifiedAt != lastWorldRevision else { return }
+            lastWorldID = world.id
             lastWorldRevision = world.modifiedAt
             // RealityKit physics only matters for parts that can fall. The
             // players' own movement never used it, and a static body per part
