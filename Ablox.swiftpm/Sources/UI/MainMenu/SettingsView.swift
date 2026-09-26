@@ -6,11 +6,13 @@ struct SettingsView: View {
     @EnvironmentObject private var session: SessionCoordinator
     @EnvironmentObject private var store: ProjectStore
     @EnvironmentObject private var saves: GameSaves
+    @EnvironmentObject private var updater: AppUpdater
 
     @State private var deletingSave: GameSaveStore.Summary?
     @State private var confirmingDeleteAll = false
     @State private var backupFile: BackupFile?
     @State private var choosingBackup = false
+    @State private var installing: UpdateInstall?
 
     var body: some View {
         ScrollView {
@@ -24,6 +26,9 @@ struct SettingsView: View {
                 }
 
                 languageCard
+                UpdateSettingsCard(updater: updater) {
+                    installing = UpdateInstall(backup: saves.makeBackupBeforeUpdate(settings: settings, worlds: store))
+                }
                 gamesCard
                 dataCard
                 graphicsCard
@@ -34,6 +39,9 @@ struct SettingsView: View {
             }
             .padding(Ablox.Metrics.gutter)
             .frame(maxWidth: 780, alignment: .leading)
+        }
+        .sheet(item: $installing) { install in
+            UpdateInstallSheet(updater: updater, backup: install.backup)
         }
     }
 
@@ -173,6 +181,17 @@ struct SettingsView: View {
                         Label(L("Restore from a backup"), systemImage: "square.and.arrow.down")
                     }
                     .buttonStyle(NeonButtonStyle(.secondary))
+                }
+
+                if let kept = saves.keptBackupFiles.first {
+                    Button {
+                        saves.restoreBackup(from: kept, settings: settings, worlds: store)
+                    } label: {
+                        Label(L("Bring back the backup made before the last update"), systemImage: "clock.arrow.circlepath")
+                            .font(.caption.weight(.semibold))
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(Ablox.Palette.accent)
                 }
 
                 if let message = saves.lastMessage {

@@ -6,6 +6,7 @@ struct AbloxApp: App {
     @StateObject private var session: SessionCoordinator
     @StateObject private var store = ProjectStore()
     @StateObject private var saves: GameSaves
+    @StateObject private var updater = AppUpdater(release: AppRelease.current)
 
     init() {
         // `AppSettings` owns the persisted peer identity, so it must exist
@@ -32,6 +33,7 @@ struct AbloxApp: App {
                 .environmentObject(session)
                 .environmentObject(store)
                 .environmentObject(saves)
+                .environmentObject(updater)
                 // Rebuilds the interface when the language changes.
                 //
                 // `L(...)` reads a global that SwiftUI knows nothing about, so

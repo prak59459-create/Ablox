@@ -45,10 +45,14 @@ public struct MainMenuView: View {
     @EnvironmentObject private var session: SessionCoordinator
     @EnvironmentObject private var store: ProjectStore
     @EnvironmentObject private var settings: AppSettings
+    @EnvironmentObject private var saves: GameSaves
+    @EnvironmentObject private var updater: AppUpdater
 
     @State private var selectedTab: MenuTab = .play
     /// Set when the player enters a world; drives the full-screen cover.
     @State private var activeSession: ActiveSession?
+    /// The new version being handed to Swift Playgrounds.
+    @State private var installing: UpdateInstall?
 
     public init() {}
 
@@ -62,24 +66,28 @@ public struct MainMenuView: View {
 
                 Divider().background(Color.white.opacity(0.08))
 
-                Group {
-                    switch selectedTab {
-                    case .play:
-                        PlayLobbyView(onEnter: { activeSession = $0 })
-                    case .games:
-                        DiscoverView(onEnter: { activeSession = $0 })
-                    case .worlds:
-                        WorldsLobbyView(onEnter: { activeSession = $0 })
-                    case .avatar:
-                        AvatarCustomizerView()
-                    case .shop:
-                        ShopView()
-                    case .settings:
-                        SettingsView()
+                VStack(spacing: 0) {
+                    UpdateBanner(updater: updater) { beginInstall() }
+
+                    Group {
+                        switch selectedTab {
+                        case .play:
+                            PlayLobbyView(onEnter: { activeSession = $0 })
+                        case .games:
+                            DiscoverView(onEnter: { activeSession = $0 })
+                        case .worlds:
+                            WorldsLobbyView(onEnter: { activeSession = $0 })
+                        case .avatar:
+                            AvatarCustomizerView()
+                        case .shop:
+                            ShopView()
+                        case .settings:
+                            SettingsView()
+                        }
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .transition(.opacity)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .transition(.opacity)
             }
         }
         .preferredColorScheme(.dark)
@@ -90,7 +98,16 @@ public struct MainMenuView: View {
                 activeSession = nil
             }
         }
+        .sheet(item: $installing) { install in
+            UpdateInstallSheet(updater: updater, backup: install.backup)
+        }
+        // The first time a new version runs: what changed.
+        .sheet(isPresented: Binding(get: { updater.justUpdated != nil && activeSession == nil },
+                                    set: { if !$0 { updater.justUpdated = nil } })) {
+            if let manifest = updater.justUpdated { WhatsNewSheet(manifest: manifest) }
+        }
         .onAppear {
+            updater.start()
             session.profile = settings.profile
             session.moderator = settings.chatModerator
             session.muteList = settings.muteList
@@ -103,6 +120,20 @@ public struct MainMenuView: View {
             session.stopBrowsing()
         }
     }
+}
+
+extension MainMenuView {
+    /// Backs everything up first — a copy stays inside the app too — then
+    /// shows how to hand the new version over.
+    private func beginInstall() {
+        installing = UpdateInstall(backup: saves.makeBackupBeforeUpdate(settings: settings, worlds: store))
+    }
+}
+
+/// A downloaded update about to be handed over, with the backup made for it.
+struct UpdateInstall: Identifiable {
+    let id = UUID()
+    let backup: URL?
 }
 
 /// What the player is about to enter, so `PlayScreen` knows whether it is

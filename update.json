@@ -1,0 +1,24 @@
+{
+  "app": "Ablox",
+  "version": "1.1",
+  "build": 2,
+  "protocol": 6,
+  "date": "2026-09-26",
+  "package": "Ablox.swiftpm",
+  "notes": {
+    "en": [
+      "Updates itself: new versions are found, downloaded and handed to Swift Playgrounds for you",
+      "Games keep your progress on your iPad, with backups you can move to another iPad",
+      "Safer rooms: a stronger room key, and the host ignores floods and fake messages",
+      "Smoother games: creating and moving parts costs the host far less",
+      "New cover pictures for every game in the list"
+    ],
+    "ja": [
+      "自動アップデート: 新しいバージョンを見つけて、ダウンロードして、Swift Playgrounds にわたします",
+      "ゲームの進みぐあいを iPad に保存。バックアップで別の iPad にも移せます",
+      "ルームがより安全に: 強いルームキー、ホストは大量送信やなりすましを無視",
+      "ゲームがなめらかに: パーツを出したり動かしたりする負担を大きく削減",
+      "ゲーム一覧のカバー画像をすべて新しく"
+    ]
+  }
+}

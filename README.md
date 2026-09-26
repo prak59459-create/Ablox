@@ -18,6 +18,13 @@ press Run. It also opens in Xcode 15+.
 On first launch iPadOS asks for **Local Network** permission. Say yes — without
 it, Ablox cannot see other iPads and the Play tab stays empty.
 
+### Updating
+
+From 1.1 on, Ablox keeps itself up to date: it finds a new version, downloads
+and checks it, and backs everything up; you tap **Install** and send it to
+Swift Playgrounds. See [`docs/updates.md`](docs/updates.md), which also
+covers publishing a release with `scripts/release.sh`.
+
 ## Two Package.swift files, on purpose
 
 - `Ablox.swiftpm/Package.swift` — the shipping app. This is what you open.

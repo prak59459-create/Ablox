@@ -148,7 +148,7 @@ struct PlayLobbyView: View {
                 Spacer()
 
                 if !peer.isCompatible {
-                    Badge(L("Update needed"), color: Ablox.Palette.warning)
+                    Badge(peer.isNewer ? L("Update needed") : L("Their Ablox is older"), color: Ablox.Palette.warning)
                 } else if peer.isFull {
                     Badge(L("Full"), color: Ablox.Palette.inkFaint)
                 } else if let code = peer.publicCode {
