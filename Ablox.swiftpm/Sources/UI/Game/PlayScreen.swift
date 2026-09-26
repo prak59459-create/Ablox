@@ -20,6 +20,16 @@ public struct PlayScreen: View {
     @State private var hasBankedThisRound = false
     @State private var isFiring = false
 
+    // Settings → Family, while playing.
+    @State private var sessionSeconds: Double = 0
+    @State private var lastRestReminder: Double = 0
+    @State private var countedStart = false
+    @State private var showingRest = false
+    /// Seconds until the game closes, once today's time or quiet hours
+    /// have come — a minute's warning rather than the world vanishing.
+    @State private var closingIn: Int?
+    private let playClock = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
+
     public init(session: SessionCoordinator, activeSession: ActiveSession, onExit: @escaping () -> Void) {
         self.session = session
         self.activeSession = activeSession
@@ -47,17 +57,32 @@ public struct PlayScreen: View {
                 hapticsEnabled: settings.hapticsEnabled,
                 isFiring: isFiring && session.scripted.weapon != nil,
                 graphicsQuality: settings.graphicsQuality,
-                showFrameRate: settings.showFrameRate
+                showFrameRate: settings.showFrameRate,
+                preferences: settings.preferences
             )
             .ignoresSafeArea()
+
+            // Settings → Comfort: warmer, dimmer, over the game only.
+            if settings.preferences.warmScreen {
+                Color(red: 1, green: 0.55, blue: 0.2).opacity(0.14)
+                    .blendMode(.multiply)
+                    .ignoresSafeArea()
+                    .allowsHitTesting(false)
+            }
+            if settings.preferences.dimming > 0 {
+                Color.black.opacity(settings.preferences.dimming)
+                    .ignoresSafeArea()
+                    .allowsHitTesting(false)
+            }
 
             // A script can hide the joystick and buttons — a title screen,
             // a cutscene — and the top bar and chat.
             if session.scripted.showsControls {
                 controlsLayer
             }
-            ScriptHUDLayer(session: session)
+            ScriptHUDLayer(session: session, reduceFlashing: settings.preferences.reduceFlashing)
             hudLayer
+            familyNotices
 
             if session.status.isBusy {
                 connectingOverlay
@@ -72,6 +97,7 @@ public struct PlayScreen: View {
         .statusBarHidden()
         .persistentSystemOverlays(.hidden)
         .onAppear(perform: enterSession)
+        .onReceive(playClock) { _ in countPlay(seconds: 5) }
         .onChange(of: session.announcement) { _, announcement in
             // The end-of-round banner is the one signal that the round is
             // over for everyone, host or client.
@@ -99,11 +125,77 @@ public struct PlayScreen: View {
     private func bankCoins(completed: Bool) {
         guard let score = session.localPlayer?.score, !hasBankedThisRound else { return }
         hasBankedThisRound = true
-        settings.award(score: score, completedRound: completed)
+        settings.award(score: score, completedRound: completed, game: session.world.name)
+    }
+
+    // MARK: Play time
+
+    /// Counts time played (only while the app is in front), reminds about a
+    /// rest, and closes the game a minute after today's time runs out.
+    private func countPlay(seconds: Double) {
+        guard scenePhase == .active, !session.status.isBusy else { return }
+        let game = session.world.name
+        if !countedStart {
+            countedStart = true
+            settings.playtime.startedPlaying(game)
+        }
+        settings.recordPlay(seconds: seconds, game: game)
+        sessionSeconds += seconds
+
+        if PlayGate.breakDue(settings.parental, sessionSeconds: sessionSeconds, lastReminder: lastRestReminder) {
+            lastRestReminder = sessionSeconds
+            withAnimation { showingRest = true }
+        }
+        if let left = closingIn {
+            let next = left - Int(seconds)
+            if next <= 0 { onExit() } else { closingIn = next }
+        } else if settings.playVerdict != .allowed {
+            withAnimation { closingIn = 60 }
+        }
+    }
+
+    @ViewBuilder private var familyNotices: some View {
+        VStack(spacing: 10) {
+            if let closingIn, let message = PlayGate.message(for: settings.playVerdict) {
+                familyBanner(icon: "moon.stars.fill", color: Ablox.Palette.warning,
+                             text: message + " " + L("Closing in {} seconds.", closingIn))
+            }
+            if showingRest {
+                familyBanner(icon: "cup.and.saucer.fill", color: Ablox.Palette.accent,
+                             text: L("Time for a little rest? Look far away and stretch.")) {
+                    withAnimation { showingRest = false }
+                }
+            }
+            Spacer()
+        }
+        .padding(.top, 70)
+        .transition(.move(edge: .top).combined(with: .opacity))
+    }
+
+    private func familyBanner(icon: String, color: Color, text: String, dismiss: (() -> Void)? = nil) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: icon)
+                .foregroundStyle(color)
+            Text(text)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.white)
+                .fixedSize(horizontal: false, vertical: true)
+            if let dismiss {
+                Button(L("OK"), action: dismiss)
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(Ablox.Palette.accent)
+            }
+        }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 12)
+        .background(.ultraThinMaterial, in: Capsule())
+        .overlay(Capsule().strokeBorder(color.opacity(0.5), lineWidth: 1.5))
+        .frame(maxWidth: 560)
     }
 
     private func enterSession() {
         hasBankedThisRound = false
+        session.allowsPlayerChat = settings.parental.chat != .off
         switch activeSession.mode {
         case let .solo(world):
             session.startSoloSession(world: world)
@@ -204,7 +296,7 @@ public struct PlayScreen: View {
                     .transition(.move(edge: .top).combined(with: .opacity))
                     .padding(.bottom, 30)
             }
-            if showChat, session.scripted.showsDefaultUI { chatBar }
+            if showChat, session.scripted.showsDefaultUI, settings.parental.chat != .off { chatBar }
             if session.role == .hosting, !session.scriptLog.isEmpty {
                 ScriptLogBanner(session: session)
                     .padding(.leading, 18)
@@ -248,16 +340,18 @@ public struct PlayScreen: View {
             }
             .accessibilityLabel(L("Scoreboard"))
 
-            Button {
-                withAnimation { showChat.toggle() }
-            } label: {
-                Image(systemName: "bubble.left.fill")
-                    .font(.headline)
-                    .frame(width: 42, height: 42)
-                    .background(.ultraThinMaterial, in: Circle())
-                    .foregroundStyle(showChat ? Ablox.Palette.accent : .white)
+            if settings.parental.chat != .off {
+                Button {
+                    withAnimation { showChat.toggle() }
+                } label: {
+                    Image(systemName: "bubble.left.fill")
+                        .font(.headline)
+                        .frame(width: 42, height: 42)
+                        .background(.ultraThinMaterial, in: Circle())
+                        .foregroundStyle(showChat ? Ablox.Palette.accent : .white)
+                }
+                .accessibilityLabel(L("Chat"))
             }
-            .accessibilityLabel(L("Chat"))
         }
         .padding(.horizontal, 18)
         .padding(.top, 14)
@@ -295,10 +389,12 @@ public struct PlayScreen: View {
     /// host open or close the room without leaving.
     private var roomCodeChip: some View {
         Menu {
-            Button {
-                session.setRoomPublic(true)
-            } label: {
-                Label(L("Public — anyone nearby can join"), systemImage: session.isRoomPublic ? "checkmark" : "globe")
+            if settings.parental.allowPublicRooms {
+                Button {
+                    session.setRoomPublic(true)
+                } label: {
+                    Label(L("Public — anyone nearby can join"), systemImage: session.isRoomPublic ? "checkmark" : "globe")
+                }
             }
             Button {
                 session.setRoomPublic(false)
@@ -410,6 +506,27 @@ public struct PlayScreen: View {
                 }
             }
 
+            // Ready-made phrases: one tap, for small children — and the only
+            // way to talk when Settings → Family says phrases only.
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 6) {
+                    ForEach(QuickChat.phrases, id: \.self) { phrase in
+                        Button {
+                            session.sendChat(L(phrase))
+                        } label: {
+                            Text(L(phrase))
+                                .font(.caption.weight(.semibold))
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                                .background(Ablox.Palette.accent.opacity(0.2), in: Capsule())
+                                .foregroundStyle(.white)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+
+            if settings.parental.chat == .full {
             HStack(spacing: 9) {
                 TextField(L("Say something…"), text: $chatDraft)
                     .textFieldStyle(.plain)
@@ -425,6 +542,7 @@ public struct PlayScreen: View {
                         .foregroundStyle(.black)
                 }
                 .disabled(chatDraft.trimmingCharacters(in: .whitespaces).isEmpty)
+            }
             }
         }
         .padding(16)

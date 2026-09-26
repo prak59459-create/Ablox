@@ -53,6 +53,8 @@ public struct MainMenuView: View {
     @State private var activeSession: ActiveSession?
     /// The new version being handed to Swift Playgrounds.
     @State private var installing: UpdateInstall?
+    /// Why a game could not start (Settings → Family).
+    @State private var blockedMessage: String?
 
     public init() {}
 
@@ -72,11 +74,11 @@ public struct MainMenuView: View {
                     Group {
                         switch selectedTab {
                         case .play:
-                            PlayLobbyView(onEnter: { activeSession = $0 })
+                            PlayLobbyView(onEnter: enter)
                         case .games:
-                            DiscoverView(onEnter: { activeSession = $0 })
+                            DiscoverView(onEnter: enter)
                         case .worlds:
-                            WorldsLobbyView(onEnter: { activeSession = $0 })
+                            WorldsLobbyView(onEnter: enter)
                         case .avatar:
                             AvatarCustomizerView()
                         case .shop:
@@ -97,6 +99,11 @@ public struct MainMenuView: View {
                 session.leave()
                 activeSession = nil
             }
+        }
+        .alert(L("Not now"), isPresented: Binding(get: { blockedMessage != nil }, set: { if !$0 { blockedMessage = nil } })) {
+            Button(L("OK"), role: .cancel) { blockedMessage = nil }
+        } message: {
+            Text(blockedMessage ?? "")
         }
         .sheet(item: $installing) { install in
             UpdateInstallSheet(updater: updater, backup: install.backup)
@@ -123,6 +130,23 @@ public struct MainMenuView: View {
 }
 
 extension MainMenuView {
+    /// Every way into a world comes through here, so Settings → Family is
+    /// checked in one place: time left today, quiet hours, joining others.
+    private func enter(_ active: ActiveSession) {
+        if let message = PlayGate.message(for: settings.playVerdict) {
+            blockedMessage = message
+            return
+        }
+        switch active.mode {
+        case .joining where !settings.parental.allowJoiningRooms:
+            blockedMessage = L("Joining other people's rooms is turned off in Settings → Family.")
+        case let .hosting(world, isPublic) where isPublic && !settings.parental.allowPublicRooms:
+            activeSession = ActiveSession(mode: .hosting(world, isPublic: false))
+        default:
+            activeSession = active
+        }
+    }
+
     /// Backs everything up first — a copy stays inside the app too — then
     /// shows how to hand the new version over.
     private func beginInstall() {

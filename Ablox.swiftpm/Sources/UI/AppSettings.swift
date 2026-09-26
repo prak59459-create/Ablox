@@ -26,6 +26,10 @@ public final class AppSettings: ObservableObject {
         static let catalogueBranch = "ablox.catalogueBranch"
         static let graphicsQuality = "ablox.graphicsQuality"
         static let showFrameRate = "ablox.showFrameRate"
+        static let parental = "ablox.parental"
+        static let playtime = "ablox.playtime"
+        static let ledger = "ablox.coinLedger"
+        static let preferences = "ablox.playPreferences"
     }
 
     private let defaults: UserDefaults
@@ -126,6 +130,27 @@ public final class AppSettings: ObservableObject {
         didSet { defaults.set(showFrameRate, forKey: Key.showFrameRate) }
     }
 
+    /// Settings → Family: limits, bedtime, chat and the passcode that guards
+    /// them. See `ParentalControls`.
+    @Published public var parental: ParentalControls {
+        didSet { persist(parental, forKey: Key.parental) }
+    }
+
+    /// How long was played, per day and per game.
+    @Published public var playtime: PlaytimeLog {
+        didSet { persist(playtime, forKey: Key.playtime) }
+    }
+
+    /// Every coin in and out, for the history screen and the spending limit.
+    @Published public var coinLedger: CoinLedger {
+        didSet { persist(coinLedger, forKey: Key.ledger) }
+    }
+
+    /// Comfort, eyes, battery, text size and the play screen's extras.
+    @Published public var preferences: PlayPreferences {
+        didSet { persist(preferences, forKey: Key.preferences) }
+    }
+
     /// The validated source, falling back to the built-in list if someone has
     /// typed something unusable into Settings.
     public var catalogueSource: CatalogueSource {
@@ -169,6 +194,10 @@ public final class AppSettings: ObservableObject {
         self.graphicsQuality = defaults.string(forKey: Key.graphicsQuality)
             .flatMap(GraphicsQuality.init(rawValue:)) ?? .auto
         self.showFrameRate = defaults.object(forKey: Key.showFrameRate) as? Bool ?? false
+        self.parental = AppSettings.decode(ParentalControls.self, from: defaults, key: Key.parental) ?? ParentalControls()
+        self.playtime = AppSettings.decode(PlaytimeLog.self, from: defaults, key: Key.playtime) ?? PlaytimeLog()
+        self.coinLedger = AppSettings.decode(CoinLedger.self, from: defaults, key: Key.ledger) ?? CoinLedger()
+        self.preferences = AppSettings.decode(PlayPreferences.self, from: defaults, key: Key.preferences) ?? PlayPreferences()
 
         if let stored = defaults.string(forKey: Key.peerID), let uuid = UUID(uuidString: stored) {
             self.peerID = PeerID(uuid)
@@ -220,8 +249,38 @@ public final class AppSettings: ObservableObject {
     }
 
     /// Banks a round's score as coins. Called when a round ends.
-    public func award(score: Int, completedRound: Bool) {
-        wallet.earn(CoinRate.coins(forScore: score, completedRound: completedRound))
+    public func award(score: Int, completedRound: Bool, game: String = "") {
+        let coins = CoinRate.coins(forScore: score, completedRound: completedRound)
+        wallet.earn(coins)
+        coinLedger.record(coins, reason: game.isEmpty ? L("A round") : game)
+    }
+
+    /// Coins from somewhere other than a round — a daily bonus, a gift.
+    public func give(coins: Int, reason: String) {
+        guard coins > 0 else { return }
+        wallet.earn(coins)
+        coinLedger.record(coins, reason: reason)
+    }
+
+    /// Buys from the shop, within today's spending limit.
+    public func buy(_ item: ShopItem) -> PlayerWallet.PurchaseResult? {
+        if !wallet.owns(item), !item.isFree,
+           !coinLedger.allows(spending: item.price, limit: parental.dailyCoinLimit) {
+            return nil
+        }
+        let result = wallet.purchase(item.id)
+        if result.succeeded, !item.isFree { coinLedger.record(-item.price, reason: item.displayName) }
+        return result
+    }
+
+    /// Whether a game may start now, and if not, why.
+    public var playVerdict: PlayGate.Verdict {
+        PlayGate.verdict(parental, log: playtime)
+    }
+
+    /// Adds time just played to today and to the game.
+    public func recordPlay(seconds: Double, game: String) {
+        playtime.add(seconds: seconds, game: game, at: Date())
     }
 
     /// The moderator built from current preferences.
@@ -238,6 +297,7 @@ public final class AppSettings: ObservableObject {
         hapticsEnabled = true
         graphicsQuality = .auto
         showFrameRate = false
+        preferences = PlayPreferences()
     }
 }
 

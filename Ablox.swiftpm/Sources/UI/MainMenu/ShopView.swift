@@ -10,6 +10,8 @@ struct ShopView: View {
 
     @State private var kind: ShopItem.Kind = .bodyColor
     @State private var lastResult: PlayerWallet.PurchaseResult?
+    /// Set when today's spending limit (Settings → Family) says no.
+    @State private var limitMessage: String?
 
     var body: some View {
         ScrollView {
@@ -65,6 +67,11 @@ struct ShopView: View {
 
                 Spacer()
 
+                if let limitMessage {
+                    Text(limitMessage)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Ablox.Palette.warning)
+                }
                 if let lastResult {
                     Text(lastResult.message)
                         .font(.caption.weight(.semibold))
@@ -122,7 +129,13 @@ struct ShopView: View {
                 return
             }
             withAnimation {
-                lastResult = settings.wallet.purchase(item.id)
+                if let result = settings.buy(item) {
+                    lastResult = result
+                    limitMessage = nil
+                } else {
+                    lastResult = nil
+                    limitMessage = L("That's more than today's spending limit.")
+                }
             }
             if lastResult?.succeeded == true { apply(item) }
             clearResultSoon()
@@ -206,7 +219,10 @@ struct ShopView: View {
     private func clearResultSoon() {
         Task { @MainActor in
             try? await Task.sleep(nanoseconds: 2_200_000_000)
-            withAnimation { lastResult = nil }
+            withAnimation {
+                lastResult = nil
+                limitMessage = nil
+            }
         }
     }
 }

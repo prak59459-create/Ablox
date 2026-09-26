@@ -60,7 +60,7 @@ struct WorldsLobbyView: View {
         .sheet(isPresented: $showingDeleted) {
             RecentlyDeletedSheet().environmentObject(store)
         }
-        .roomVisibilityDialog(isPresented: $askingVisibility) { isPublic in
+        .roomVisibilityDialog(isPresented: $askingVisibility, allowsPublic: settings.parental.allowPublicRooms) { isPublic in
             if let world = hostCandidate {
                 onEnter(ActiveSession(mode: .hosting(world, isPublic: isPublic)))
             }

@@ -5,11 +5,13 @@ import SwiftUI
 /// once the script involves it. A world without a script shows none of this.
 struct ScriptHUDLayer: View {
     @ObservedObject var session: SessionCoordinator
+    /// Settings → Comfort → Fewer flashes.
+    var reduceFlashing = false
 
     var body: some View {
         let state = session.scripted
         ZStack {
-            DamageFlash(count: state.damageFlashCount)
+            DamageFlash(count: state.damageFlashCount, gentle: reduceFlashing)
 
             // Below the top bar while it shows, so a script's "top" is never
             // under the leave button.
@@ -37,7 +39,7 @@ struct ScriptHUDLayer: View {
                 knockedOutBanner
             }
 
-            FadeOverlay(fade: state.fade)
+            FadeOverlay(fade: state.fade, gentle: reduceFlashing)
         }
     }
 
@@ -234,11 +236,19 @@ struct ScriptInputField: View {
 /// The whole screen fading to a colour and back, for scene changes.
 private struct FadeOverlay: View {
     let fade: ScriptedPlayerState.Fade
+    /// No fade quicker than half a second: a sudden flash of white is what
+    /// "fewer flashes" is for.
+    let gentle: Bool
     @State private var shown: Double = 0
     @State private var color: Color = .black
 
-    init(fade: ScriptedPlayerState.Fade) {
+    init(fade: ScriptedPlayerState.Fade, gentle: Bool = false) {
         self.fade = fade
+        self.gentle = gentle
+    }
+
+    private func duration(_ seconds: Double) -> Double {
+        gentle ? max(0.5, seconds) : seconds
     }
 
     var body: some View {
@@ -250,9 +260,9 @@ private struct FadeOverlay: View {
             .onChange(of: fade) { _, fade in
                 if let target = fade.color {
                     color = Color(target)
-                    withAnimation(.easeInOut(duration: fade.seconds)) { shown = 1 }
+                    withAnimation(.easeInOut(duration: duration(fade.seconds))) { shown = 1 }
                 } else {
-                    withAnimation(.easeInOut(duration: fade.seconds)) { shown = 0 }
+                    withAnimation(.easeInOut(duration: duration(fade.seconds))) { shown = 0 }
                 }
             }
     }
@@ -297,10 +307,13 @@ private struct Crosshair: View {
 /// A red edge round the screen when you are hit.
 private struct DamageFlash: View {
     let count: Int
+    /// A faint, slow edge instead of a sharp red flash.
+    let gentle: Bool
     @State private var opacity: Double = 0
 
-    init(count: Int) {
+    init(count: Int, gentle: Bool = false) {
         self.count = count
+        self.gentle = gentle
     }
 
     var body: some View {
@@ -313,8 +326,8 @@ private struct DamageFlash: View {
             .ignoresSafeArea()
             .allowsHitTesting(false)
             .onChange(of: count) { _, _ in
-                opacity = 1
-                withAnimation(.easeOut(duration: 0.45)) { opacity = 0 }
+                opacity = gentle ? 0.35 : 1
+                withAnimation(.easeOut(duration: gentle ? 0.8 : 0.45)) { opacity = 0 }
             }
     }
 }

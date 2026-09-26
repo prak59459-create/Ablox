@@ -17,8 +17,12 @@ struct DiscoverView: View {
 
     private var filtered: [GameListing] {
         let query = search.trimmingCharacters(in: .whitespaces).lowercased()
-        guard !query.isEmpty else { return library.listings }
-        return library.listings.filter { listing in
+        // Settings → Family can keep scary games out of the list.
+        let allowed = settings.parental.hideScaryGames
+            ? library.listings.filter { !$0.tags.contains("horror") }
+            : library.listings
+        guard !query.isEmpty else { return allowed }
+        return allowed.filter { listing in
             listing.title.lowercased().contains(query)
                 || listing.author.lowercased().contains(query)
                 || listing.tags.contains { $0.lowercased().contains(query) }
@@ -333,7 +337,7 @@ private struct GameDetailSheet: View {
             }
             .buttonStyle(NeonButtonStyle(.secondary, fullWidth: true))
             .disabled(isWorking || !listing.isSupported)
-            .roomVisibilityDialog(isPresented: $askingVisibility) { isPublic in
+            .roomVisibilityDialog(isPresented: $askingVisibility, allowsPublic: settings.parental.allowPublicRooms) { isPublic in
                 Task { await play(hosting: true, isPublic: isPublic) }
             }
 

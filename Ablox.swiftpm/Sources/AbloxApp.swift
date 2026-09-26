@@ -34,6 +34,8 @@ struct AbloxApp: App {
                 .environmentObject(store)
                 .environmentObject(saves)
                 .environmentObject(updater)
+                // Settings → Comfort → Text size, for the whole app.
+                .dynamicTypeSize(settings.preferences.textSize.dynamicType)
                 // Rebuilds the interface when the language changes.
                 //
                 // `L(...)` reads a global that SwiftUI knows nothing about, so

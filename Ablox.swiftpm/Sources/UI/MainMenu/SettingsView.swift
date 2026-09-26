@@ -29,8 +29,10 @@ struct SettingsView: View {
                 UpdateSettingsCard(updater: updater) {
                     installing = UpdateInstall(backup: saves.makeBackupBeforeUpdate(settings: settings, worlds: store))
                 }
+                FamilyCard()
                 gamesCard
                 dataCard
+                ComfortCard()
                 graphicsCard
                 controlsCard
                 movementCard

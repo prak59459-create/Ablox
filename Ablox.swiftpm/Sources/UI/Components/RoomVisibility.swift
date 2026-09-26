@@ -7,11 +7,15 @@ import SwiftUI
 /// only someone the host tells it to can get in.
 struct RoomVisibilityDialog: ViewModifier {
     @Binding var isPresented: Bool
+    /// Settings → Family can rule public rooms out.
+    var allowsPublic = true
     var onChoose: (_ isPublic: Bool) -> Void
 
     func body(content: Content) -> some View {
         content.confirmationDialog(L("Who can join?"), isPresented: $isPresented, titleVisibility: .visible) {
-            Button(L("Public — anyone nearby can join")) { onChoose(true) }
+            if allowsPublic {
+                Button(L("Public — anyone nearby can join")) { onChoose(true) }
+            }
             Button(L("Private — only people with the room code")) { onChoose(false) }
             Button(L("Cancel"), role: .cancel) {}
         } message: {
@@ -22,7 +26,8 @@ struct RoomVisibilityDialog: ViewModifier {
 
 extension View {
     /// Asks public or private before a room opens.
-    func roomVisibilityDialog(isPresented: Binding<Bool>, onChoose: @escaping (_ isPublic: Bool) -> Void) -> some View {
-        modifier(RoomVisibilityDialog(isPresented: isPresented, onChoose: onChoose))
+    func roomVisibilityDialog(isPresented: Binding<Bool>, allowsPublic: Bool = true,
+                              onChoose: @escaping (_ isPublic: Bool) -> Void) -> some View {
+        modifier(RoomVisibilityDialog(isPresented: isPresented, allowsPublic: allowsPublic, onChoose: onChoose))
     }
 }
