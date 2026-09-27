@@ -54,6 +54,8 @@ public struct MainMenuView: View {
     @State private var selectedTab: MenuTab = .play
     /// Set when the player enters a world; drives the full-screen cover.
     @State private var activeSession: ActiveSession?
+    /// A game on its way in, waiting for a sheet to finish leaving.
+    @State private var startingSession = false
     /// The new version being handed to Swift Playgrounds.
     @State private var installing: UpdateInstall?
     /// Why a game could not start (Settings → Family).
@@ -205,12 +207,24 @@ extension MainMenuView {
         case .joining where !settings.parental.allowJoiningRooms, .direct where !settings.parental.allowJoiningRooms:
             blockedMessage = L("Joining other people's rooms is turned off in Settings → Family.")
         case let .hosting(world, access) where access != .routerPrivate && !settings.parental.allowPublicRooms:
-            activeSession = ActiveSession(mode: .hosting(world, access: .routerPrivate))
+            start(ActiveSession(mode: .hosting(world, access: .routerPrivate)))
         case let .hosting(world, .internet) where !cloud.allowsInternetPlay:
-            activeSession = ActiveSession(mode: .hosting(world, access: .routerPublic))
+            start(ActiveSession(mode: .hosting(world, access: .routerPublic)))
         case .cloud where !settings.parental.allowJoiningRooms:
             blockedMessage = L("Joining other people's rooms is turned off in Settings → Family.")
         default:
+            start(active)
+        }
+    }
+
+    /// The game covers the whole screen only when nothing else is up: most
+    /// ways in are buttons inside a sheet that is still leaving when they
+    /// call this. A second tap while waiting is ignored.
+    private func start(_ active: ActiveSession) {
+        guard activeSession == nil, !startingSession else { return }
+        startingSession = true
+        PresentationQueue.whenClear {
+            startingSession = false
             activeSession = active
         }
     }
