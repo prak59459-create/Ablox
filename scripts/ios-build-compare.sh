@@ -47,8 +47,11 @@ build() {
   local swift emit
   swift="$(grep -E '^SwiftCompile \([0-9]+ tasks?\) \|' "$log" | sed 's/.*| //')"
   emit="$(grep -E '^SwiftEmitModule \([0-9]+ tasks?\) \|' "$log" | sed 's/.*| //')"
-  printf "%-14s status %s  %4d s   Swift compiling %s   interfaces %s\n" \
-    "$label" "$status" $((end - start)) "${swift:-?}" "${emit:-?}"
+  local objects
+  objects="$(find "$derived" -name '*.o' -path '*arm64*' -print0 2>/dev/null | xargs -0 stat -f '%z' 2>/dev/null \
+    | awk '{ total += $1 } END { printf "%d", total / 1024 }')"
+  printf "%-14s status %s  %4d s   Swift compiling %s   interfaces %s   objects %s KB\n" \
+    "$label" "$status" $((end - start)) "${swift:-?}" "${emit:-?}" "${objects:-?}"
   [ "$status" -eq 0 ] || grep -E "error:" "$log" | sort -u | head -20
 }
 

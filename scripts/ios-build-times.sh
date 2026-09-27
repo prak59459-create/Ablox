@@ -142,6 +142,12 @@ PY
 fi
 
 echo
+echo "== Debug information on the Swift command lines (last flag wins), and all objects together"
+grep -E 'swift-frontend|builtin-Swift|swiftc ' "$log" | grep -oE ' -g(none|line-tables-only|dwarf-types)?( |$)' | sort | uniq -c || true
+find "$derived" -name '*.o' -path '*arm64*' -print0 2>/dev/null | xargs -0 stat -f '%z' 2>/dev/null \
+  | awk '{ total += $1 } END { printf "%d KB in object files\n", total / 1024 }'
+
+echo
 echo "== Largest object files (KB, lines): the code each file turned into"
 find "$derived" -name '*.o' -path '*arm64*' -print0 2>/dev/null \
   | xargs -0 stat -f '%z %N' 2>/dev/null | sort -rn | head -40 \
