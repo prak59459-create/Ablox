@@ -3,22 +3,30 @@
   "version": "1.2",
   "build": 1,
   "protocol": 8,
-  "date": "2026-09-26",
+  "date": "2026-09-27",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "Updates itself: new versions are found, downloaded and handed to Swift Playgrounds for you",
-      "Games keep your progress on your iPad, with backups you can move to another iPad",
-      "Safer rooms: a stronger room key, and the host ignores floods and fake messages",
-      "Smoother games: creating and moving parts costs the host far less",
-      "New cover pictures for every game in the list"
+      "Play over the internet: internet rooms, friends by friend code and friend chat (Settings → Family → Internet; off until a grown-up turns it on)",
+      "Play screen: pictures, 30-second clips, emotes, a map, spectating, photo mode, first person and a real pause",
+      "Rooms: approval, removing, teams, votes, whispers, QR invitations and handing the room over",
+      "Avatar and shop: outfits, faces, pets, try-on, a wishlist, badges and a daily bonus",
+      "Games: favourites, filters, today's pick, offline downloads; worlds: folders, locks and backups",
+      "Worlds come alive: weather, day and night, particles, music, vehicles, doors, ladders and water",
+      "Game controllers, keyboard (W A S D) and mouse; light mode and accent colours; colour-vision help",
+      "Settings → Problem reports: copy errors and crashes to send; notices on the main menu",
+      "Family controls, comfort settings, quick chat and Ablox's own keyboard"
     ],
     "ja": [
-      "自動アップデート: 新しいバージョンを見つけて、ダウンロードして、Swift Playgrounds にわたします",
-      "ゲームの進みぐあいを iPad に保存。バックアップで別の iPad にも移せます",
-      "ルームがより安全に: 強いルームキー、ホストは大量送信やなりすましを無視",
-      "ゲームがなめらかに: パーツを出したり動かしたりする負担を大きく削減",
-      "ゲーム一覧のカバー画像をすべて新しく"
+      "インターネットで遊べる: インターネットルーム、フレンドコードでフレンド、フレンドチャット（設定 → 家族 → インターネット。大人がオンにするまでオフ）",
+      "遊ぶ画面: 写真、30秒の動画、エモート、地図、観戦、写真モード、一人称、本当に止まる一時停止",
+      "ルーム: 参加の承認、退出させる、チーム、投票、ひそひそ話、QR で招待、ホストの引き継ぎ",
+      "アバターとショップ: コーデ、顔、ペット、試着、ほしいものリスト、バッジ、ログインボーナス",
+      "ゲーム一覧: お気に入り、絞り込み、今日のおすすめ、オフライン用ダウンロード。ワールド: フォルダ、鍵、バックアップ",
+      "ワールドがにぎやかに: 天気、昼と夜、パーティクル、音楽、乗り物、ドア、はしご、水",
+      "ゲームコントローラー・キーボード（WASD）・マウス、ライトモードとアクセントカラー、色の見え方のサポート",
+      "設定 → 問題のレポート: エラーやクラッシュをコピーして送れる。メインメニューにお知らせ",
+      "保護者向け設定、目や体にやさしい設定、定型文チャット、Ablox のキーボード"
     ]
   }
 }
