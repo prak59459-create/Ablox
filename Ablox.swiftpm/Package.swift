@@ -57,7 +57,10 @@ let package = Package(
                 .localNetwork(
                     purposeString: "Ablox finds nearby iPads so you can build and play in the same world together. Nothing leaves your local network.",
                     bonjourServiceTypes: ["_ablox._tcp"]
-                )
+                ),
+                // Only for reading a room's QR code (Play → Join with an
+                // invitation). Asked for the first time the camera is used.
+                .camera(purposeString: "Ablox uses the camera only to read a friend's room QR code. Nothing is recorded or kept.")
             ]
         )
     ],

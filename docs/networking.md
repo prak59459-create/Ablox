@@ -182,11 +182,39 @@ and a peer announcing a 4 GB payload.
 | `ping` / `pong` | both | supersedable |
 | `leave` | both | best effort |
 | `playerInput` | client → host | must arrive |
+| `room` | both | must arrive |
 
 `playerInput` (protocol version 2; text boxes added in 3) carries a fire,
 reload, screen-button or text-box press for the world's scripts. Like `eventTrigger` it is a claim, not a result:
 a shot says where it came from and which way, and the host decides what it hit
 — see [`scripting.md`](scripting.md).
+
+`room` (protocol version 8) is everything about the room that is not the
+game — `RoomMessage` in `Room.swift`:
+
+- **Ready and votes.** A guest says "ready" or votes; the host keeps the
+  `RoomState` (who is ready, the vote, who is quieted, whether players may
+  jump to a friend, whether the host asks before anyone joins) and sends the
+  whole of it to everyone whenever it changes. The vote closes on the host's
+  clock; `RoomState.clock` lets a guest count down on its own.
+- **Whispers.** A guest's whisper goes to the host, which passes it to that
+  one player only, stamped with who really sent it — the same rule as chat.
+  A player the host quieted is heard by nobody, whispers included.
+- **Asking to join.** With "ask me before anyone joins", a newcomer's
+  handshake is held at the door (`waitingForHost`) for up to a minute while
+  the host decides. Someone already let in is not asked again on a reconnect.
+- **Removing.** The host can take a player out (`removed`); they cannot come
+  back into that room. Both this and a refusal are final on the guest's side:
+  it does not try to reconnect.
+- **Handing over.** A host leaving with people still playing can hand the
+  room on (`moving`): the longest-present player's iPad opens the same world,
+  as it is now, under the same room code, with everyone already in it
+  approved; the others find it by the new host's short id (`hid` in the TXT
+  record) and join. The game's script starts a new round there; saved data
+  comes along as it does on any join.
+
+Teams chosen by the host (`GameRuntime.assignTeams`) travel in the roster
+(`PlayerSnapshot.team`) and outlast a round; a script can still change them.
 
 Only `playerTransform` is dropped when it arrives out of order — the next one
 supersedes it anyway. Everything else is delivered regardless of sequence,
@@ -216,12 +244,27 @@ browsers pick the change up without reconnecting.
 
 The Bonjour TXT record carries world name, host name, player count, capacity,
 mode, protocol version, the session's key salt and whether the room is public
-(with its code, if so). That is what lets the lobby show a useful row —
+(with its code, if so). Since protocol 8 it also carries the host's short id
+(`hid`), the short ids of everyone inside (`ids`, see `RoomTag`: eight hex
+digits each, enough to recognise a friend or someone blocked, not the whole
+id), and `ask=1` when the host lets people in one by one. That is what lets the lobby show a useful row —
 "Taro's World · 3/8 players" — *before* anyone connects. A host running a build
 that predates a key falls back to a default rather than failing to list.
 
 `includePeerToPeer = true` on both the listener and browser parameters lets two
 iPads connect over AWDL with no shared Wi-Fi at all.
+
+### Invitations (joining without the list)
+
+Some networks — school Wi-Fi especially — block Bonjour, so rooms never
+appear in the list. The host can show a QR code (Menu → Room → Invite), or
+send the same thing as text: a `JoinTicket` with the host's address, port,
+key salt and room code (`ablox:join?h=…&p=…&s=…&c=…`). The joining iPad
+connects straight to that address. This works wherever the two iPads can
+reach each other — the same network, or a VPN. It is not internet play:
+a home router does not let another house reach an iPad behind it, and doing
+that properly needs a server in between, which Ablox deliberately does not
+have.
 
 ## Failure messages
 

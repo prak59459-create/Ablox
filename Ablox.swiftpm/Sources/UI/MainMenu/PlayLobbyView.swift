@@ -11,6 +11,8 @@ struct PlayLobbyView: View {
     @State private var joiningPeer: DiscoveredPeer?
     @State private var roomCodeEntry = ""
     @State private var joinError: String?
+    @State private var showingFriends = false
+    @State private var joiningByInvitation = false
 
     var body: some View {
         ScrollView {
@@ -28,6 +30,16 @@ struct PlayLobbyView: View {
             }
             .presentationDetents([.height(340)])
             .presentationBackground(.ultraThinMaterial)
+        }
+        .sheet(isPresented: $showingFriends) {
+            FriendsSheet { peer in join(peer) }
+                .environmentObject(settings)
+                .environmentObject(session)
+        }
+        .sheet(isPresented: $joiningByInvitation) {
+            InvitationJoinSheet { ticket in
+                onEnter(ActiveSession(mode: .direct(ticket)))
+            }
         }
         .alert(L("Could not join"), isPresented: .constant(joinError != nil)) {
             Button(L("OK")) { joinError = nil }
@@ -74,12 +86,37 @@ struct PlayLobbyView: View {
 
     // MARK: Nearby
 
+    /// Straight in to a public room; a private one asks for its code.
+    private func join(_ peer: DiscoveredPeer) {
+        if let code = peer.publicCode {
+            onEnter(ActiveSession(mode: .joining(peer, code: code)))
+        } else {
+            roomCodeEntry = ""
+            joiningPeer = peer
+        }
+    }
+
     private var nearbySection: some View {
         VStack(alignment: .leading, spacing: 14) {
             SectionHeader(L("Nearby worlds"), systemImage: "wifi.circle.fill") {
                 if session.discoveredPeers.isEmpty && session.browserUnavailableReason == nil {
                     ProgressView().controlSize(.small).tint(Ablox.Palette.accent)
                 }
+            }
+            HStack(spacing: 10) {
+                Button {
+                    showingFriends = true
+                } label: {
+                    Label(settings.social.friends.isEmpty ? L("Friends") : L("Friends ({})", settings.social.friends.count),
+                          systemImage: "person.2.fill")
+                }
+                .buttonStyle(NeonButtonStyle(.secondary))
+                Button {
+                    joiningByInvitation = true
+                } label: {
+                    Label(L("Join with an invitation"), systemImage: "qrcode.viewfinder")
+                }
+                .buttonStyle(NeonButtonStyle(.secondary))
             }
 
             if let reason = session.browserUnavailableReason {
@@ -143,6 +180,22 @@ struct PlayLobbyView: View {
                     Text(L("{} · {}", peer.hostName, peer.subtitle))
                         .font(.caption)
                         .foregroundStyle(Ablox.Palette.inkMuted)
+                    let friends = settings.social.friends(in: peer.people)
+                    if !friends.isEmpty {
+                        Label(L("{} is here", friends.map(\.name).joined(separator: ", ")), systemImage: "star.fill")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(Ablox.Palette.warning)
+                    }
+                    if !settings.social.blocked(in: peer.people).isEmpty {
+                        Label(L("Someone you blocked is in this room."), systemImage: "hand.raised.fill")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(Ablox.Palette.danger)
+                    }
+                    if peer.needsApproval {
+                        Label(L("The host lets people in one by one."), systemImage: "person.badge.key")
+                            .font(.caption2)
+                            .foregroundStyle(Ablox.Palette.inkMuted)
+                    }
                 }
 
                 Spacer()

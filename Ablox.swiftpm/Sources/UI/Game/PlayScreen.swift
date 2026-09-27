@@ -47,6 +47,9 @@ public struct PlayScreen: View {
     @State private var zoomAtPinchStart: Float?
     /// Whether this visit has already taken the world's picture for the list.
     @State private var tookThumbnail = false
+    /// Who was here at the last look, to notice arrivals.
+    @State private var knownPeople: Set<PeerID> = []
+    @State private var choosingHowToLeave = false
 
     public init(session: SessionCoordinator, activeSession: ActiveSession, onExit: @escaping () -> Void) {
         self.session = session
@@ -114,6 +117,11 @@ public struct PlayScreen: View {
             ScriptHUDLayer(session: session, reduceFlashing: settings.preferences.reduceFlashing)
             hudLayer
             familyNotices
+            if !session.isSolo {
+                RoomHUD(session: session)
+                    .padding(.top, 68)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            }
             spectateBar
             if showMenu {
                 PauseMenu(
@@ -160,6 +168,7 @@ public struct PlayScreen: View {
         .onChange(of: session.roster) { _, roster in
             // Whoever was being watched has gone.
             if let watched = spectating, !roster.contains(where: { $0.peerID == watched }) { spectating = nil }
+            noticeWhoIsHere()
         }
         .onReceive(playClock) { _ in countPlay(seconds: 5) }
         .onChange(of: session.announcement) { _, announcement in
@@ -177,6 +186,26 @@ public struct PlayScreen: View {
             // any pending attempt forward rather than waiting out a backoff
             // scheduled while the iPad was asleep.
             if phase == .active { session.applicationDidBecomeActive() }
+        }
+    }
+
+    // MARK: Who is here
+
+    /// Remembers who this player is playing with (Play → Friends), and says
+    /// when someone they blocked has come in. Only when someone arrives or
+    /// goes — the roster changes with every step anyone takes.
+    private func noticeWhoIsHere() {
+        let people = session.people
+        let ids = Set(people.map(\.peerID))
+        guard ids != knownPeople else { return }
+        let arrived = ids.subtracting(knownPeople)
+        knownPeople = ids
+        guard !session.isSolo else { return }
+        settings.social.met(people, game: session.world.name, localPeerID: session.localPeerID)
+        if arrived.contains(where: { settings.social.isBlocked($0) }) {
+            showToast(L("Someone you blocked is in this room. You won't see what they say."))
+        } else if let friend = people.first(where: { arrived.contains($0.peerID) && settings.social.isFriend($0.peerID) }) {
+            showToast(L("Your friend {} is here!", friend.profile.displayName))
         }
     }
 
@@ -213,7 +242,13 @@ public struct PlayScreen: View {
         }
         if let left = closingIn {
             let next = left - Int(seconds)
-            if next <= 0 { onExit() } else { closingIn = next }
+            if next <= 0 {
+                // Friends keep playing: the room goes to one of them.
+                if session.canHandOver { session.handOverAndLeave() }
+                onExit()
+            } else {
+                closingIn = next
+            }
         } else if settings.playVerdict != .allowed {
             withAnimation { closingIn = 60 }
         }
@@ -261,6 +296,7 @@ public struct PlayScreen: View {
     private func enterSession() {
         hasBankedThisRound = false
         session.allowsPlayerChat = settings.parental.chat != .off
+        session.allowsWhispers = Whisper.isAllowed(settings.parental.chat)
         switch activeSession.mode {
         case let .solo(world):
             session.startSoloSession(world: world)
@@ -268,6 +304,8 @@ public struct PlayScreen: View {
             session.startHosting(world: world, isPublic: isPublic)
         case let .joining(peer, code):
             session.join(peer, roomCode: code)
+        case let .direct(ticket):
+            session.join(ticket: ticket)
         }
     }
 
@@ -577,9 +615,13 @@ public struct PlayScreen: View {
         .allowsHitTesting(true)
     }
 
+    private func leaveTapped() {
+        if session.canHandOver { choosingHowToLeave = true } else { onExit() }
+    }
+
     private var topBar: some View {
         HStack(alignment: .top, spacing: 11) {
-            Button(action: onExit) {
+            Button(action: leaveTapped) {
                 Image(systemName: "xmark")
                     .font(.headline)
                     .frame(width: 42, height: 42)
@@ -587,6 +629,7 @@ public struct PlayScreen: View {
                     .foregroundStyle(.white)
             }
             .accessibilityLabel(L("Leave world"))
+            .leaveRoomChoice(isPresented: $choosingHowToLeave, session: session, onLeave: onExit)
 
             Button {
                 openMenu()
@@ -667,7 +710,7 @@ public struct PlayScreen: View {
         .overlay(alignment: .topTrailing) {
             VStack(alignment: .trailing, spacing: 10) {
                 if showScoreboard {
-                    PlayerListView(session: session)
+                    PlayerListView(session: session, link: link)
                         .transition(.move(edge: .trailing).combined(with: .opacity))
                 }
                 if showEmotes {
@@ -825,9 +868,19 @@ public struct PlayScreen: View {
         VStack(alignment: .leading, spacing: 8) {
             ForEach(session.visibleChatLog.suffix(5)) { entry in
                 HStack(spacing: 6) {
-                    Text(entry.senderName)
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(Ablox.Palette.accent)
+                    if let partner = entry.privateWith {
+                        // A whisper: only the two of them see it.
+                        Image(systemName: "lock.fill")
+                            .font(.system(size: 9))
+                            .foregroundStyle(Ablox.Palette.magenta)
+                        Text(entry.senderID == session.localPeerID ? L("You → {}", partner) : entry.senderName)
+                            .font(.caption.weight(.bold))
+                            .foregroundStyle(Ablox.Palette.magenta)
+                    } else {
+                        Text(entry.senderName)
+                            .font(.caption.weight(.bold))
+                            .foregroundStyle(Ablox.Palette.accent)
+                    }
                     Text(entry.text)
                         .font(.caption)
                         .foregroundStyle(.white)
@@ -861,7 +914,11 @@ public struct PlayScreen: View {
                 }
             }
 
-            if settings.parental.chat == .full {
+            if session.isQuietedByHost {
+                Label(L("The host has turned off your chat."), systemImage: "mic.slash.fill")
+                    .font(.caption)
+                    .foregroundStyle(Ablox.Palette.warning)
+            } else if settings.parental.chat == .full {
             HStack(spacing: 9) {
                 TextField(L("Say something…"), text: $chatDraft)
                     .textFieldStyle(.plain)
@@ -926,7 +983,8 @@ public struct PlayScreen: View {
             Color.black.opacity(0.55).ignoresSafeArea()
             VStack(spacing: 15) {
                 ProgressView().controlSize(.large).tint(Ablox.Palette.accent)
-                Text(session.status == .connecting ? L("Connecting…") : L("Looking for the world…"))
+                Text(session.isWaitingForHost ? L("Waiting for the host to let you in…")
+                     : session.status == .connecting ? L("Connecting…") : L("Looking for the world…"))
                     .font(.headline)
                     .foregroundStyle(.white)
                 Button(L("Cancel"), action: onExit)

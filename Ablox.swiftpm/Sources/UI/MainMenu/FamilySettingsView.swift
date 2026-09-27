@@ -137,6 +137,7 @@ struct FamilySettingsSheet: View {
     @EnvironmentObject private var settings: AppSettings
     @Environment(\.dismiss) private var dismiss
     @State private var settingPasscode = false
+    @State private var readingReports = false
 
     private let limits: [Int?] = [nil, 30, 45, 60, 90, 120, 180]
     private let breaks: [Int?] = [nil, 20, 30, 45, 60]
@@ -172,6 +173,26 @@ struct FamilySettingsSheet: View {
                     }
                     Toggle(L("May open public rooms"), isOn: $settings.parental.allowPublicRooms)
                     Toggle(L("May join other people's rooms"), isOn: $settings.parental.allowJoiningRooms)
+                    Button {
+                        readingReports = true
+                    } label: {
+                        let count = ReportStore.all().count
+                        Label(count == 0 ? L("Reports") : L("Reports ({})", count), systemImage: "exclamationmark.bubble")
+                    }
+                    if !settings.social.blocked.isEmpty {
+                        NavigationLink {
+                            List(settings.social.blocked) { contact in
+                                HStack {
+                                    Text(contact.name)
+                                    Spacer()
+                                    Button(L("Unblock")) { settings.unblock(contact.id) }
+                                }
+                            }
+                            .navigationTitle(L("Blocked"))
+                        } label: {
+                            Label(L("Blocked players ({})", settings.social.blocked.count), systemImage: "hand.raised.slash")
+                        }
+                    }
                 } header: {
                     Text(L("Playing with others"))
                 } footer: {
@@ -212,6 +233,9 @@ struct FamilySettingsSheet: View {
                     Button(L("Done")) { dismiss() }
                 }
             }
+        }
+        .sheet(isPresented: $readingReports) {
+            ReportsSheet()
         }
         .sheet(isPresented: $settingPasscode) {
             PasscodeSheet(title: L("Choose a passcode (4–8 digits)")) { code in

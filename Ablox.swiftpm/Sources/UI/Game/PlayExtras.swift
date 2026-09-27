@@ -405,11 +405,12 @@ struct PauseMenu: View {
     let onLeave: () -> Void
 
     enum Tab: String, CaseIterable, Identifiable {
-        case game, controls, messages, help
+        case game, room, controls, messages, help
         var id: String { rawValue }
         var title: String {
             switch self {
             case .game: return L("Game")
+            case .room: return L("Room")
             case .controls: return L("Controls")
             case .messages: return L("Messages")
             case .help: return L("How to play")
@@ -419,6 +420,12 @@ struct PauseMenu: View {
 
     @State private var tab: Tab = .game
     @State private var confirmingStart = false
+    @State private var choosingHowToLeave = false
+
+    /// The room tab only means something with other people.
+    private var tabs: [Tab] {
+        session.isSolo ? Tab.allCases.filter { $0 != .room } : Tab.allCases
+    }
 
     var body: some View {
         ZStack {
@@ -435,13 +442,14 @@ struct PauseMenu: View {
                     PlayClockChip(seconds: playSeconds)
                 }
                 Picker(L("Menu"), selection: $tab) {
-                    ForEach(Tab.allCases) { Text($0.title).tag($0) }
+                    ForEach(tabs) { Text($0.title).tag($0) }
                 }
                 .pickerStyle(.segmented)
 
                 ScrollView {
                     switch tab {
                     case .game: gameTab
+                    case .room: RoomMenuTab(session: session)
                     case .controls: controlsTab
                     case .messages: messagesTab
                     case .help: helpTab
@@ -455,10 +463,15 @@ struct PauseMenu: View {
                     }
                     .buttonStyle(NeonButtonStyle(.primary))
                     Spacer()
-                    Button(role: .destructive, action: onLeave) {
+                    Button(role: .destructive) {
+                        // A host with people still playing can hand the room on
+                        // rather than close it on them.
+                        if session.canHandOver { choosingHowToLeave = true } else { onLeave() }
+                    } label: {
                         Label(L("Leave world"), systemImage: "rectangle.portrait.and.arrow.right")
                     }
                     .buttonStyle(NeonButtonStyle(.secondary))
+                    .leaveRoomChoice(isPresented: $choosingHowToLeave, session: session, onLeave: onLeave)
                 }
             }
             .padding(22)

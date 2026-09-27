@@ -31,6 +31,7 @@ public final class AppSettings: ObservableObject {
         static let ledger = "ablox.coinLedger"
         static let preferences = "ablox.playPreferences"
         static let memory = "ablox.menuMemory"
+        static let social = "ablox.social"
     }
 
     private let defaults: UserDefaults
@@ -158,6 +159,11 @@ public final class AppSettings: ObservableObject {
         didSet { persist(memory, forKey: Key.memory) }
     }
 
+    /// Friends, people played with lately, and people blocked.
+    @Published public var social: SocialBook {
+        didSet { persist(social, forKey: Key.social) }
+    }
+
     /// The validated source, falling back to the built-in list if someone has
     /// typed something unusable into Settings.
     public var catalogueSource: CatalogueSource {
@@ -206,6 +212,7 @@ public final class AppSettings: ObservableObject {
         self.coinLedger = AppSettings.decode(CoinLedger.self, from: defaults, key: Key.ledger) ?? CoinLedger()
         self.preferences = AppSettings.decode(PlayPreferences.self, from: defaults, key: Key.preferences) ?? PlayPreferences()
         self.memory = AppSettings.decode(MenuMemory.self, from: defaults, key: Key.memory) ?? MenuMemory()
+        self.social = AppSettings.decode(SocialBook.self, from: defaults, key: Key.social) ?? SocialBook()
 
         if let stored = defaults.string(forKey: Key.peerID), let uuid = UUID(uuidString: stored) {
             self.peerID = PeerID(uuid)
@@ -288,6 +295,18 @@ public final class AppSettings: ObservableObject {
         memory.bestStreak = max(memory.bestStreak, memory.dailyBonus.streak)
         give(coins: coins, reason: L("Daily bonus"))
         return coins
+    }
+
+    /// Blocks a player: never a friend, never heard. Their chat stays
+    /// hidden until they are unblocked.
+    public func block(_ id: PeerID, name: String) {
+        social.block(id, name: name)
+        muteList.mute(id)
+    }
+
+    public func unblock(_ id: PeerID) {
+        social.unblock(id)
+        muteList.unmute(id)
     }
 
     /// Everything the badges look at.

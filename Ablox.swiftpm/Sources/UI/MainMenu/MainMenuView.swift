@@ -156,7 +156,7 @@ extension MainMenuView {
             return
         }
         switch active.mode {
-        case .joining where !settings.parental.allowJoiningRooms:
+        case .joining where !settings.parental.allowJoiningRooms, .direct where !settings.parental.allowJoiningRooms:
             blockedMessage = L("Joining other people's rooms is turned off in Settings → Family.")
         case let .hosting(world, isPublic) where isPublic && !settings.parental.allowPublicRooms:
             activeSession = ActiveSession(mode: .hosting(world, isPublic: false))
@@ -185,6 +185,9 @@ public struct ActiveSession: Identifiable, Equatable {
         case solo(WorldDocument)
         case hosting(WorldDocument, isPublic: Bool)
         case joining(DiscoveredPeer, code: String)
+        /// An invitation (a QR code or text from the host), straight to
+        /// the host's address.
+        case direct(JoinTicket)
     }
 
     public let id = UUID()
