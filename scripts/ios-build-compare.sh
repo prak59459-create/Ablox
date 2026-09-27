@@ -45,8 +45,8 @@ build() {
   status=$?
   end=$(date +%s)
   local swift emit
-  swift="$(grep -E '^SwiftCompile ' "$log" | sed 's/.*| //')"
-  emit="$(grep -E '^SwiftEmitModule ' "$log" | sed 's/.*| //')"
+  swift="$(grep -E '^SwiftCompile \([0-9]+ tasks?\) \|' "$log" | sed 's/.*| //')"
+  emit="$(grep -E '^SwiftEmitModule \([0-9]+ tasks?\) \|' "$log" | sed 's/.*| //')"
   printf "%-14s status %s  %4d s   Swift compiling %s   interfaces %s\n" \
     "$label" "$status" $((end - start)) "${swift:-?}" "${emit:-?}"
   [ "$status" -eq 0 ] || grep -E "error:" "$log" | sort -u | head -20
