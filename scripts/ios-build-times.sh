@@ -42,7 +42,8 @@ rm -rf "$stats"; mkdir -p "$stats"
 flags="-Xfrontend -debug-time-function-bodies -Xfrontend -warn-long-expression-type-checking=150 -Xfrontend -stats-output-dir -Xfrontend $stats"
 # Slower overall (every job reads every file), but the statistics then belong
 # to one file each, code generation included.
-if [ -n "${PER_FILE:-}" ]; then flags="$flags -disable-batch-mode"; fi
+batch="YES"
+if [ -n "${PER_FILE:-}" ]; then batch="NO"; fi
 start=$(date +%s)
 xcodebuild build \
   -scheme "$scheme" \
@@ -51,6 +52,7 @@ xcodebuild build \
   -showBuildTimingSummary \
   ARCHS=arm64 \
   CODE_SIGNING_ALLOWED=NO \
+  SWIFT_ENABLE_BATCH_MODE="$batch" \
   OTHER_SWIFT_FLAGS="$flags" > "$log" 2>&1
 status=$?
 end=$(date +%s)
@@ -128,6 +130,17 @@ for total, module, label, imports, sema, silgen, irgen, other in sorted(rows, re
     print(f"{total:7.2f} {imports:7.2f} {sema:7.2f} {silgen:7.2f} {irgen:7.2f} {other:7.2f}  {module}/{label}")
 PY
 fi
+
+echo
+echo "== Largest object files (KB, lines): the code each file turned into"
+find "$derived" -name '*.o' -path '*arm64*' -print0 2>/dev/null \
+  | xargs -0 stat -f '%z %N' 2>/dev/null | sort -rn | head -40 \
+  | while read -r size path; do
+      name="$(basename "$path" .o)"
+      source="$(find . -name "$name.swift" | head -1)"
+      lines="$( [ -n "$source" ] && wc -l < "$source" | tr -d ' ' || echo "?")"
+      printf "%8d %6s  %s\n" $((size / 1024)) "$lines" "${source:-$name}"
+    done
 
 echo
 echo "== Build timing summary"
