@@ -7,11 +7,9 @@
 // and unit-test `Sources/AbloxCore` off-device — it points at these same
 // source files, so there is one implementation rather than a copy.
 //
-// Deliberately ONE target. Swift Playgrounds App projects are built and
-// navigated as a single module, and splitting the sources into library targets
-// here buys nothing on device while adding a way for the manifest to fail. The
-// off-device test package gets its module boundary from its own manifest
-// instead, which is why no file in Sources/ imports AbloxCore.
+// Two targets: AbloxCore (the portable core, also built and tested
+// off-device by the root package) and the app. The core is its own module on
+// both, so every file outside Sources/AbloxCore says `import AbloxCore`.
 
 import PackageDescription
 import AppleProductTypes
@@ -65,9 +63,24 @@ let package = Package(
         )
     ],
     targets: [
+        // Two modules rather than one, for the build on an iPad: each compile
+        // job then holds only its own module's source, with the other one read
+        // back as a small compiled summary. One module of this size had the
+        // compiler holding the whole app in every job at once, which is what
+        // ran an older iPad out of memory and made a build take minutes.
+        //
+        // The library target's name must differ from the app product's
+        // ("Ablox"); Swift Playgrounds refuses a target and a product that
+        // share one.
+        .target(
+            name: "AbloxCore",
+            path: "Sources/AbloxCore"
+        ),
         .executableTarget(
             name: "AbloxApp",
-            path: "Sources"
+            dependencies: ["AbloxCore"],
+            path: "Sources",
+            exclude: ["AbloxCore"]
         )
     ]
 )

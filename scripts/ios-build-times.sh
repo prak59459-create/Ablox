@@ -30,6 +30,7 @@ xcodebuild build \
   -destination 'generic/platform=iOS Simulator' \
   -derivedDataPath "$derived" \
   -showBuildTimingSummary \
+  ARCHS=arm64 \
   CODE_SIGNING_ALLOWED=NO \
   OTHER_SWIFT_FLAGS="$flags" > "$log" 2>&1
 status=$?
@@ -37,7 +38,7 @@ end=$(date +%s)
 
 echo
 echo "== Build finished with status $status in $((end - start)) s"
-grep -E "error:" "$log" | sort -u | head -60
+grep -E "error:" "$log" | sed "s|$PWD/||" | sort -u | head -400
 
 echo
 echo "== Slowest function bodies (ms, where, what)"
