@@ -80,42 +80,9 @@ struct PollCard: View {
         let tally = poll.tally
         let mine = poll.votes[session.localPeerID]
         return VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 8) {
-                Label(L(poll.question), systemImage: "hand.raised.fill")
-                    .font(.subheadline.weight(.bold))
-                Spacer()
-                if poll.isClosed {
-                    Badge(L("Closed"), color: Ablox.Palette.inkFaint)
-                } else if let ends = session.pollEndsAt, ends > Date() {
-                    Text(timerInterval: Date()...ends, countsDown: true)
-                        .font(.caption.monospacedDigit())
-                        .foregroundStyle(Ablox.Palette.inkMuted)
-                        .frame(width: 44, alignment: .trailing)
-                }
-            }
+            header(poll)
             ForEach(poll.options.indices, id: \.self) { index in
-                Button {
-                    session.vote(choice: index)
-                } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: mine == index ? "checkmark.circle.fill" : "circle")
-                            .foregroundStyle(mine == index ? Ablox.Palette.accent : Ablox.Palette.inkFaint)
-                        Text(L(poll.options[index]))
-                            .font(.subheadline)
-                        Spacer()
-                        if poll.isClosed, poll.winner == index {
-                            Image(systemName: "crown.fill")
-                                .foregroundStyle(Ablox.Palette.warning)
-                        }
-                        Text("\(tally[index])")
-                            .font(.subheadline.weight(.bold).monospacedDigit())
-                    }
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 7)
-                    .background(Color.white.opacity(mine == index ? 0.16 : 0.07), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                }
-                .buttonStyle(.plain)
-                .disabled(poll.isClosed)
+                optionButton(poll, index: index, count: tally[index], chosen: mine == index)
             }
             if poll.isClosed {
                 Text(poll.winner.map { L("Most votes: {}", L(poll.options[$0])) } ?? L("No clear winner."))
@@ -123,19 +90,66 @@ struct PollCard: View {
                     .foregroundStyle(Ablox.Palette.accent)
             }
             if session.role == .hosting {
-                HStack(spacing: 14) {
-                    if !poll.isClosed {
-                        Button(L("End the vote")) { session.endPoll() }
-                    }
-                    Button(L("Close")) { session.clearPoll() }
-                }
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(Ablox.Palette.accent)
+                hostButtons(poll)
             }
         }
         .padding(13)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         .foregroundStyle(.white)
+    }
+
+    private func header(_ poll: Poll) -> some View {
+        HStack(spacing: 8) {
+            Label(L(poll.question), systemImage: "hand.raised.fill")
+                .font(.subheadline.weight(.bold))
+            Spacer()
+            if poll.isClosed {
+                Badge(L("Closed"), color: Ablox.Palette.inkFaint)
+            } else if let ends = session.pollEndsAt, ends > Date() {
+                Text(timerInterval: Date()...ends, countsDown: true)
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(Ablox.Palette.inkMuted)
+                    .frame(width: 44, alignment: .trailing)
+            }
+        }
+    }
+
+    private func optionButton(_ poll: Poll, index: Int, count: Int, chosen: Bool) -> some View {
+        let mark: Color = chosen ? Ablox.Palette.accent : Ablox.Palette.inkFaint
+        let tile: Color = Color.white.opacity(chosen ? 0.16 : 0.07)
+        return Button {
+            session.vote(choice: index)
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: chosen ? "checkmark.circle.fill" : "circle")
+                    .foregroundStyle(mark)
+                Text(L(poll.options[index]))
+                    .font(.subheadline)
+                Spacer()
+                if poll.isClosed, poll.winner == index {
+                    Image(systemName: "crown.fill")
+                        .foregroundStyle(Ablox.Palette.warning)
+                }
+                Text(verbatim: "\(count)")
+                    .font(.subheadline.weight(.bold).monospacedDigit())
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 7)
+            .background(tile, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .disabled(poll.isClosed)
+    }
+
+    private func hostButtons(_ poll: Poll) -> some View {
+        HStack(spacing: 14) {
+            if !poll.isClosed {
+                Button(L("End the vote")) { session.endPoll() }
+            }
+            Button(L("Close")) { session.clearPoll() }
+        }
+        .font(.caption.weight(.semibold))
+        .foregroundStyle(Ablox.Palette.accent)
     }
 }
 

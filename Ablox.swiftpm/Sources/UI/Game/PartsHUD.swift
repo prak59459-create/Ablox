@@ -196,43 +196,11 @@ private struct ShopCard: View {
 
     var body: some View {
         VStack(spacing: 12) {
-            HStack {
-                Text(shop.title.isEmpty ? L("Shop") : shop.title)
-                    .font(.title3.weight(.bold))
-                Spacer()
-                Label("\(shop.balance) \(L(shop.currency))", systemImage: "dollarsign.circle.fill")
-                    .font(.headline)
-                    .foregroundStyle(Ablox.Palette.warning)
-                Button(action: onClose) {
-                    Image(systemName: "xmark.circle.fill").font(.title2)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(L("Close"))
-            }
+            header
             ScrollView {
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 120), spacing: 10)], spacing: 10) {
                     ForEach(shop.offers) { offer in
-                        let affordable = shop.balance >= offer.price
-                        Button {
-                            onBuy(offer)
-                        } label: {
-                            VStack(spacing: 6) {
-                                PartIcon(icon: offer.icon, size: 34)
-                                    .frame(height: 40)
-                                Text(offer.name)
-                                    .font(.subheadline.weight(.semibold))
-                                    .lineLimit(2)
-                                    .multilineTextAlignment(.center)
-                                Text(offer.price == 0 ? L("Free") : "\(offer.price)")
-                                    .font(.caption.weight(.bold))
-                                    .foregroundStyle(affordable ? Ablox.Palette.warning : Ablox.Palette.inkFaint)
-                            }
-                            .frame(maxWidth: .infinity, minHeight: 110)
-                            .background(Color.white.opacity(affordable ? 0.1 : 0.04),
-                                        in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                        }
-                        .buttonStyle(.plain)
-                        .opacity(affordable ? 1 : 0.6)
+                        offerButton(offer)
                     }
                 }
             }
@@ -244,6 +212,50 @@ private struct ShopCard: View {
         .background(Color(red: 0.07, green: 0.09, blue: 0.16).opacity(0.96), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
         .padding(20)
         .transition(.scale(scale: 0.94).combined(with: .opacity))
+    }
+
+    private var header: some View {
+        let title: String = shop.title.isEmpty ? L("Shop") : shop.title
+        let balance: String = "\(shop.balance) \(L(shop.currency))"
+        return HStack {
+            Text(title)
+                .font(.title3.weight(.bold))
+            Spacer()
+            Label(balance, systemImage: "dollarsign.circle.fill")
+                .font(.headline)
+                .foregroundStyle(Ablox.Palette.warning)
+            Button(action: onClose) {
+                Image(systemName: "xmark.circle.fill").font(.title2)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(L("Close"))
+        }
+    }
+
+    private func offerButton(_ offer: ShopOffer) -> some View {
+        let affordable: Bool = shop.balance >= offer.price
+        let price: String = offer.price == 0 ? L("Free") : "\(offer.price)"
+        let priceColour: Color = affordable ? Ablox.Palette.warning : Ablox.Palette.inkFaint
+        let tile: Color = Color.white.opacity(affordable ? 0.1 : 0.04)
+        return Button {
+            onBuy(offer)
+        } label: {
+            VStack(spacing: 6) {
+                PartIcon(icon: offer.icon, size: 34)
+                    .frame(height: 40)
+                Text(offer.name)
+                    .font(.subheadline.weight(.semibold))
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+                Text(price)
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(priceColour)
+            }
+            .frame(maxWidth: .infinity, minHeight: 110)
+            .background(tile, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .opacity(affordable ? 1 : 0.6)
     }
 }
 
