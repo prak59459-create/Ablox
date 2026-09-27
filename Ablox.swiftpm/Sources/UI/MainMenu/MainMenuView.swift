@@ -63,7 +63,14 @@ public struct MainMenuView: View {
 
     public init() {}
 
+    // In three parts — the screen, what it presents, what it watches —
+    // each type-checked on its own. As one long chain this was one of the
+    // slowest things in the app to compile.
     public var body: some View {
+        watching(presenting(layout))
+    }
+
+    private var layout: some View {
         ZStack {
             DynamicBackgroundView()
 
@@ -74,7 +81,7 @@ public struct MainMenuView: View {
                     .alert(L("Welcome back!"), isPresented: Binding(get: { dailyBonus != nil }, set: { if !$0 { dailyBonus = nil } })) {
                         Button(L("Thanks!"), role: .cancel) { dailyBonus = nil }
                     } message: {
-                        Text(L("Here are {} coins for coming back. Day {} in a row!", dailyBonus ?? 0, settings.memory.dailyBonus.streak))
+                        Text(verbatim: L("Here are {} coins for coming back. Day {} in a row!", dailyBonus ?? 0, settings.memory.dailyBonus.streak))
                     }
 
                 Divider().background(Ablox.Palette.line)
@@ -82,96 +89,107 @@ public struct MainMenuView: View {
                 VStack(spacing: 0) {
                     UpdateBanner(updater: updater) { beginInstall() }
                     NoticeBanner(service: notices)
-
-                    Group {
-                        switch selectedTab {
-                        case .play:
-                            PlayLobbyView(onEnter: enter)
-                        case .games:
-                            DiscoverView(onEnter: enter)
-                        case .worlds:
-                            WorldsLobbyView(onEnter: enter)
-                        case .avatar:
-                            AvatarCustomizerView()
-                        case .shop:
-                            ShopView()
-                        case .settings:
-                            SettingsView()
-                        }
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .transition(.opacity)
+                    tabContent
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .transition(AnyTransition.opacity)
                 }
             }
         }
         .abloxColorScheme()
         .tint(Ablox.Palette.accent)
-        // Settings → Problem reports.
-        .onChange(of: store.lastError) { _, error in
-            if let error { ProblemRecorder.shared.record(.saving, error) }
+    }
+
+    @ViewBuilder private var tabContent: some View {
+        switch selectedTab {
+        case .play:
+            PlayLobbyView(onEnter: enter)
+        case .games:
+            DiscoverView(onEnter: enter)
+        case .worlds:
+            WorldsLobbyView(onEnter: enter)
+        case .avatar:
+            AvatarCustomizerView()
+        case .shop:
+            ShopView()
+        case .settings:
+            SettingsView()
         }
-        .onChange(of: cloud.state) { _, state in
-            if case let .failed(message) = state { ProblemRecorder.shared.record(.cloud, message) }
-        }
-        .onChange(of: updater.phase) { _, phase in
-            if case let .failed(message) = phase { ProblemRecorder.shared.record(.update, message) }
-        }
-        .task { await notices.refreshIfDue() }
-        .onChange(of: activeSession == nil) { _, inMenus in
-            if inMenus { ProblemRecorder.shared.noteActivity("In the menus") }
-        }
-        .fullScreenCover(item: $activeSession) { active in
-            PlayScreen(session: session, activeSession: active) {
-                session.leave()
-                activeSession = nil
+    }
+
+    private func presenting<Content: View>(_ content: Content) -> some View {
+        content
+            .fullScreenCover(item: $activeSession) { active in
+                PlayScreen(session: session, activeSession: active) {
+                    session.leave()
+                    activeSession = nil
+                }
+                .environmentObject(settings)
+                .environmentObject(store)
+                .environmentObject(saves)
+                .environmentObject(cloud)
             }
-            .environmentObject(settings)
-            .environmentObject(store)
-            .environmentObject(saves)
-            .environmentObject(cloud)
-        }
-        .alert(L("Not now"), isPresented: Binding(get: { blockedMessage != nil }, set: { if !$0 { blockedMessage = nil } })) {
-            Button(L("OK"), role: .cancel) { blockedMessage = nil }
-        } message: {
-            Text(blockedMessage ?? "")
-        }
-        .sheet(item: $installing) { install in
-            UpdateInstallSheet(updater: updater, backup: install.backup)
-        }
-        // The first time a new version runs: what changed.
-        .sheet(isPresented: Binding(get: { updater.justUpdated != nil && activeSession == nil },
-                                    set: { if !$0 { updater.justUpdated = nil } })) {
-            if let manifest = updater.justUpdated { WhatsNewSheet(manifest: manifest) }
-        }
-        .onAppear {
-            updater.start()
-            let remembered = settings
-            session.saveSlotFor = { id in remembered.memory.saveSlots[id.uuidString] ?? 1 }
-            // Coins for coming back today.
-            if let coins = settings.claimDailyBonus() {
-                dailyBonus = coins
+            .alert(L("Not now"), isPresented: Binding(get: { blockedMessage != nil }, set: { if !$0 { blockedMessage = nil } })) {
+                Button(L("OK"), role: .cancel) { blockedMessage = nil }
+            } message: {
+                Text(verbatim: blockedMessage ?? "")
             }
-            AutoBackup.runIfDue(settings: settings, saves: saves, store: store)
-            session.profile = settings.profile
-            session.moderator = settings.chatModerator
-            session.muteList = settings.muteList
-            session.startBrowsing()
-            cloud.moderator = settings.chatModerator
-            cloud.configure(settings.cloud, profile: settings.profile)
+            .sheet(item: $installing) { install in
+                UpdateInstallSheet(updater: updater, backup: install.backup)
+            }
+            // The first time a new version runs: what changed.
+            .sheet(isPresented: Binding(get: { updater.justUpdated != nil && activeSession == nil },
+                                        set: { if !$0 { updater.justUpdated = nil } })) {
+                if let manifest = updater.justUpdated { WhatsNewSheet(manifest: manifest) }
+            }
+    }
+
+    private func watching<Content: View>(_ content: Content) -> some View {
+        content
+            // Settings → Problem reports.
+            .onChange(of: store.lastError) { _, error in
+                if let error { ProblemRecorder.shared.record(.saving, error) }
+            }
+            .onChange(of: cloud.state) { _, state in
+                if case let .failed(message) = state { ProblemRecorder.shared.record(.cloud, message) }
+            }
+            .onChange(of: updater.phase) { _, phase in
+                if case let .failed(message) = phase { ProblemRecorder.shared.record(.update, message) }
+            }
+            .task { await notices.refreshIfDue() }
+            .onChange(of: activeSession == nil) { _, inMenus in
+                if inMenus { ProblemRecorder.shared.noteActivity("In the menus") }
+            }
+            .onAppear(perform: arrive)
+            .onChange(of: settings.cloud) { _, value in
+                cloud.configure(value, profile: settings.profile)
+            }
+            .onChange(of: settings.profile) { _, value in
+                cloud.configure(settings.cloud, profile: value)
+            }
+            .onChange(of: settings.chatFilterEnabled) { _, _ in
+                session.moderator = settings.chatModerator
+                cloud.moderator = settings.chatModerator
+            }
+            .onDisappear {
+                session.stopBrowsing()
+            }
+    }
+
+    private func arrive() {
+        updater.start()
+        let remembered = settings
+        session.saveSlotFor = { id in remembered.memory.saveSlots[id.uuidString] ?? 1 }
+        // Coins for coming back today.
+        if let coins = settings.claimDailyBonus() {
+            dailyBonus = coins
         }
-        .onChange(of: settings.cloud) { _, value in
-            cloud.configure(value, profile: settings.profile)
-        }
-        .onChange(of: settings.profile) { _, value in
-            cloud.configure(settings.cloud, profile: value)
-        }
-        .onChange(of: settings.chatFilterEnabled) { _, _ in
-            session.moderator = settings.chatModerator
-            cloud.moderator = settings.chatModerator
-        }
-        .onDisappear {
-            session.stopBrowsing()
-        }
+        AutoBackup.runIfDue(settings: settings, saves: saves, store: store)
+        session.profile = settings.profile
+        session.moderator = settings.chatModerator
+        session.muteList = settings.muteList
+        session.startBrowsing()
+        cloud.moderator = settings.chatModerator
+        cloud.configure(settings.cloud, profile: settings.profile)
     }
 }
 

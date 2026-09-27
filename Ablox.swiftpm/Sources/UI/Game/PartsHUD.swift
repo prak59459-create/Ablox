@@ -137,36 +137,55 @@ private struct DialogCard: View {
     var onChoice: (Int) -> Void
     var onClose: () -> Void
 
+    // In small pieces with their types written out: as one body this took
+    // the compiler most of a second.
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            if !dialog.speaker.isEmpty {
-                Text(dialog.speaker)
-                    .font(.headline)
-                    .foregroundStyle(Ablox.Palette.accent)
-            }
-            Text(dialog.text)
+            speaker
+            Text(verbatim: dialog.text)
                 .font(.body)
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.white)
                 .fixedSize(horizontal: false, vertical: true)
-            HStack(spacing: 8) {
-                if dialog.choices.isEmpty {
-                    Spacer()
-                    Button(L("OK"), action: onClose)
-                        .buttonStyle(NeonButtonStyle(.primary))
-                } else {
-                    ForEach(Array(dialog.choices.enumerated()), id: \.offset) { index, choice in
-                        Button(choice) { onChoice(index) }
-                            .buttonStyle(NeonButtonStyle(index == 0 ? .primary : .secondary))
-                    }
-                }
-            }
+            choices
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.black.opacity(0.72), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).stroke(Color.white.opacity(0.18)))
         .padding(.horizontal, 16)
-        .transition(.move(edge: .bottom).combined(with: .opacity))
+        .transition(AnyTransition.move(edge: .bottom).combined(with: .opacity))
+    }
+
+    @ViewBuilder private var speaker: some View {
+        if !dialog.speaker.isEmpty {
+            Text(verbatim: dialog.speaker)
+                .font(.headline)
+                .foregroundStyle(Ablox.Palette.accent)
+        }
+    }
+
+    private var choices: some View {
+        HStack(spacing: 8) {
+            if dialog.choices.isEmpty {
+                Spacer()
+                Button(L("OK"), action: onClose)
+                    .buttonStyle(NeonButtonStyle(.primary))
+            } else {
+                ForEach(dialog.choices.indices, id: \.self) { index in
+                    choiceButton(index)
+                }
+            }
+        }
+    }
+
+    private func choiceButton(_ index: Int) -> some View {
+        let prominence: NeonButtonStyle.Prominence = index == 0 ? .primary : .secondary
+        return Button {
+            onChoice(index)
+        } label: {
+            Text(verbatim: dialog.choices[index])
+        }
+        .buttonStyle(NeonButtonStyle(prominence))
     }
 }
 
