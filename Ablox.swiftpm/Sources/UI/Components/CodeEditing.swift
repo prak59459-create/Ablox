@@ -21,10 +21,23 @@ public enum CodeTheme: String, CaseIterable, Identifiable, Sendable {
         }
     }
 
-    func color(_ kind: ScriptHighlighter.Kind?) -> UIColor {
-        func rgb(_ hex: UInt32) -> UIColor {
-            UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+    /// What the code sits on.
+    public var background: UIColor {
+        switch self {
+        case .night: return Self.rgb(0x0B0F1A)
+        case .ocean: return Self.rgb(0x07263B)
+        case .candy: return Self.rgb(0x241026)
+        case .plain: return Self.rgb(0x151515)
+        case .highContrast: return .black
         }
+    }
+
+    private static func rgb(_ hex: UInt32) -> UIColor {
+        UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+    }
+
+    func color(_ kind: ScriptHighlighter.Kind?) -> UIColor {
+        func rgb(_ hex: UInt32) -> UIColor { Self.rgb(hex) }
         switch self {
         case .night:
             switch kind {

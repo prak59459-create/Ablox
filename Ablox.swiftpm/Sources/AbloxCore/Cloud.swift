@@ -175,7 +175,8 @@ public struct CloudProfile: Codable, Hashable, Sendable {
     /// On, and heard from in the last few minutes (an iPad that went flat
     /// never gets to say it is leaving).
     public func isOnline(now: Double) -> Bool {
-        online && now - seen < 5 * 60_000
+        let fiveMinutes: Double = 300_000
+        return online && now - seen < fiveMinutes
     }
 }
 
