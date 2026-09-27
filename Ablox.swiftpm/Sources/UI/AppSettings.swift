@@ -276,6 +276,38 @@ public final class AppSettings: ObservableObject {
         let coins = CoinRate.coins(forScore: score, completedRound: completedRound)
         wallet.earn(coins)
         coinLedger.record(coins, reason: game.isEmpty ? L("A round") : game)
+        mission(.earnCoins, amount: coins)
+    }
+
+    // MARK: Today's missions
+
+    public var today: String { PlaytimeLog.dayKey(Date()) }
+
+    public func mission(_ kind: MissionKind, amount: Int = 1) {
+        memory.missions.record(kind, amount: amount, on: today)
+    }
+
+    /// A game started today, for "different games".
+    public func missionGame(_ game: String) {
+        memory.missions.played(game: game, on: today)
+    }
+
+    /// The reward for a finished mission, into the wallet; nil when there
+    /// is none to take.
+    @discardableResult
+    public func claim(_ mission: Mission) -> Int? {
+        guard let coins = memory.missions.claim(mission, on: today) else { return nil }
+        give(coins: coins, reason: L("Mission: {}", mission.title))
+        return coins
+    }
+
+    /// What the card after a game compares.
+    public func summarySnapshot(worldsMade: Int, pictures: Int) -> SessionSummary.Snapshot {
+        SessionSummary.Snapshot(
+            lifetimeCoins: wallet.lifetimeEarned,
+            missionsDone: memory.missions.done(on: today),
+            badges: Set(Achievement.earned(progressStats(worldsMade: worldsMade, pictures: pictures)).map(\.rawValue))
+        )
     }
 
     /// Coins from somewhere other than a round — a daily bonus, a gift.
@@ -362,6 +394,28 @@ public final class AppSettings: ObservableObject {
 
 // MARK: - What the menus remember
 
+/// The last game played, to carry on with from the Play tab.
+public struct LastPlayed: Codable, Hashable, Sendable {
+    public enum Kind: String, Codable, Sendable {
+        /// One of this iPad's own worlds, by world id.
+        case world
+        /// A game from the list, by listing id.
+        case catalogue
+    }
+
+    public var kind: Kind
+    public var id: String
+    public var title: String
+    public var at: Date
+
+    public init(kind: Kind, id: String, title: String, at: Date = Date()) {
+        self.kind = kind
+        self.id = id
+        self.title = title
+        self.at = at
+    }
+}
+
 /// A player's own note on a game: liked, and a few words.
 public struct GameNote: Codable, Hashable, Sendable {
     public var liked = false
@@ -391,6 +445,16 @@ public struct MenuMemory: Codable, Hashable, Sendable {
     /// A folder chosen in Files for automatic backups.
     public var autoBackupBookmark: Data?
     public var lastAutoBackup: Date?
+    /// Today's three missions and how far along they are.
+    public var missions = MissionBook()
+    /// Games put out of sight in the Games tab, by listing id.
+    public var hiddenGames: Set<String> = []
+    public var recentSearches = RecentSearches()
+    public var gameSort: GameSort = .suggested
+    /// The shop item being saved up for.
+    public var savingsGoal: String?
+    /// The last game played, for "Carry on" on the Play tab.
+    public var lastPlayed: LastPlayed?
 
     public init() {}
 
@@ -409,6 +473,12 @@ public struct MenuMemory: Codable, Hashable, Sendable {
         saveSlots = (try? c.decodeIfPresent([String: Int].self, forKey: .saveSlots)) ?? [:]
         autoBackupBookmark = try? c.decodeIfPresent(Data.self, forKey: .autoBackupBookmark)
         lastAutoBackup = try? c.decodeIfPresent(Date.self, forKey: .lastAutoBackup)
+        missions = (try? c.decodeIfPresent(MissionBook.self, forKey: .missions)) ?? MissionBook()
+        hiddenGames = (try? c.decodeIfPresent(Set<String>.self, forKey: .hiddenGames)) ?? []
+        recentSearches = (try? c.decodeIfPresent(RecentSearches.self, forKey: .recentSearches)) ?? RecentSearches()
+        gameSort = (try? c.decodeIfPresent(GameSort.self, forKey: .gameSort)) ?? .suggested
+        savingsGoal = try? c.decodeIfPresent(String.self, forKey: .savingsGoal)
+        lastPlayed = try? c.decodeIfPresent(LastPlayed.self, forKey: .lastPlayed)
     }
 
     /// Puts a game at the front of "recently played".

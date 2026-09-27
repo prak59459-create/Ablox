@@ -23,6 +23,7 @@ struct AvatarCustomizerView: View {
     @State private var previewLink = AvatarPreviewLink()
     @State private var boothOpen = false
     @State private var profileOpen = false
+    @State private var codesOpen = false
     @State private var sharing: SharedFile?
     @State private var outfitMessage: String?
 
@@ -59,6 +60,13 @@ struct AvatarCustomizerView: View {
                     petSection
                     heightSection
                     randomiseButton
+                    Button {
+                        codesOpen = true
+                    } label: {
+                        Label(L("Look codes"), systemImage: "qrcode")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(NeonButtonStyle(.secondary, fullWidth: true))
                     HStack(spacing: 10) {
                         Button {
                             withAnimation { boothOpen.toggle() }
@@ -90,6 +98,9 @@ struct AvatarCustomizerView: View {
             ProfileSheet()
                 .environmentObject(settings)
                 .environmentObject(store)
+        }
+        .sheet(isPresented: $codesOpen) {
+            OutfitCodeSheet().environmentObject(settings)
         }
         .sheet(item: $sharing) { file in
             ActivityShareSheet(items: [file.url])

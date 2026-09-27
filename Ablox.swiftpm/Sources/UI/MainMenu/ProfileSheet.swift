@@ -123,6 +123,10 @@ struct ProfileSheet: View {
                 record(L("Worlds made"), "\(s.worldsMade)", "hammer.fill")
                 record(L("Best streak"), L("{} days", s.bestStreak), "flame.fill")
             }
+            Text(L("Days played"))
+                .font(.headline)
+                .padding(.top, 6)
+            PlayCalendarCard(log: settings.playtime)
             Text(L("Most played"))
                 .font(.headline)
                 .padding(.top, 6)

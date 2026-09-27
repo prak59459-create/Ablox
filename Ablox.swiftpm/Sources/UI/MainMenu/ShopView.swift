@@ -22,6 +22,7 @@ struct ShopView: View {
             VStack(alignment: .leading, spacing: 24) {
                 header
                 walletCard
+                SavingsGoalCard()
                 wishlistReady
                 kindPicker
                 itemGrid

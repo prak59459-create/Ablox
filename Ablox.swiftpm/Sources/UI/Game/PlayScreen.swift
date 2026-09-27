@@ -52,6 +52,10 @@ public struct PlayScreen: View {
     /// Who was here at the last look, to notice arrivals.
     @State private var knownPeople: Set<PeerID> = []
     @State private var choosingHowToLeave = false
+    /// The player's own timer, from the pause menu.
+    @State private var selfTimer = SelfTimer()
+    /// Whether "play with someone else" was counted this visit.
+    @State private var countedTogether = false
     /// A game controller, keyboard or mouse, beside the touch controls.
     @StateObject private var hardware = HardwareInput()
 
@@ -148,7 +152,8 @@ public struct PlayScreen: View {
         if session.scripted.showsControls && !editingButtons {
             controlsLayer
         }
-        ScriptHUDLayer(session: session, reduceFlashing: settings.preferences.reduceFlashing)
+        ScriptHUDLayer(session: session, reduceFlashing: settings.preferences.reduceFlashing,
+                       crosshair: settings.preferences.crosshair, crosshairColor: settings.preferences.crosshairColor)
         PartsHUDLayer(session: session, readAloud: settings.preferences.readLinesAloud)
         hudLayer
         familyNotices
@@ -173,6 +178,7 @@ public struct PlayScreen: View {
             session: session,
             clips: clips,
             preferFirstPerson: $preferFirstPerson,
+            selfTimer: $selfTimer,
             playSeconds: sessionSeconds,
             onResume: closeMenu,
             onScreenshot: { closeMenu(); takePicture() },
@@ -285,6 +291,7 @@ public struct PlayScreen: View {
         guard let score = session.localPlayer?.score, !hasBankedThisRound else { return }
         hasBankedThisRound = true
         settings.award(score: score, completedRound: completed, game: session.world.name)
+        if completed { settings.mission(.finishRound) }
     }
 
     // MARK: Play time
@@ -297,8 +304,23 @@ public struct PlayScreen: View {
         if !countedStart {
             countedStart = true
             settings.playtime.startedPlaying(game)
+            settings.missionGame(game)
         }
         settings.recordPlay(seconds: seconds, game: game)
+        settings.mission(.playMinutes, amount: Int(seconds.rounded()))
+        if !countedTogether, !session.isSolo, session.people.count > 1 {
+            countedTogether = true
+            settings.mission(.playWithOthers)
+        }
+        switch selfTimer.tick() {
+        case .warning:
+            showToast(L("One minute left on your timer."))
+        case .finished:
+            showToast(L("Your timer is up. Time for a break?"))
+            if !showMenu, !photoMode { openMenu() }
+        case .none:
+            break
+        }
         sessionSeconds += seconds
         if sessionSeconds >= 20 { takeThumbnailIfMine() }
 
@@ -512,6 +534,7 @@ public struct PlayScreen: View {
             }
             let finished = filter.apply(to: image)
             if let url = ScreenshotStore.save(finished, game: game) {
+                settings.mission(.takePicture)
                 showToast(L("Saved to your album"))
                 sharing = SharedFile(url: url)
             } else {
@@ -813,6 +836,7 @@ public struct PlayScreen: View {
                 if showEmotes {
                     EmotePanel { gesture in
                         session.send(gesture: gesture)
+                        settings.mission(.useEmote)
                         withAnimation { showEmotes = false }
                     }
                     .transition(.move(edge: .top).combined(with: .opacity))

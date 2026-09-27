@@ -43,6 +43,7 @@ struct SettingsView: View {
                 AccessibilityCard()
                 graphicsCard
                 controlsCard
+                MoreSettingsCard()
                 ControllersCard()
                 movementCard
                 networkCard

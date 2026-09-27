@@ -24,11 +24,19 @@ struct DiscoverView: View {
     @State private var addingCatalogue = false
     @State private var newCatalogue = ""
 
-    /// Everything the list may show: Settings → Family can keep scary games out.
+    /// Everything the list may show: Settings → Family can keep scary games
+    /// out, and the player can put games out of sight.
     private var allowed: [GameListing] {
-        settings.parental.hideScaryGames
-            ? library.listings.filter { !$0.tags.contains("horror") }
-            : library.listings
+        let shown = CatalogueBrowsing.visible(library.listings, hidden: settings.memory.hiddenGames)
+        return settings.parental.hideScaryGames ? shown.filter { !$0.tags.contains("horror") } : shown
+    }
+
+    /// "All games" in the order chosen.
+    private func ordered(_ games: [GameListing]) -> [GameListing] {
+        let liked = Set(settings.memory.gameNotes.filter { $0.value.liked }.map(\.key))
+        let played = settings.playtime.totalSeconds
+        return CatalogueBrowsing.sorted(games, by: settings.memory.gameSort,
+                                        playedSeconds: { played[$0.title] ?? 0 }, liked: liked)
     }
 
     private var isFiltering: Bool {
@@ -58,8 +66,13 @@ struct DiscoverView: View {
                 } else {
                     filters
                     if !isFiltering { shelves }
-                    SectionHeader(isFiltering ? L("{} games", filtered.count) : L("All games"), systemImage: "square.grid.2x2.fill")
-                    grid(filtered)
+                    HStack {
+                        SectionHeader(isFiltering ? L("{} games", filtered.count) : L("All games"), systemImage: "square.grid.2x2.fill")
+                        Spacer()
+                        surpriseButton
+                        sortMenu
+                    }
+                    grid(ordered(filtered))
                 }
             }
             .padding(Ablox.Metrics.gutter)
@@ -114,13 +127,22 @@ struct DiscoverView: View {
             HStack(spacing: 9) {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(Ablox.Palette.inkFaint)
-                AbloxTextField(L("Search games"), text: $search)
+                AbloxTextField(L("Search games"), text: $search, onSubmit: {
+                    settings.memory.recentSearches.add(search)
+                })
                     .textFieldStyle(.plain)
                     .autocorrectionDisabled()
+                if !search.isEmpty {
+                    Button { search = "" } label: {
+                        Image(systemName: "xmark.circle.fill").foregroundStyle(Ablox.Palette.inkFaint)
+                    }
+                    .accessibilityLabel(L("Clear"))
+                }
             }
             .padding(12)
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: Ablox.Metrics.controlRadius, style: .continuous))
             .padding(.top, 6)
+            recentSearches
         }
     }
 
@@ -337,11 +359,80 @@ struct DiscoverView: View {
             spacing: 16
         ) {
             ForEach(games) { listing in
-                Button { selected = listing } label: {
+                Button { open(listing) } label: {
                     GameCard(listing: listing, library: library, badges: badges(for: listing))
                 }
                 .buttonStyle(.plain)
+                .contextMenu {
+                    Button {
+                        settings.memory.hiddenGames.insert(listing.id)
+                    } label: {
+                        Label(L("Not interested: hide it"), systemImage: "eye.slash")
+                    }
+                }
             }
+        }
+    }
+
+    /// Opens a game's page, keeping the search that found it.
+    private func open(_ listing: GameListing) {
+        if !search.trimmingCharacters(in: .whitespaces).isEmpty { settings.memory.recentSearches.add(search) }
+        selected = listing
+    }
+
+    // MARK: Sorting, searching again, and a surprise
+
+    private var sortMenu: some View {
+        Menu {
+            Picker(L("Order"), selection: $settings.memory.gameSort) {
+                ForEach(GameSort.allCases) { order in
+                    Label(order.displayName, systemImage: order.symbolName).tag(order)
+                }
+            }
+        } label: {
+            chip(settings.memory.gameSort.displayName, systemImage: "arrow.up.arrow.down", selected: settings.memory.gameSort != .suggested)
+        }
+        .accessibilityLabel(L("Order"))
+    }
+
+    /// A game not played yet, picked at random from what is shown.
+    private var surpriseButton: some View {
+        Button {
+            let played = Set(settings.memory.recentGames)
+            if let pick = CatalogueBrowsing.surprise(from: filtered, played: played, seed: UInt64.random(in: 0...UInt64.max)) {
+                selected = pick
+            }
+        } label: {
+            chip(L("Surprise me"), systemImage: "dice.fill", selected: false)
+        }
+        .buttonStyle(.plain)
+        .disabled(filtered.isEmpty)
+    }
+
+    @ViewBuilder private var recentSearches: some View {
+        let items = settings.memory.recentSearches.items
+        if search.isEmpty, !items.isEmpty {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    Image(systemName: "clock.arrow.circlepath")
+                        .font(.caption)
+                        .foregroundStyle(Ablox.Palette.inkFaint)
+                    ForEach(items, id: \.self) { item in
+                        Button { search = item } label: {
+                            chip(item, systemImage: nil, selected: false)
+                        }
+                        .buttonStyle(.plain)
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                settings.memory.recentSearches.remove(item)
+                            } label: {
+                                Label(L("Remove"), systemImage: "trash")
+                            }
+                        }
+                    }
+                }
+            }
+            .padding(.top, 4)
         }
     }
 }
@@ -880,6 +971,7 @@ private struct GameDetailSheet: View {
 
         dismiss()
         settings.memory.played(listing.id)
+        settings.memory.lastPlayed = LastPlayed(kind: .catalogue, id: listing.id, title: listing.title)
         onEnter(ActiveSession(mode: hosting ? .hosting(world, access: access) : .solo(world)))
     }
 }

@@ -8,6 +8,9 @@ struct ScriptHUDLayer: View {
     @ObservedObject var session: SessionCoordinator
     /// Settings → Comfort → Fewer flashes.
     var reduceFlashing = false
+    /// Settings → Controls: how the aiming mark looks.
+    var crosshair: CrosshairStyle = .plus
+    var crosshairColor: CrosshairColor = .white
 
     var body: some View {
         let state = session.scripted
@@ -25,7 +28,8 @@ struct ScriptHUDLayer: View {
             .padding(.top, state.showsDefaultUI ? 64 : 0)
 
             if state.weapon != nil || state.camera.mode == .firstPerson {
-                Crosshair(hitCount: state.hitMarkerCount, knockedOut: state.lastHitWasKnockout)
+                Crosshair(hitCount: state.hitMarkerCount, knockedOut: state.lastHitWasKnockout,
+                          style: crosshair, colour: Color(crosshairColor.color))
                     .allowsHitTesting(false)
             }
 
@@ -273,19 +277,25 @@ private struct FadeOverlay: View {
 private struct Crosshair: View {
     let hitCount: Int
     let knockedOut: Bool
+    let style: CrosshairStyle
+    let colour: Color
     @State private var showingHit = false
 
-    init(hitCount: Int, knockedOut: Bool) {
+    init(hitCount: Int, knockedOut: Bool, style: CrosshairStyle = .plus, colour: Color = .white) {
         self.hitCount = hitCount
         self.knockedOut = knockedOut
+        self.style = style
+        self.colour = colour
     }
 
     var body: some View {
         ZStack {
-            Image(systemName: "plus")
-                .font(.system(size: 22, weight: .semibold))
-                .foregroundStyle(.white.opacity(0.9))
-                .shadow(color: .black.opacity(0.6), radius: 2)
+            if let symbol = style.symbolName {
+                Image(systemName: symbol)
+                    .font(.system(size: style.pointSize, weight: .semibold))
+                    .foregroundStyle(colour.opacity(0.9))
+                    .shadow(color: .black.opacity(0.6), radius: 2)
+            }
             if showingHit {
                 Image(systemName: "xmark")
                     .font(.system(size: knockedOut ? 34 : 26, weight: .heavy))

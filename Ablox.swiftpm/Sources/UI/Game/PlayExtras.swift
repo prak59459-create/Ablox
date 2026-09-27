@@ -415,6 +415,8 @@ struct PauseMenu: View {
     @EnvironmentObject private var settings: AppSettings
     @ObservedObject var clips: ClipRecorder
     @Binding var preferFirstPerson: Bool
+    /// "Ten more minutes", set here by the player.
+    @Binding var selfTimer: SelfTimer
     let playSeconds: Double
     let onResume: () -> Void
     let onScreenshot: () -> Void
@@ -522,6 +524,46 @@ struct PauseMenu: View {
                     .foregroundStyle(Ablox.Palette.warning)
             }
             row(L("Back to the start"), "arrow.uturn.backward.circle") { confirmingStart = true }
+            timerRow
+        }
+    }
+
+    /// A timer of the player's own: a minute's warning, then this menu.
+    @ViewBuilder private var timerRow: some View {
+        if let left = selfTimer.remaining() {
+            HStack {
+                Image(systemName: "timer")
+                    .frame(width: 26)
+                    .foregroundStyle(Ablox.Palette.warning)
+                Text(L("My timer: {} left", SelfTimer.clock(left)))
+                Spacer()
+                Button(L("Stop")) { selfTimer.cancel() }
+                    .font(.caption.weight(.bold))
+            }
+            .padding(.vertical, 10)
+            .padding(.horizontal, 12)
+            .background(Color.white.opacity(0.07), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        } else {
+            Menu {
+                ForEach(SelfTimer.choices, id: \.self) { minutes in
+                    Button(L("{} minutes", minutes)) { selfTimer.start(minutes: minutes) }
+                }
+            } label: {
+                HStack {
+                    Image(systemName: "timer")
+                        .frame(width: 26)
+                        .foregroundStyle(Ablox.Palette.accent)
+                    Text(L("Set my own timer"))
+                    Spacer()
+                    Image(systemName: "chevron.down")
+                        .font(.caption)
+                        .foregroundStyle(Ablox.Palette.inkFaint)
+                }
+                .padding(.vertical, 10)
+                .padding(.horizontal, 12)
+                .background(Color.white.opacity(0.07), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+            .foregroundStyle(.white)
         }
     }
 
@@ -539,6 +581,7 @@ struct PauseMenu: View {
             }
             Toggle(L("Auto-jump"), isOn: $settings.preferences.autoJump)
                 .tint(Ablox.Palette.accent)
+            CrosshairPickers()
             Toggle(L("One-handed controls"), isOn: $settings.preferences.oneHanded)
                 .tint(Ablox.Palette.accent)
             Toggle(L("Show the map"), isOn: $settings.preferences.showMap)

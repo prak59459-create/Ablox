@@ -30,6 +30,7 @@ struct FriendsSheet: View {
     }
 
     @State private var tab: Tab = .friends
+    @State private var naming: PlayerContact?
 
     private var tabs: [Tab] {
         cloud.allowsFriends ? Tab.allCases : Tab.allCases.filter { $0 != .internet }
@@ -62,6 +63,9 @@ struct FriendsSheet: View {
             }
         }
         .abloxColorScheme()
+        .sheet(item: $naming) { friend in
+            NicknameSheet(friend: friend).environmentObject(settings)
+        }
     }
 
     /// The room a friend is in, from the list of rooms nearby.
@@ -94,6 +98,26 @@ struct FriendsSheet: View {
                     settings.social.removeFriend(friend.id)
                 } label: {
                     Label(L("Remove friend"), systemImage: "person.badge.minus")
+                }
+                Button {
+                    naming = friend
+                } label: {
+                    Label(L("Nickname"), systemImage: "character.cursor.ibeam")
+                }
+                .tint(Ablox.Palette.accent)
+            }
+            .contextMenu {
+                Button {
+                    naming = friend
+                } label: {
+                    Label(L("Nickname"), systemImage: "character.cursor.ibeam")
+                }
+                if friend.nickname != nil {
+                    Button {
+                        settings.social.setNickname("", for: friend.id)
+                    } label: {
+                        Label(L("Remove the nickname"), systemImage: "xmark")
+                    }
                 }
             }
         }
@@ -155,8 +179,15 @@ struct FriendsSheet: View {
 
     private func contactText(_ contact: PlayerContact) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(contact.name)
-                .font(.headline)
+            HStack(spacing: 6) {
+                Text(contact.shownName)
+                    .font(.headline)
+                if contact.nickname != nil {
+                    Text(contact.name)
+                        .font(.caption)
+                        .foregroundStyle(Ablox.Palette.inkFaint)
+                }
+            }
             Text(L("{} · {}", contact.lastGame.isEmpty ? "Ablox" : contact.lastGame,
                    contact.lastSeen.formatted(.relative(presentation: .named))))
                 .font(.caption)

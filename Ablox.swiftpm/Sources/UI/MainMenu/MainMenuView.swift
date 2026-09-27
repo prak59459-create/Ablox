@@ -56,6 +56,16 @@ public struct MainMenuView: View {
     @State private var activeSession: ActiveSession?
     /// A game on its way in, waiting for a sheet to finish leaving.
     @State private var startingSession = false
+    /// For the card after a game: what things were like going in, and how
+    /// the game was entered (for Play again).
+    @State private var summaryStart: SessionSummary.Snapshot?
+    @State private var lastMode: ActiveSession.Mode?
+    @State private var summary: SummaryCard?
+    @State private var lastGameName = ""
+    /// A friend who has started playing nearby.
+    @State private var sightings = FriendSightings()
+    @State private var friendNearby: FriendNearby?
+    @StateObject private var connectivity = ConnectivityMonitor()
     /// The new version being handed to Swift Playgrounds.
     @State private var installing: UpdateInstall?
     /// Why a game could not start (Settings → Family).
@@ -90,7 +100,14 @@ public struct MainMenuView: View {
 
                 VStack(spacing: 0) {
                     UpdateBanner(updater: updater) { beginInstall() }
+                    OfflineBanner(monitor: connectivity)
                     NoticeBanner(service: notices)
+                    if let friendNearby {
+                        FriendNearbyBanner(name: friendNearby.name, world: friendNearby.peer.worldName,
+                                           onJoin: { joinFriend(friendNearby.peer) },
+                                           onClose: { withAnimation { self.friendNearby = nil } })
+                            .transition(.move(edge: .top).combined(with: .opacity))
+                    }
                     tabContent
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .transition(AnyTransition.opacity)
@@ -120,8 +137,9 @@ public struct MainMenuView: View {
 
     private func presenting<Content: View>(_ content: Content) -> some View {
         content
-            .fullScreenCover(item: $activeSession) { active in
+            .fullScreenCover(item: $activeSession, onDismiss: showSummary) { active in
                 PlayScreen(session: session, activeSession: active) {
+                    lastGameName = session.world.name
                     session.leave()
                     activeSession = nil
                 }
@@ -137,6 +155,9 @@ public struct MainMenuView: View {
             }
             .sheet(item: $installing) { install in
                 UpdateInstallSheet(updater: updater, backup: install.backup)
+            }
+            .sheet(item: $summary) { card in
+                SessionSummarySheet(summary: card.summary, onPlayAgain: playAgain(card))
             }
             // The first time a new version runs: what changed.
             .sheet(isPresented: Binding(get: { updater.justUpdated != nil && activeSession == nil },
@@ -175,6 +196,7 @@ public struct MainMenuView: View {
             .onDisappear {
                 session.stopBrowsing()
             }
+            .onChange(of: session.discoveredPeers) { _, peers in noticeFriends(in: peers) }
     }
 
     private func arrive() {
@@ -223,9 +245,71 @@ extension MainMenuView {
     private func start(_ active: ActiveSession) {
         guard activeSession == nil, !startingSession else { return }
         startingSession = true
+        summaryStart = settings.summarySnapshot(worldsMade: store.entries.count, pictures: ScreenshotStore.all().count)
+        lastMode = active.mode
+        rememberLastPlayed(active.mode)
+        friendNearby = nil
         PresentationQueue.whenClear {
             startingSession = false
             activeSession = active
+        }
+    }
+
+    /// One of this iPad's worlds, for Carry on. A game from the list is
+    /// remembered by its page, which knows its listing.
+    private func rememberLastPlayed(_ mode: ActiveSession.Mode) {
+        switch mode {
+        case let .solo(world), let .hosting(world, _):
+            if store.entries.contains(where: { $0.id == world.id }) {
+                settings.memory.lastPlayed = LastPlayed(kind: .world, id: world.id.uuidString, title: world.name)
+            }
+        default:
+            break
+        }
+    }
+
+    /// How the game went, once it has gone — unless it was only a peek.
+    private func showSummary() {
+        guard let before = summaryStart else { return }
+        summaryStart = nil
+        let after = settings.summarySnapshot(worldsMade: store.entries.count, pictures: ScreenshotStore.all().count)
+        let result = SessionSummary(game: lastGameName, before: before, after: after)
+        guard result.isWorthShowing else { return }
+        // Joining again by code or invitation may not work a second time;
+        // Play again is for games started here.
+        var again: ActiveSession.Mode?
+        switch lastMode {
+        case .solo?, .hosting?: again = lastMode
+        default: again = nil
+        }
+        summary = SummaryCard(summary: result, mode: again)
+    }
+
+    private func playAgain(_ card: SummaryCard) -> (() -> Void)? {
+        guard let mode = card.mode else { return nil }
+        return { enter(ActiveSession(mode: mode)) }
+    }
+
+    /// A friend in a room nearby, said once per room.
+    private func noticeFriends(in peers: [DiscoveredPeer]) {
+        guard activeSession == nil, settings.parental.allowJoiningRooms else { return }
+        let friends = settings.social.friends.map(\.id)
+        guard !friends.isEmpty else { return }
+        let rooms = peers.filter { $0.isCompatible && !$0.isFull && !$0.isStudioSession }.map { (id: $0.id, tag: $0.people) }
+        guard let seen = sightings.newlySeen(rooms: rooms, friends: friends).first,
+              let peer = peers.first(where: { $0.id == seen.roomID }),
+              let friend = settings.social.friends.first(where: { $0.id == seen.friend }) else { return }
+        withAnimation { friendNearby = FriendNearby(peer: peer, name: friend.shownName) }
+    }
+
+    /// Straight in to a public room; a private one needs its code, typed on
+    /// the Play tab.
+    private func joinFriend(_ peer: DiscoveredPeer) {
+        friendNearby = nil
+        if let code = peer.publicCode {
+            enter(ActiveSession(mode: .joining(peer, code: code)))
+        } else {
+            selectedTab = .play
         }
     }
 
@@ -234,6 +318,20 @@ extension MainMenuView {
     private func beginInstall() {
         installing = UpdateInstall(backup: saves.makeBackupBeforeUpdate(settings: settings, worlds: store))
     }
+}
+
+/// The card after a game.
+struct SummaryCard: Identifiable {
+    let id = UUID()
+    let summary: SessionSummary
+    /// How to play again, when that makes sense.
+    let mode: ActiveSession.Mode?
+}
+
+/// A friend seen in a room nearby.
+struct FriendNearby: Equatable {
+    let peer: DiscoveredPeer
+    let name: String
 }
 
 /// A downloaded update about to be handed over, with the backup made for it.

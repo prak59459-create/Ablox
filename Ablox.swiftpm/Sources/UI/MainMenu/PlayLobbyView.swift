@@ -20,6 +20,8 @@ struct PlayLobbyView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 26) {
                 hero
+                ContinueCard(onEnter: onEnter)
+                MissionsCard()
                 if cloud.allowsInternetPlay {
                     InternetRoomsSection { room in onEnter(ActiveSession(mode: .cloud(room))) }
                 }
