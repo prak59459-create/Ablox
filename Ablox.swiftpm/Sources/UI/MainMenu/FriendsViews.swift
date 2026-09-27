@@ -8,16 +8,20 @@ import SwiftUI
 struct FriendsSheet: View {
     @EnvironmentObject private var settings: AppSettings
     @EnvironmentObject private var session: SessionCoordinator
+    @EnvironmentObject private var cloud: CloudService
     @Environment(\.dismiss) private var dismiss
     /// Joins the room a friend is in.
     var onJoin: (DiscoveredPeer) -> Void
+    /// Joins the internet room a friend is in.
+    var onJoinInternet: (CloudRoom) -> Void = { _ in }
 
     private enum Tab: String, CaseIterable, Identifiable {
-        case friends, recent, blocked
+        case friends, internet, recent, blocked
         var id: String { rawValue }
         var title: String {
             switch self {
             case .friends: return L("Friends")
+            case .internet: return L("Internet")
             case .recent: return L("Played with")
             case .blocked: return L("Blocked")
             }
@@ -26,17 +30,26 @@ struct FriendsSheet: View {
 
     @State private var tab: Tab = .friends
 
+    private var tabs: [Tab] {
+        cloud.allowsFriends ? Tab.allCases : Tab.allCases.filter { $0 != .internet }
+    }
+
     var body: some View {
         NavigationStack {
             List {
                 Picker(L("Friends"), selection: $tab) {
-                    ForEach(Tab.allCases) { Text($0.title).tag($0) }
+                    ForEach(tabs) { Text($0.title).tag($0) }
                 }
                 .pickerStyle(.segmented)
                 .listRowBackground(Color.clear)
 
                 switch tab {
                 case .friends: friends
+                case .internet:
+                    InternetFriendsList { room in
+                        dismiss()
+                        onJoinInternet(room)
+                    }
                 case .recent: recent
                 case .blocked: blocked
                 }

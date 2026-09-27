@@ -7,6 +7,9 @@ struct AbloxApp: App {
     @StateObject private var store = ProjectStore()
     @StateObject private var saves: GameSaves
     @StateObject private var updater = AppUpdater(release: AppRelease.current)
+    /// Friends, chat and rooms over the internet — off until a grown-up
+    /// allows it (Settings → Family → Internet).
+    @StateObject private var cloud = CloudService()
 
     init() {
         // `AppSettings` owns the persisted peer identity, so it must exist
@@ -34,6 +37,7 @@ struct AbloxApp: App {
                 .environmentObject(store)
                 .environmentObject(saves)
                 .environmentObject(updater)
+                .environmentObject(cloud)
                 // Settings → Comfort → Text size, for the whole app.
                 .dynamicTypeSize(settings.preferences.textSize.dynamicType)
                 // Rebuilds the interface when the language changes.

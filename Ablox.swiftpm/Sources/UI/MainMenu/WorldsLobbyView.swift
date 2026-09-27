@@ -6,6 +6,7 @@ import UniformTypeIdentifiers
 struct WorldsLobbyView: View {
     @EnvironmentObject private var store: ProjectStore
     @EnvironmentObject private var settings: AppSettings
+    @EnvironmentObject private var cloud: CloudService
 
     var onEnter: (ActiveSession) -> Void
 
@@ -102,9 +103,10 @@ struct WorldsLobbyView: View {
         .sheet(isPresented: $showingDeleted) {
             RecentlyDeletedSheet().environmentObject(store)
         }
-        .roomVisibilityDialog(isPresented: $askingVisibility, allowsPublic: settings.parental.allowPublicRooms) { isPublic in
+        .roomVisibilityDialog(isPresented: $askingVisibility, allowsPublic: settings.parental.allowPublicRooms,
+                              allowsInternet: cloud.allowsInternetPlay) { access in
             if let world = hostCandidate {
-                onEnter(ActiveSession(mode: .hosting(world, isPublic: isPublic)))
+                onEnter(ActiveSession(mode: .hosting(world, access: access)))
             }
             hostCandidate = nil
         }

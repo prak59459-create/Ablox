@@ -10,6 +10,7 @@ import SwiftUI
 /// The card in Settings that opens the family controls.
 struct FamilyCard: View {
     @EnvironmentObject private var settings: AppSettings
+    @EnvironmentObject private var cloud: CloudService
     @State private var asking = false
     @State private var open = false
 
@@ -58,6 +59,7 @@ struct FamilyCard: View {
         .sheet(isPresented: $open) {
             FamilySettingsSheet()
                 .environmentObject(settings)
+                .environmentObject(cloud)
         }
     }
 
@@ -69,6 +71,7 @@ struct FamilyCard: View {
         if p.chat != .full { parts.append(L("chat: {}", p.chat.displayName)) }
         if !p.allowPublicRooms { parts.append(L("no public rooms")) }
         if p.hideScaryGames { parts.append(L("no scary games")) }
+        if settings.cloud.allowInternetPlay || settings.cloud.allowFriends { parts.append(L("internet on")) }
         if parts.isEmpty { return L("Play time, bedtime, chat, rooms and coins, decided together — and locked with a passcode.") }
         return parts.joined(separator: " · ")
     }
@@ -198,6 +201,8 @@ struct FamilySettingsSheet: View {
                 } footer: {
                     Text(L("“Ready-made phrases only” lets them say hello and thank you with buttons; nothing typed is sent."))
                 }
+
+                InternetFamilySection()
 
                 Section(L("Coins and games")) {
                     Picker(L("Coins spent a day"), selection: $settings.parental.dailyCoinLimit) {

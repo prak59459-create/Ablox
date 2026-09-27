@@ -32,6 +32,7 @@ public final class AppSettings: ObservableObject {
         static let preferences = "ablox.playPreferences"
         static let memory = "ablox.menuMemory"
         static let social = "ablox.social"
+        static let cloud = "ablox.cloud"
     }
 
     private let defaults: UserDefaults
@@ -164,6 +165,11 @@ public final class AppSettings: ObservableObject {
         didSet { persist(social, forKey: Key.social) }
     }
 
+    /// Settings → Family → Internet.
+    @Published public var cloud: CloudSettings {
+        didSet { persist(cloud, forKey: Key.cloud) }
+    }
+
     /// The validated source, falling back to the built-in list if someone has
     /// typed something unusable into Settings.
     public var catalogueSource: CatalogueSource {
@@ -213,6 +219,7 @@ public final class AppSettings: ObservableObject {
         self.preferences = AppSettings.decode(PlayPreferences.self, from: defaults, key: Key.preferences) ?? PlayPreferences()
         self.memory = AppSettings.decode(MenuMemory.self, from: defaults, key: Key.memory) ?? MenuMemory()
         self.social = AppSettings.decode(SocialBook.self, from: defaults, key: Key.social) ?? SocialBook()
+        self.cloud = AppSettings.decode(CloudSettings.self, from: defaults, key: Key.cloud) ?? CloudSettings()
 
         if let stored = defaults.string(forKey: Key.peerID), let uuid = UUID(uuidString: stored) {
             self.peerID = PeerID(uuid)

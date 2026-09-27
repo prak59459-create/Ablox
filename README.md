@@ -2,6 +2,9 @@
 
 A sandbox game platform for iPad, built to run in **Swift Playgrounds**. Build
 worlds, play them with friends in the same room, no server and no account.
+Friends and rooms over the internet are optional: they go through a Firebase
+Realtime Database you set up yourself, and stay off until a grown-up switches
+them on (setup and security rules: [`docs/firebase_2026-09-27_1525.md`](docs/firebase_2026-09-27_1525.md)).
 
 Two apps make up the platform:
 

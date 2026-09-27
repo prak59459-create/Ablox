@@ -10,6 +10,7 @@ struct DiscoverView: View {
     @EnvironmentObject private var settings: AppSettings
     @EnvironmentObject private var session: SessionCoordinator
     @EnvironmentObject private var store: ProjectStore
+    @EnvironmentObject private var cloud: CloudService
     @StateObject private var library = GameLibrary()
 
     var onEnter: (ActiveSession) -> Void
@@ -74,6 +75,7 @@ struct DiscoverView: View {
             GameDetailSheet(listing: listing, library: library, onEnter: onEnter)
                 .environmentObject(settings)
                 .environmentObject(session)
+                .environmentObject(cloud)
         }
         // A sheet rather than an alert: an alert's text field only types
         // with the iPad keyboard.
@@ -527,6 +529,7 @@ private struct GameDetailSheet: View {
     var onEnter: (ActiveSession) -> Void
     @EnvironmentObject private var settings: AppSettings
     @EnvironmentObject private var session: SessionCoordinator
+    @EnvironmentObject private var cloud: CloudService
 
     @Environment(\.dismiss) private var dismiss
     @State private var cover: Data?
@@ -806,8 +809,9 @@ private struct GameDetailSheet: View {
             }
             .buttonStyle(NeonButtonStyle(.secondary, fullWidth: true))
             .disabled(isWorking || !listing.isSupported)
-            .roomVisibilityDialog(isPresented: $askingVisibility, allowsPublic: settings.parental.allowPublicRooms) { isPublic in
-                Task { await play(hosting: true, isPublic: isPublic) }
+            .roomVisibilityDialog(isPresented: $askingVisibility, allowsPublic: settings.parental.allowPublicRooms,
+                                  allowsInternet: cloud.allowsInternetPlay) { access in
+                Task { await play(hosting: true, access: access) }
             }
 
             if !listing.isSupported {
@@ -818,7 +822,7 @@ private struct GameDetailSheet: View {
         }
     }
 
-    private func play(hosting: Bool, isPublic: Bool = false) async {
+    private func play(hosting: Bool, access: RoomAccess = .routerPrivate) async {
         isWorking = true
         defer { isWorking = false }
         problem = nil
@@ -844,6 +848,6 @@ private struct GameDetailSheet: View {
 
         dismiss()
         settings.memory.played(listing.id)
-        onEnter(ActiveSession(mode: hosting ? .hosting(world, isPublic: isPublic) : .solo(world)))
+        onEnter(ActiveSession(mode: hosting ? .hosting(world, access: access) : .solo(world)))
     }
 }

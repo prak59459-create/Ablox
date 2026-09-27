@@ -47,6 +47,7 @@ public struct MainMenuView: View {
     @EnvironmentObject private var settings: AppSettings
     @EnvironmentObject private var saves: GameSaves
     @EnvironmentObject private var updater: AppUpdater
+    @EnvironmentObject private var cloud: CloudService
 
     @State private var selectedTab: MenuTab = .play
     /// Set when the player enters a world; drives the full-screen cover.
@@ -110,6 +111,7 @@ public struct MainMenuView: View {
             .environmentObject(settings)
             .environmentObject(store)
             .environmentObject(saves)
+            .environmentObject(cloud)
         }
         .alert(L("Not now"), isPresented: Binding(get: { blockedMessage != nil }, set: { if !$0 { blockedMessage = nil } })) {
             Button(L("OK"), role: .cancel) { blockedMessage = nil }
@@ -137,9 +139,18 @@ public struct MainMenuView: View {
             session.moderator = settings.chatModerator
             session.muteList = settings.muteList
             session.startBrowsing()
+            cloud.moderator = settings.chatModerator
+            cloud.configure(settings.cloud, profile: settings.profile)
+        }
+        .onChange(of: settings.cloud) { _, value in
+            cloud.configure(value, profile: settings.profile)
+        }
+        .onChange(of: settings.profile) { _, value in
+            cloud.configure(settings.cloud, profile: value)
         }
         .onChange(of: settings.chatFilterEnabled) { _, _ in
             session.moderator = settings.chatModerator
+            cloud.moderator = settings.chatModerator
         }
         .onDisappear {
             session.stopBrowsing()
@@ -158,8 +169,12 @@ extension MainMenuView {
         switch active.mode {
         case .joining where !settings.parental.allowJoiningRooms, .direct where !settings.parental.allowJoiningRooms:
             blockedMessage = L("Joining other people's rooms is turned off in Settings → Family.")
-        case let .hosting(world, isPublic) where isPublic && !settings.parental.allowPublicRooms:
-            activeSession = ActiveSession(mode: .hosting(world, isPublic: false))
+        case let .hosting(world, access) where access != .routerPrivate && !settings.parental.allowPublicRooms:
+            activeSession = ActiveSession(mode: .hosting(world, access: .routerPrivate))
+        case let .hosting(world, .internet) where !cloud.allowsInternetPlay:
+            activeSession = ActiveSession(mode: .hosting(world, access: .routerPublic))
+        case .cloud where !settings.parental.allowJoiningRooms:
+            blockedMessage = L("Joining other people's rooms is turned off in Settings → Family.")
         default:
             activeSession = active
         }
@@ -183,7 +198,9 @@ struct UpdateInstall: Identifiable {
 public struct ActiveSession: Identifiable, Equatable {
     public enum Mode: Equatable {
         case solo(WorldDocument)
-        case hosting(WorldDocument, isPublic: Bool)
+        case hosting(WorldDocument, access: RoomAccess)
+        /// An internet room, through the family's database.
+        case cloud(CloudRoom)
         case joining(DiscoveredPeer, code: String)
         /// An invitation (a QR code or text from the host), straight to
         /// the host's address.

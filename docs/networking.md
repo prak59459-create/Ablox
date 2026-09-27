@@ -1,7 +1,11 @@
 # Networking
 
-Ablox connects iPads directly. There is no server, no account, and nothing
-leaves the local network.
+Ablox connects iPads directly. There is no server of Ablox's own and no
+account, and on the router nothing leaves the local network. Internet rooms
+and friends are optional, off until a grown-up switches them on, and go
+through a Firebase Realtime Database the family sets up itself — see
+[Internet play](#internet-play-through-firebase) below and
+`docs/firebase_*.md` for the setup.
 
 ## The shape of a session
 
@@ -262,9 +266,43 @@ send the same thing as text: a `JoinTicket` with the host's address, port,
 key salt and room code (`ablox:join?h=…&p=…&s=…&c=…`). The joining iPad
 connects straight to that address. This works wherever the two iPads can
 reach each other — the same network, or a VPN. It is not internet play:
-a home router does not let another house reach an iPad behind it, and doing
-that properly needs a server in between, which Ablox deliberately does not
-have.
+a home router does not let another house reach an iPad behind it. For that,
+see the next section.
+
+## Internet play through Firebase
+
+A host chooses one of three kinds of room (`RoomAccess`):
+
+| Kind | Who can join | How |
+|---|---|---|
+| Internet | anyone with Ablox, signed in to the same database | listed at `lobby/<room>`, reached through `relay/<room>` |
+| Router, public | anyone on the same Wi-Fi | Bonjour, code in the TXT record |
+| Router, private | people with the room code | Bonjour, code kept off the air |
+
+An internet room changes nothing about the game itself. The host listens as
+always (and is on the router too). A guest's `CloudRelayGuest` opens a door on
+its own iPad (`127.0.0.1`, loopback only), `AbloxClient` connects to that door
+with an ordinary `JoinTicket`, and every byte is put in the database as a
+numbered piece under `relay/<room>/up/<link>`; the host's `CloudRelayHost`
+streams those, hands them to its own listener over loopback, and sends the
+answers back under `down/<link>`. The bytes are the TLS stream keyed by the
+room code, so the database only ever holds ciphertext, and the pieces are
+deleted as soon as they are read. Each connection is one link, so a reconnect
+is just a new link.
+
+Everything is plain HTTPS from `URLSession` — Firebase Authentication's REST
+sign-up for an anonymous user, the database's REST reads and writes, and its
+server-sent-events stream for changes — so no SDK is added to the playground.
+The refresh token is kept in the keychain. The rules (`CloudRules.json`, in
+Settings → Family → Internet and in `docs/firebase_*.md`) keep a profile
+readable only by friends who have added each other, chat only by its two
+friends, and the relay only by the host and that link's guest.
+
+Through a database, a round trip is slower than on the router — roughly a
+tenth to a third of a second — which suits building and exploring better than
+a fast shooter. `AttemptLimiter` does not count loopback addresses: every
+internet guest arrives from `127.0.0.1`, and one guest's failures must not
+lock the rest out (an internet room's code is in its listing anyway).
 
 ## Failure messages
 

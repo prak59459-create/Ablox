@@ -5,6 +5,7 @@ struct PlayLobbyView: View {
     @EnvironmentObject private var session: SessionCoordinator
     @EnvironmentObject private var store: ProjectStore
     @EnvironmentObject private var settings: AppSettings
+    @EnvironmentObject private var cloud: CloudService
 
     var onEnter: (ActiveSession) -> Void
 
@@ -18,6 +19,9 @@ struct PlayLobbyView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 26) {
                 hero
+                if cloud.allowsInternetPlay {
+                    InternetRoomsSection { room in onEnter(ActiveSession(mode: .cloud(room))) }
+                }
                 nearbySection
                 quickPlaySection
             }
@@ -32,9 +36,12 @@ struct PlayLobbyView: View {
             .presentationBackground(.ultraThinMaterial)
         }
         .sheet(isPresented: $showingFriends) {
-            FriendsSheet { peer in join(peer) }
+            FriendsSheet(onJoin: { peer in join(peer) }, onJoinInternet: { room in
+                onEnter(ActiveSession(mode: .cloud(room)))
+            })
                 .environmentObject(settings)
                 .environmentObject(session)
+                .environmentObject(cloud)
         }
         .sheet(isPresented: $joiningByInvitation) {
             InvitationJoinSheet { ticket in

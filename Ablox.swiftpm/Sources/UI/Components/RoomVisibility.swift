@@ -2,32 +2,40 @@ import SwiftUI
 
 /// Who may come into a hosted room, asked when the host opens it.
 ///
-/// Public rooms put their code in the Bonjour advertisement, so anyone nearby
-/// joins from the list with one tap. Private rooms keep the code off the air:
-/// only someone the host tells it to can get in.
+/// Internet rooms are listed in the family's database and reached through
+/// it (and are on the router too). Router-public rooms put their code in the
+/// Bonjour advertisement, so anyone nearby joins from the list with one tap.
+/// Router-private rooms keep the code off the air: only someone the host
+/// tells it to can get in.
 struct RoomVisibilityDialog: ViewModifier {
     @Binding var isPresented: Bool
     /// Settings → Family can rule public rooms out.
     var allowsPublic = true
-    var onChoose: (_ isPublic: Bool) -> Void
+    /// Settings → Family → Internet, with a database to use.
+    var allowsInternet = false
+    var onChoose: (_ access: RoomAccess) -> Void
 
     func body(content: Content) -> some View {
         content.confirmationDialog(L("Who can join?"), isPresented: $isPresented, titleVisibility: .visible) {
-            if allowsPublic {
-                Button(L("Public — anyone nearby can join")) { onChoose(true) }
+            if allowsPublic && allowsInternet {
+                Button(RoomAccess.internet.displayName) { onChoose(.internet) }
             }
-            Button(L("Private — only people with the room code")) { onChoose(false) }
+            if allowsPublic {
+                Button(RoomAccess.routerPublic.displayName) { onChoose(.routerPublic) }
+            }
+            Button(RoomAccess.routerPrivate.displayName) { onChoose(.routerPrivate) }
             Button(L("Cancel"), role: .cancel) {}
         } message: {
-            Text(L("You can switch this any time from the room code at the top of the screen."))
+            Text(L("On the router, you can switch between public and private any time from the room code at the top of the screen."))
         }
     }
 }
 
 extension View {
-    /// Asks public or private before a room opens.
-    func roomVisibilityDialog(isPresented: Binding<Bool>, allowsPublic: Bool = true,
-                              onChoose: @escaping (_ isPublic: Bool) -> Void) -> some View {
-        modifier(RoomVisibilityDialog(isPresented: isPresented, allowsPublic: allowsPublic, onChoose: onChoose))
+    /// Asks who can join before a room opens.
+    func roomVisibilityDialog(isPresented: Binding<Bool>, allowsPublic: Bool = true, allowsInternet: Bool = false,
+                              onChoose: @escaping (_ access: RoomAccess) -> Void) -> some View {
+        modifier(RoomVisibilityDialog(isPresented: isPresented, allowsPublic: allowsPublic, allowsInternet: allowsInternet,
+                                      onChoose: onChoose))
     }
 }

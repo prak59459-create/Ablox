@@ -5,6 +5,7 @@ public struct PlayScreen: View {
     @ObservedObject var session: SessionCoordinator
     @EnvironmentObject private var settings: AppSettings
     @EnvironmentObject private var store: ProjectStore
+    @EnvironmentObject private var cloud: CloudService
     @Environment(\.scenePhase) private var scenePhase
 
     let activeSession: ActiveSession
@@ -301,8 +302,11 @@ public struct PlayScreen: View {
         switch activeSession.mode {
         case let .solo(world):
             session.startSoloSession(world: world)
-        case let .hosting(world, isPublic):
-            session.startHosting(world: world, isPublic: isPublic)
+        case let .hosting(world, access):
+            session.startHosting(world: world, isPublic: access.isPublicOnRouter)
+            if access == .internet { cloud.hostRoom(session: session) }
+        case let .cloud(room):
+            Task { await cloud.join(room, session: session) }
         case let .joining(peer, code):
             session.join(peer, roomCode: code)
         case let .direct(ticket):
