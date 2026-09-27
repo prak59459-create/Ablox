@@ -61,8 +61,8 @@ struct PartsHUDLayer: View {
         }
         .animation(.easeOut(duration: 0.2), value: state.dialog)
         .animation(.easeOut(duration: 0.2), value: state.shop)
-        .onChange(of: state.countdownSerial) { _ in countdownStarted = Date() }
-        .onChange(of: state.dialog) { dialog in
+        .onChange(of: state.countdownSerial) { _, _ in countdownStarted = Date() }
+        .onChange(of: state.dialog) { _, dialog in
             guard readAloud, let dialog else { return }
             LineReader.shared.speak(dialog.text)
         }

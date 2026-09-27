@@ -379,7 +379,7 @@ public struct PlayScreen: View {
         .simultaneousGesture(zoomGesture)
     }
 
-    private var zoomGesture: some Gesture {
+    private var zoomGesture: some SwiftUI.Gesture {
         MagnificationGesture()
             .onChanged { scale in
                 let start = zoomAtPinchStart ?? settings.preferences.cameraZoom

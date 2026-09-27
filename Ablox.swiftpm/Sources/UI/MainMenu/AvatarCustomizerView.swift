@@ -359,8 +359,9 @@ struct AvatarCustomizerView: View {
                 // Only from what they own, so a surprise never wears
                 // something they have not got.
                 var look = settings.profile
+                let wallet = settings.wallet
                 func pick<T>(_ kind: ShopItem.Kind, _ value: (ShopItem) -> T?) -> T? {
-                    settings.wallet.ownedItems(of: kind).compactMap(value).randomElement()
+                    wallet.ownedItems(of: kind).compactMap(value).randomElement()
                 }
                 look.bodyColor = pick(.bodyColor) { $0.color } ?? look.bodyColor
                 look.headColor = pick(.headColor) { $0.color } ?? look.headColor
