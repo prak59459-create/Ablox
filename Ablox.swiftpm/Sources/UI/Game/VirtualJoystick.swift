@@ -25,39 +25,12 @@ public struct VirtualJoystick: View {
         self.onRunStateChange = onRunStateChange
     }
 
+    // In typed pieces — the zone, the drag, the VoiceOver actions — each
+    // checked on its own; inline this was among the slowest views to compile.
     public var body: some View {
         GeometryReader { proxy in
-            ZStack {
-                // The whole zone is the touch target; the ring is only drawn
-                // once a thumb is down.
-                Color.clear.contentShape(Rectangle())
-
-                if let origin {
-                    ring
-                        .position(origin)
-                        .transition(.opacity.combined(with: .scale))
-                }
-            }
-            .gesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { gesture in
-                        if origin == nil {
-                            withAnimation(.easeOut(duration: 0.12)) {
-                                origin = gesture.startLocation
-                            }
-                        }
-                        update(with: gesture.translation)
-                    }
-                    .onEnded { _ in
-                        withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
-                            origin = nil
-                            knobOffset = .zero
-                        }
-                        value = .zero
-                        setRunning(false)
-                    }
-            )
-            .frame(width: proxy.size.width, height: proxy.size.height)
+            zone
+                .frame(width: proxy.size.width, height: proxy.size.height)
         }
         .accessibilityLabel(L("Movement stick"))
         .accessibilityHint(L("Drag to walk. Push all the way to run."))
@@ -66,6 +39,48 @@ public struct VirtualJoystick: View {
         .accessibilityAction(named: L("Walk back")) { step(Vec3(0, 0, -1)) }
         .accessibilityAction(named: L("Walk left")) { step(Vec3(-1, 0, 0)) }
         .accessibilityAction(named: L("Walk right")) { step(Vec3(1, 0, 0)) }
+    }
+
+    /// The whole zone is the touch target; the ring is only drawn once a
+    /// thumb is down.
+    private var zone: some View {
+        ZStack {
+            Color.clear.contentShape(Rectangle())
+            if let origin {
+                ring
+                    .position(origin)
+                    .transition(AnyTransition.opacity.combined(with: .scale))
+            }
+        }
+        .gesture(drag)
+    }
+
+    private var drag: some SwiftUI.Gesture {
+        DragGesture(minimumDistance: 0)
+            .onChanged { gesture in
+                touched(at: gesture.startLocation, moved: gesture.translation)
+            }
+            .onEnded { _ in
+                released()
+            }
+    }
+
+    private func touched(at start: CGPoint, moved translation: CGSize) {
+        if origin == nil {
+            withAnimation(.easeOut(duration: 0.12)) {
+                origin = start
+            }
+        }
+        update(with: translation)
+    }
+
+    private func released() {
+        withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
+            origin = nil
+            knobOffset = .zero
+        }
+        value = .zero
+        setRunning(false)
     }
 
     /// Walks for a moment, then stops.
