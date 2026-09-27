@@ -60,6 +60,20 @@ public struct VirtualJoystick: View {
         }
         .accessibilityLabel(L("Movement stick"))
         .accessibilityHint(L("Drag to walk. Push all the way to run."))
+        // With VoiceOver: a few steps at a time, from the actions menu.
+        .accessibilityAction(named: L("Walk forward")) { step(Vec3(0, 0, 1)) }
+        .accessibilityAction(named: L("Walk back")) { step(Vec3(0, 0, -1)) }
+        .accessibilityAction(named: L("Walk left")) { step(Vec3(-1, 0, 0)) }
+        .accessibilityAction(named: L("Walk right")) { step(Vec3(1, 0, 0)) }
+    }
+
+    /// Walks for a moment, then stops.
+    private func step(_ direction: Vec3) {
+        value = direction
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 700_000_000)
+            value = .zero
+        }
     }
 
     private var ring: some View {
@@ -175,7 +189,14 @@ public struct CameraPad: View {
                     }
             )
             .accessibilityLabel(L("Camera"))
-            .accessibilityHint(L("Drag to look around."))
+            .accessibilityHint(L("Drag to look around. Swipe up or down to turn."))
+            .accessibilityAdjustableAction { direction in
+                switch direction {
+                case .increment: yaw = normalizeDegrees(yaw - 45)
+                case .decrement: yaw = normalizeDegrees(yaw + 45)
+                @unknown default: break
+                }
+            }
     }
 }
 

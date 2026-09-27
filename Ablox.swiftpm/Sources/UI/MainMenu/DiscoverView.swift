@@ -64,11 +64,14 @@ struct DiscoverView: View {
             .padding(Ablox.Metrics.gutter)
             .frame(maxWidth: 1100, alignment: .leading)
         }
+        .onChange(of: library.status) { _, status in
+            if case let .failed(message) = status { ProblemRecorder.shared.record(.catalogue, message) }
+        }
         .task {
             // The cache has already been shown by the time this runs, so a
             // slow or absent network delays nothing the player can see.
             library.source = settings.catalogueSource
-            await library.refresh()
+            await library.refreshIfStale()
         }
         .refreshable { await library.refresh() }
         .sheet(item: $selected) { listing in
@@ -206,8 +209,8 @@ struct DiscoverView: View {
         .font(.caption.weight(.semibold))
         .padding(.horizontal, 12)
         .padding(.vertical, 7)
-        .background(selected ? Ablox.Palette.accent.opacity(0.35) : Color.white.opacity(0.07), in: Capsule())
-        .foregroundStyle(.white)
+        .background(selected ? Ablox.Palette.accent.opacity(0.35) : Ablox.Palette.wash, in: Capsule())
+        .foregroundStyle(Ablox.Palette.ink)
     }
 
     /// Today's pick, favourites, recently played, nearby, and your own.
@@ -461,7 +464,7 @@ private struct GameCard: View {
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: Ablox.Metrics.cardRadius, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: Ablox.Metrics.cardRadius, style: .continuous)
-                .strokeBorder(Color.white.opacity(0.07), lineWidth: 1)
+                .strokeBorder(Ablox.Palette.line, lineWidth: 1)
         )
         .task(id: listing.id) {
             cover = await library.coverData(for: listing)
@@ -640,7 +643,7 @@ private struct GameDetailSheet: View {
                 }
                 .padding(20)
             }
-            .background(Color(red: 0.05, green: 0.06, blue: 0.11))
+            .background(Ablox.Palette.surface)
             .navigationTitle(L("Game"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -649,7 +652,7 @@ private struct GameDetailSheet: View {
                 }
             }
         }
-        .preferredColorScheme(.dark)
+        .abloxColorScheme()
         .tint(Ablox.Palette.accent)
         .task {
             // Seen now: its "new" or "updated" badge can go.

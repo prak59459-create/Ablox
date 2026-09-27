@@ -371,7 +371,7 @@ struct CloudChatSheet: View {
                 HStack(spacing: 10) {
                     AbloxTextField(L("Message"), text: $draft, limit: CloudMessage.maximumLength) { send() }
                         .padding(10)
-                        .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .background(Ablox.Palette.wash, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                     Button {
                         send()
                     } label: {
@@ -389,7 +389,7 @@ struct CloudChatSheet: View {
                 ToolbarItem(placement: .confirmationAction) { Button(L("Done")) { dismiss() } }
             }
         }
-        .preferredColorScheme(.dark)
+        .abloxColorScheme()
         .onAppear { cloud.openChat(with: friend) }
         .onDisappear { cloud.closeChat() }
     }
@@ -401,9 +401,9 @@ struct CloudChatSheet: View {
             Text(message.text)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
-                .background(mine ? Ablox.Palette.accentDeep.opacity(0.7) : Color.white.opacity(0.12),
+                .background(mine ? Ablox.Palette.accentDeep.opacity(0.7) : Ablox.Palette.wash,
                             in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                .foregroundStyle(.white)
+                .foregroundStyle(mine ? Color.white : Ablox.Palette.ink)
             if !mine { Spacer(minLength: 60) }
         }
     }

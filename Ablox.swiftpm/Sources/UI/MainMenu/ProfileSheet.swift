@@ -45,7 +45,7 @@ struct ProfileSheet: View {
                 }
             }
             .padding(.top, 12)
-            .background(Color(red: 0.05, green: 0.06, blue: 0.11))
+            .background(Ablox.Palette.surface)
             .navigationTitle(settings.profile.displayName)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -54,7 +54,7 @@ struct ProfileSheet: View {
                 }
             }
         }
-        .preferredColorScheme(.dark)
+        .abloxColorScheme()
         .tint(Ablox.Palette.accent)
         .onAppear { pictures = ScreenshotStore.all() }
         .sheet(item: $sharing) { file in
@@ -188,7 +188,7 @@ private struct AlbumTile: View {
                     .resizable()
                     .aspectRatio(contentMode: .fill)
             } else {
-                Color.white.opacity(0.06)
+                Ablox.Palette.wash
                 Image(systemName: url.pathExtension.lowercased() == "png" ? "photo" : "film")
                     .font(.largeTitle)
                     .foregroundStyle(Ablox.Palette.inkFaint)

@@ -48,6 +48,7 @@ public struct MainMenuView: View {
     @EnvironmentObject private var saves: GameSaves
     @EnvironmentObject private var updater: AppUpdater
     @EnvironmentObject private var cloud: CloudService
+    @EnvironmentObject private var notices: NoticeService
 
     @State private var selectedTab: MenuTab = .play
     /// Set when the player enters a world; drives the full-screen cover.
@@ -75,10 +76,11 @@ public struct MainMenuView: View {
                         Text(L("Here are {} coins for coming back. Day {} in a row!", dailyBonus ?? 0, settings.memory.dailyBonus.streak))
                     }
 
-                Divider().background(Color.white.opacity(0.08))
+                Divider().background(Ablox.Palette.line)
 
                 VStack(spacing: 0) {
                     UpdateBanner(updater: updater) { beginInstall() }
+                    NoticeBanner(service: notices)
 
                     Group {
                         switch selectedTab {
@@ -101,8 +103,22 @@ public struct MainMenuView: View {
                 }
             }
         }
-        .preferredColorScheme(.dark)
+        .abloxColorScheme()
         .tint(Ablox.Palette.accent)
+        // Settings → Problem reports.
+        .onChange(of: store.lastError) { _, error in
+            if let error { ProblemRecorder.shared.record(.saving, error) }
+        }
+        .onChange(of: cloud.state) { _, state in
+            if case let .failed(message) = state { ProblemRecorder.shared.record(.cloud, message) }
+        }
+        .onChange(of: updater.phase) { _, phase in
+            if case let .failed(message) = phase { ProblemRecorder.shared.record(.update, message) }
+        }
+        .task { await notices.refreshIfDue() }
+        .onChange(of: activeSession == nil) { _, inMenus in
+            if inMenus { ProblemRecorder.shared.noteActivity("In the menus") }
+        }
         .fullScreenCover(item: $activeSession) { active in
             PlayScreen(session: session, activeSession: active) {
                 session.leave()

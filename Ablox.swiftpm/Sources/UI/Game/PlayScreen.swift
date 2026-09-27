@@ -51,6 +51,8 @@ public struct PlayScreen: View {
     /// Who was here at the last look, to notice arrivals.
     @State private var knownPeople: Set<PeerID> = []
     @State private var choosingHowToLeave = false
+    /// A game controller, keyboard or mouse, beside the touch controls.
+    @StateObject private var hardware = HardwareInput()
 
     public init(session: SessionCoordinator, activeSession: ActiveSession, onExit: @escaping () -> Void) {
         self.session = session
@@ -71,7 +73,10 @@ public struct PlayScreen: View {
     }
 
     private var movementInput: MovementInput {
-        MovementInput(stick: stick, isJumping: isJumping, isRunning: isRunning, cameraYawDegrees: cameraYaw)
+        MovementInput(stick: stick == .zero ? hardware.stick : stick,
+                      isJumping: isJumping || hardware.jumping,
+                      isRunning: isRunning || hardware.running,
+                      cameraYawDegrees: cameraYaw)
     }
 
     public var body: some View {
@@ -83,7 +88,7 @@ public struct PlayScreen: View {
                 cameraPitch: $cameraPitch,
                 soundEnabled: settings.soundEnabled,
                 hapticsEnabled: settings.hapticsEnabled,
-                isFiring: isFiring && session.scripted.weapon != nil,
+                isFiring: (isFiring || hardware.firing) && session.scripted.weapon != nil,
                 graphicsQuality: settings.graphicsQuality,
                 showFrameRate: settings.showFrameRate,
                 preferences: settings.preferences,
@@ -163,7 +168,15 @@ public struct PlayScreen: View {
         }
         .statusBarHidden()
         .persistentSystemOverlays(.hidden)
-        .onAppear(perform: enterSession)
+        // The game is always dark, whatever the menus are set to: its buttons
+        // sit over the 3D world, not over a page.
+        .preferredColorScheme(.dark)
+        .onAppear {
+            enterSession()
+            startHardware()
+        }
+        .onChange(of: showChat) { _, open in hardware.suspended = open || showMenu }
+        .onChange(of: showMenu) { _, open in hardware.suspended = open || showChat }
         .sheet(item: $sharing) { file in
             ActivityShareSheet(items: [file.url])
         }
@@ -177,11 +190,30 @@ public struct PlayScreen: View {
             // The end-of-round banner is the one signal that the round is
             // over for everyone, host or client.
             guard let message = announcement?.message else { return }
+            speak(message)
             if message.contains("goal") || message.localizedCaseInsensitiveContains("win") {
                 bankCoins(completed: true)
             }
         }
-        .onDisappear { bankCoins(completed: false) }
+        // Settings → Problem reports: what went wrong here, kept to send.
+        .onChange(of: session.status) { _, status in
+            if case let .error(message) = status {
+                ProblemRecorder.shared.record(.network, message, detail: session.world.name)
+            }
+        }
+        .onChange(of: session.scriptLog) { old, new in
+            let added = new.filter { line in !old.contains { $0.id == line.id } }
+            for line in added where line.isError {
+                ProblemRecorder.shared.record(.script, line.text, detail: session.world.name)
+            }
+        }
+        .onChange(of: session.messageLog) { _, log in
+            if let newest = log.last { speak(newest.text) }
+        }
+        .onDisappear {
+            bankCoins(completed: false)
+            hardware.stop()
+        }
         .onChange(of: scenePhase) { _, phase in
             // Backgrounding is what kills the TCP connection, so returning is
             // the single most likely moment a session needs recovering. Bring
@@ -295,7 +327,14 @@ public struct PlayScreen: View {
         .frame(maxWidth: 560)
     }
 
+    /// Read out by VoiceOver when it is on; nothing otherwise.
+    private func speak(_ text: String) {
+        guard UIAccessibility.isVoiceOverRunning, !text.isEmpty else { return }
+        UIAccessibility.post(notification: .announcement, argument: text)
+    }
+
     private func enterSession() {
+        ProblemRecorder.shared.noteActivity("Playing \"\(session.world.name)\"")
         hasBankedThisRound = false
         session.allowsPlayerChat = settings.parental.chat != .off
         session.allowsWhispers = Whisper.isAllowed(settings.parental.chat)
@@ -315,6 +354,26 @@ public struct PlayScreen: View {
     }
 
     // MARK: Controls
+
+    /// A controller's right stick, the arrow keys and the mouse turn the same
+    /// camera the touch pad does; its menu button opens the same menu.
+    private func startHardware() {
+        hardware.sensitivity = Float(settings.cameraSensitivity)
+        hardware.invertY = settings.invertCameraY
+        hardware.onLook = { yaw, pitch in
+            cameraYaw = normalizeDegrees(cameraYaw - yaw)
+            let range = pitchRange
+            cameraPitch = max(range.lowerBound, min(range.upperBound, cameraPitch + pitch))
+        }
+        hardware.onMenu = {
+            if showMenu { closeMenu() } else if !photoMode { openMenu() }
+        }
+        hardware.onZoom = { amount in
+            let range = PlayPreferences.cameraZoomRange
+            settings.preferences.cameraZoom = min(range.upperBound, max(range.lowerBound, settings.preferences.cameraZoom + amount))
+        }
+        hardware.start()
+    }
 
     private var controlsLayer: some View {
         GeometryReader { proxy in
@@ -457,6 +516,7 @@ public struct PlayScreen: View {
     }
 
     private func showToast(_ text: String) {
+        speak(text)
         withAnimation { toast = text }
         Task { @MainActor in
             try? await Task.sleep(nanoseconds: 2_500_000_000)

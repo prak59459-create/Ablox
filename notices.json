@@ -1,0 +1,18 @@
+{
+  "notices": [
+    {
+      "id": "internet-2026-09",
+      "kind": "info",
+      "title": {
+        "en": "Play over the internet",
+        "ja": "インターネットで遊べるようになりました"
+      },
+      "body": {
+        "en": "Settings → Internet: rooms that friends anywhere can join, and chat with friends you have added. Everything starts off, and a grown-up can switch it on.",
+        "ja": "設定 → インターネット: どこにいる友だちとも遊べるルームと、追加したフレンドとのチャット。最初はすべてオフで、大人がオンにできます。"
+      },
+      "from": "2026-09-27",
+      "until": "2026-10-31"
+    }
+  ]
+}

@@ -30,6 +30,7 @@ struct SettingsView: View {
                 }
 
                 languageCard
+                LookCard()
                 UpdateSettingsCard(updater: updater) {
                     installing = UpdateInstall(backup: saves.makeBackupBeforeUpdate(settings: settings, worlds: store))
                 }
@@ -38,10 +39,13 @@ struct SettingsView: View {
                 dataCard
                 StorageCard()
                 ComfortCard()
+                AccessibilityCard()
                 graphicsCard
                 controlsCard
+                ControllersCard()
                 movementCard
                 networkCard
+                ProblemReportsCard()
                 aboutCard
             }
             .padding(Ablox.Metrics.gutter)
@@ -74,7 +78,7 @@ struct SettingsView: View {
                     .font(.caption)
                     .foregroundStyle(Ablox.Palette.inkMuted)
 
-                Divider().background(Color.white.opacity(0.08))
+                Divider().background(Ablox.Palette.line)
 
                 // Here, near the top, so it is found by whoever cannot type
                 // anything else yet.
@@ -176,7 +180,7 @@ struct SettingsView: View {
                     .foregroundStyle(Ablox.Palette.danger)
                 }
 
-                Divider().background(Color.white.opacity(0.08))
+                Divider().background(Ablox.Palette.line)
 
                 Text(L("A backup file holds your avatar, coins, saved games and worlds. Keep it in Files or send it to another iPad, then open it there with “Restore from a backup”."))
                     .font(.caption)
@@ -208,7 +212,7 @@ struct SettingsView: View {
                     .buttonStyle(NeonButtonStyle(.secondary))
                 }
 
-                Divider().background(Color.white.opacity(0.08))
+                Divider().background(Ablox.Palette.line)
 
                 VStack(alignment: .leading, spacing: 6) {
                     Text(L("Automatic backup"))
@@ -468,7 +472,7 @@ struct SettingsView: View {
                 infoRow(L("Protocol version"), String(AbloxProtocol.version), symbol: "number")
                 infoRow(L("This iPad"), session.localPeerID.description, symbol: "ipad")
 
-                Divider().background(Color.white.opacity(0.08))
+                Divider().background(Ablox.Palette.line)
 
                 Text(L("Play traffic never touches a server. Worlds and player positions travel directly between iPads on your local network, encrypted with a key derived from the room code the host shows you. Anyone who knows that code can join and can read that session's traffic, so share it only with the people you want in the world. There are two exceptions, and both only read from public GitHub repositories: the Games tab downloads published worlds, and a world set to get its scripts from GitHub fetches them when you host it. Nothing about you is sent."))
                     .font(.caption)

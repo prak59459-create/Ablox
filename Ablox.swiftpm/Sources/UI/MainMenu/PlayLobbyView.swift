@@ -331,7 +331,7 @@ private struct JoinSheet: View {
                         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                         .overlay(
                             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .strokeBorder(isValid ? Ablox.Palette.success.opacity(0.6) : Color.white.opacity(0.12), lineWidth: 1.5)
+                                .strokeBorder(isValid ? Ablox.Palette.success.opacity(0.6) : Ablox.Palette.lineStrong, lineWidth: 1.5)
                         )
                         .onSubmit { if isValid { onJoin() } }
 

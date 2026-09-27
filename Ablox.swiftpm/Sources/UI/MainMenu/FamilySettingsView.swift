@@ -93,7 +93,7 @@ struct PasscodeSheet: View {
             HStack(spacing: 12) {
                 ForEach(0..<max(4, code.count), id: \.self) { i in
                     Circle()
-                        .fill(i < code.count ? Ablox.Palette.accent : Color.white.opacity(0.15))
+                        .fill(i < code.count ? Ablox.Palette.accent : Ablox.Palette.lineStrong)
                         .frame(width: 16, height: 16)
                 }
             }
@@ -365,7 +365,7 @@ struct ComfortCard: View {
                 .pickerStyle(.segmented)
                 .disabled(!settings.hapticsEnabled)
 
-                Divider().background(Color.white.opacity(0.08))
+                Divider().background(Ablox.Palette.line)
 
                 Toggle(isOn: $settings.preferences.batterySaver) {
                     label(L("Battery saver"), L("Lower graphics so the battery lasts longer. Low Power Mode does this by itself."))

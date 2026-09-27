@@ -125,7 +125,7 @@ struct AvatarCustomizerView: View {
                                 ForEach([saved?.bodyColor, saved?.headColor, saved?.accentColor].indices, id: \.self) { i in
                                     let colour = [saved?.bodyColor, saved?.headColor, saved?.accentColor][i]
                                     Circle()
-                                        .fill(colour.map { Color($0) } ?? Color.white.opacity(0.12))
+                                        .fill(colour.map { Color($0) } ?? Ablox.Palette.wash)
                                         .frame(width: 12, height: 12)
                                 }
                             }
@@ -204,7 +204,7 @@ struct AvatarCustomizerView: View {
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .strokeBorder(selected ? Ablox.Palette.accent : Color.white.opacity(0.1), lineWidth: selected ? 2 : 1)
+                    .strokeBorder(selected ? Ablox.Palette.accent : Ablox.Palette.line, lineWidth: selected ? 2 : 1)
             )
             .foregroundStyle(selected ? Ablox.Palette.accent : (locked ? Ablox.Palette.inkFaint : Ablox.Palette.inkMuted))
         }
@@ -225,7 +225,7 @@ struct AvatarCustomizerView: View {
                             .font(.headline)
                             .frame(width: 40, height: 40)
                             .background(.ultraThinMaterial, in: Circle())
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Ablox.Palette.ink)
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(emote.displayName)
@@ -323,7 +323,7 @@ struct AvatarCustomizerView: View {
                         .overlay(
                             RoundedRectangle(cornerRadius: 12, style: .continuous)
                                 .strokeBorder(
-                                    settings.profile.hat == hat ? Ablox.Palette.accent : Color.white.opacity(0.1),
+                                    settings.profile.hat == hat ? Ablox.Palette.accent : Ablox.Palette.line,
                                     lineWidth: settings.profile.hat == hat ? 2 : 1
                                 )
                         )

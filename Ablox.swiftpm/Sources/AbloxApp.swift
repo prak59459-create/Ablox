@@ -10,6 +10,11 @@ struct AbloxApp: App {
     /// Friends, chat and rooms over the internet — off until a grown-up
     /// allows it (Settings → Family → Internet).
     @StateObject private var cloud = CloudService()
+    /// Messages for the main menu from the repository (`notices.json`).
+    @StateObject private var notices = NoticeService(release: AppRelease.current)
+    /// Settings → Look: the accent colour, which also rebuilds the views.
+    @AppStorage(AbloxAccent.key) private var accent = AbloxAccent.cyan.rawValue
+    @Environment(\.scenePhase) private var scenePhase
 
     init() {
         // `AppSettings` owns the persisted peer identity, so it must exist
@@ -27,6 +32,9 @@ struct AbloxApp: App {
         session.saveStore = saves.store
         _session = StateObject(wrappedValue: session)
         _saves = StateObject(wrappedValue: saves)
+        // Before anything else: notices a crash last time and watches this run.
+        ProblemRecorder.shared.start(app: "Ablox")
+        ProblemRecorder.shared.noteActivity("Starting")
     }
 
     var body: some Scene {
@@ -38,6 +46,7 @@ struct AbloxApp: App {
                 .environmentObject(saves)
                 .environmentObject(updater)
                 .environmentObject(cloud)
+                .environmentObject(notices)
                 // Settings → Comfort → Text size, for the whole app.
                 .dynamicTypeSize(settings.preferences.textSize.dynamicType)
                 // Rebuilds the interface when the language changes.
@@ -49,10 +58,14 @@ struct AbloxApp: App {
                 // recreated with it. It resets view-local state such as the
                 // open tab, which is acceptable for something that happens
                 // once in a while and arguably wanted.
-                .id(settings.language)
+                .id(settings.language.rawValue + "-" + accent)
                 // Offers Ablox's own keyboard on an iPad where the system one
                 // does not come up.
                 .onAppear { KeyboardController.shared.startWatching() }
+                // Going to the background is not a crash.
+                .onChange(of: scenePhase) { _, phase in
+                    ProblemRecorder.shared.markRunning(phase != .background)
+                }
         }
     }
 }

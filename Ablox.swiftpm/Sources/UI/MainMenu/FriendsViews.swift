@@ -60,7 +60,7 @@ struct FriendsSheet: View {
                 ToolbarItem(placement: .confirmationAction) { Button(L("Done")) { dismiss() } }
             }
         }
-        .preferredColorScheme(.dark)
+        .abloxColorScheme()
     }
 
     /// The room a friend is in, from the list of rooms nearby.
@@ -231,7 +231,7 @@ struct InvitationJoinSheet: View {
                 ToolbarItem(placement: .cancellationAction) { Button(L("Cancel")) { dismiss() } }
             }
         }
-        .preferredColorScheme(.dark)
+        .abloxColorScheme()
     }
 }
 
@@ -303,7 +303,7 @@ struct ReportsSheet: View {
                 ToolbarItem(placement: .confirmationAction) { Button(L("Done")) { dismiss() } }
             }
         }
-        .preferredColorScheme(.dark)
+        .abloxColorScheme()
         .onAppear { reports = ReportStore.all() }
         .sheet(item: $sharing) { file in
             ActivityShareSheet(items: [file.url])

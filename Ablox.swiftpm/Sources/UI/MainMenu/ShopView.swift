@@ -65,7 +65,7 @@ struct ShopView: View {
                     }
                 }
 
-                Divider().frame(height: 38).background(Color.white.opacity(0.1))
+                Divider().frame(height: 38).background(Ablox.Palette.line)
 
                 VStack(alignment: .leading, spacing: 1) {
                     // The collection: how much of the shop is yours.
@@ -125,8 +125,8 @@ struct ShopView: View {
                                 .font(.subheadline.weight(.semibold))
                                 .padding(.horizontal, 14)
                                 .padding(.vertical, 8)
-                                .background(kind == option ? Ablox.Palette.accent.opacity(0.35) : Color.white.opacity(0.07), in: Capsule())
-                                .foregroundStyle(.white)
+                                .background(kind == option ? Ablox.Palette.accent.opacity(0.35) : Ablox.Palette.wash, in: Capsule())
+                                .foregroundStyle(Ablox.Palette.ink)
                         }
                         .buttonStyle(.plain)
                     }
@@ -271,13 +271,13 @@ struct ShopView: View {
                 .frame(height: 54)
                 .overlay(
                     RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .strokeBorder(Color.white.opacity(0.15), lineWidth: 1)
+                        .strokeBorder(Ablox.Palette.lineStrong, lineWidth: 1)
                 )
         } else {
             let symbol = item.hat?.symbolName ?? item.face?.symbolName ?? item.pet?.symbolName ?? "questionmark"
             ZStack {
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(Color.white.opacity(0.06))
+                    .fill(Ablox.Palette.wash)
                 Image(systemName: symbol)
                     .font(.title)
                     .foregroundStyle(Ablox.Palette.accent)
@@ -361,7 +361,7 @@ private struct TryOnSheet: View {
         }
         .padding(24)
         .presentationDetents([.large])
-        .preferredColorScheme(.dark)
+        .abloxColorScheme()
     }
 }
 
@@ -401,6 +401,6 @@ private struct CoinHistorySheet: View {
                 }
             }
         }
-        .preferredColorScheme(.dark)
+        .abloxColorScheme()
     }
 }
