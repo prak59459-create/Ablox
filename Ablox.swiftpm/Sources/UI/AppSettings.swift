@@ -283,13 +283,26 @@ public final class AppSettings: ObservableObject {
 
     public var today: String { PlaytimeLog.dayKey(Date()) }
 
-    public func mission(_ kind: MissionKind, amount: Int = 1) {
-        memory.missions.record(kind, amount: amount, on: today)
+    /// Counts towards today's missions; returns the ones this finished, to
+    /// say so while playing.
+    @discardableResult
+    public func mission(_ kind: MissionKind, amount: Int = 1) -> [Mission] {
+        finished { $0.record(kind, amount: amount, on: $1) }
     }
 
     /// A game started today, for "different games".
-    public func missionGame(_ game: String) {
-        memory.missions.played(game: game, on: today)
+    @discardableResult
+    public func missionGame(_ game: String) -> [Mission] {
+        finished { $0.played(game: game, on: $1) }
+    }
+
+    private func finished(_ change: (inout MissionBook, String) -> Void) -> [Mission] {
+        let day = today
+        let before = memory.missions.done(on: day)
+        change(&memory.missions, day)
+        let after = memory.missions.done(on: day)
+        guard after != before else { return [] }
+        return memory.missions.missions(on: day).filter { after.contains($0.id) && !before.contains($0.id) }
     }
 
     /// The reward for a finished mission, into the wallet; nil when there

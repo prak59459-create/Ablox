@@ -160,7 +160,7 @@ public struct MainMenuView: View {
                 SessionSummarySheet(summary: card.summary, onPlayAgain: playAgain(card))
             }
             // The first time a new version runs: what changed.
-            .sheet(isPresented: Binding(get: { updater.justUpdated != nil && activeSession == nil },
+            .sheet(isPresented: Binding(get: { updater.justUpdated != nil && activeSession == nil && summary == nil },
                                         set: { if !$0 { updater.justUpdated = nil } })) {
                 if let manifest = updater.justUpdated { WhatsNewSheet(manifest: manifest) }
             }
@@ -222,21 +222,27 @@ extension MainMenuView {
     /// checked in one place: time left today, quiet hours, joining others.
     private func enter(_ active: ActiveSession) {
         if let message = PlayGate.message(for: settings.playVerdict) {
-            blockedMessage = message
+            refuse(message)
             return
         }
         switch active.mode {
         case .joining where !settings.parental.allowJoiningRooms, .direct where !settings.parental.allowJoiningRooms:
-            blockedMessage = L("Joining other people's rooms is turned off in Settings → Family.")
+            refuse(L("Joining other people's rooms is turned off in Settings → Family."))
         case let .hosting(world, access) where access != .routerPrivate && !settings.parental.allowPublicRooms:
             start(ActiveSession(mode: .hosting(world, access: .routerPrivate)))
         case let .hosting(world, .internet) where !cloud.allowsInternetPlay:
             start(ActiveSession(mode: .hosting(world, access: .routerPublic)))
         case .cloud where !settings.parental.allowJoiningRooms:
-            blockedMessage = L("Joining other people's rooms is turned off in Settings → Family.")
+            refuse(L("Joining other people's rooms is turned off in Settings → Family."))
         default:
             start(active)
         }
+    }
+
+    /// Why a game cannot start, once the sheet it was started from has gone:
+    /// an alert over a sheet on its way out is never seen.
+    private func refuse(_ message: String) {
+        PresentationQueue.whenClear { blockedMessage = message }
     }
 
     /// The game covers the whole screen only when nothing else is up: most
@@ -292,13 +298,16 @@ extension MainMenuView {
 
     /// A friend in a room nearby, said once per room.
     private func noticeFriends(in peers: [DiscoveredPeer]) {
-        guard activeSession == nil, settings.parental.allowJoiningRooms else { return }
+        guard settings.parental.allowJoiningRooms else { return }
         let friends = settings.social.friends.map(\.id)
         guard !friends.isEmpty else { return }
         let rooms = peers.filter { $0.isCompatible && !$0.isFull && !$0.isStudioSession }.map { (id: $0.id, tag: $0.people) }
-        guard let seen = sightings.newlySeen(rooms: rooms, friends: friends).first,
-              let peer = peers.first(where: { $0.id == seen.roomID }),
-              let friend = settings.social.friends.first(where: { $0.id == seen.friend }) else { return }
+        // Noted during a game too, so coming back from playing with a friend
+        // does not announce the room just left.
+        let seen = sightings.newlySeen(rooms: rooms, friends: friends)
+        guard activeSession == nil, !startingSession, let first = seen.first,
+              let peer = peers.first(where: { $0.id == first.roomID }),
+              let friend = settings.social.friends.first(where: { $0.id == first.friend }) else { return }
         withAnimation { friendNearby = FriendNearby(peer: peer, name: friend.shownName) }
     }
 

@@ -291,7 +291,7 @@ public struct PlayScreen: View {
         guard let score = session.localPlayer?.score, !hasBankedThisRound else { return }
         hasBankedThisRound = true
         settings.award(score: score, completedRound: completed, game: session.world.name)
-        if completed { settings.mission(.finishRound) }
+        if completed { advance(settings.mission(.finishRound)) }
     }
 
     // MARK: Play time
@@ -304,13 +304,13 @@ public struct PlayScreen: View {
         if !countedStart {
             countedStart = true
             settings.playtime.startedPlaying(game)
-            settings.missionGame(game)
+            advance(settings.missionGame(game))
         }
         settings.recordPlay(seconds: seconds, game: game)
-        settings.mission(.playMinutes, amount: Int(seconds.rounded()))
+        advance(settings.mission(.playMinutes, amount: Int(seconds.rounded())))
         if !countedTogether, !session.isSolo, session.people.count > 1 {
             countedTogether = true
-            settings.mission(.playWithOthers)
+            advance(settings.mission(.playWithOthers))
         }
         switch selfTimer.tick() {
         case .warning:
@@ -534,7 +534,7 @@ public struct PlayScreen: View {
             }
             let finished = filter.apply(to: image)
             if let url = ScreenshotStore.save(finished, game: game) {
-                settings.mission(.takePicture)
+                advance(settings.mission(.takePicture))
                 showToast(L("Saved to your album"))
                 sharing = SharedFile(url: url)
             } else {
@@ -568,6 +568,12 @@ public struct PlayScreen: View {
                 showToast(clips.lastError ?? L("The clip could not be saved."))
             }
         }
+    }
+
+    /// Says so when something done here finished one of today's missions.
+    private func advance(_ finished: [Mission]) {
+        guard let mission = finished.first else { return }
+        showToast(L("Mission done: {}! Take the coins on the Play tab.", mission.title))
     }
 
     private func showToast(_ text: String) {
@@ -836,7 +842,7 @@ public struct PlayScreen: View {
                 if showEmotes {
                     EmotePanel { gesture in
                         session.send(gesture: gesture)
-                        settings.mission(.useEmote)
+                        advance(settings.mission(.useEmote))
                         withAnimation { showEmotes = false }
                     }
                     .transition(.move(edge: .top).combined(with: .opacity))
