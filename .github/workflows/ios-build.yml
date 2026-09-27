@@ -11,6 +11,11 @@ on:
       - "scripts/ios-build-times.sh"
       - ".github/workflows/ios-build.yml"
   workflow_dispatch:
+    inputs:
+      per_file:
+        description: "One file per compile job, to list what each file costs"
+        type: boolean
+        default: false
 
 jobs:
   ios:
@@ -21,3 +26,5 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build and report
         run: scripts/ios-build-times.sh
+        env:
+          PER_FILE: ${{ inputs.per_file && '1' || '' }}
