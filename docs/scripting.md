@@ -147,12 +147,14 @@ tests fail if any event, function, member or option is missing from it.
 
 **Events**: `start tick(dt) join(p) leave(p) touch(p, block) tap(p, block)
 fire(p) hit(victim, attacker, damage) hit_block(p, block) death(victim, killer)
-respawn(p) button(p, id) input(p, id, text) chat(p, text) loaded(p)`.
+respawn(p) button(p, id) input(p, id, text) chat(p, text) loaded(p) emote(p, name)
+use(p, item) choice(p, answer, number) buy(p, item, price) countdown(label, p)`.
 
 **Globals**: `players npcs find_player block blocks create_block create_npc
 distance raycast time after every cancel announce sound chat fade shake
 end_round restart_round weapon ui_text ui_button ui_panel ui_image ui_bar
-ui_input ui_set ui_remove ui_clear game world`.
+ui_input ui_set ui_remove ui_clear particles music speak countdown leaderboard
+show_leaderboard leaderboard_top game world`.
 
 **Characters** (players and NPCs): `name id is_npc health max_health alive
 score team position x y z yaw look velocity weapon ammo speed jump gravity
@@ -178,7 +180,9 @@ that has to hold people up and still know who is on it stays an ordinary
 block, and `on tick` works out the tile under each player from `p.x` and `p.z`.
 
 **World**: `gravity sky sky_top sky_bottom light sun sun_yaw ground
-ground_color fall_height`. **Game**: `respawn_time friendly_fire time
+ground_color fall_height weather time day_length sky_style effect shadows
+music`. Blocks also have `particles` (a kind, or nil) and `image` (the name of
+one of the world's pictures). **Game**: `respawn_time friendly_fire time
 round_over`.
 
 **Screen items** take options `at x y pivot dx dy w h color bg size bold
@@ -192,6 +196,73 @@ tan asin acos atan atan2 pow log exp sign lerp pi min max clamp random vec
 magnitude normalize dot cross len append remove insert contains index_of keys
 join shuffle range slice reverse copy sum sort map filter upper lower trim
 split replace starts_with ends_with fixed`. Angles are in degrees.
+
+## Ready-made parts
+
+Things most games build by hand, as one line each. The screens are drawn by
+the app and their buttons come back to the host as reserved ids (`__use:…`,
+`__buy:…`), handled before `on button` sees them.
+
+```lua
+on join(p)
+  p.coins = 100
+  p.give_item("Key", 1, "🔑")              -- a bar at the bottom; tapping runs on use
+  p.waypoint(block("Door"), "The door")    -- an arrow to follow, with the distance
+  countdown(90, "Time left")               -- a big timer; at 0 runs on countdown
+end
+
+on use(p, item)
+  if item == "Key" and distance(p, block("Door")) < 4 then
+    p.take_item("Key")
+    p.dialog("Guard", "You found the way out!", ["Shop", "Bye"])
+  end
+end
+
+on choice(p, answer, n)
+  if answer == "Shop" then
+    p.shop("Armoury", [{name: "Sword", price: 50, icon: "⚔️"}, {name: "Shield", price: 80}],
+           {currency: "coins"})        -- spends p.coins; "score" spends the score
+  end
+end
+
+on buy(p, item, price)                  -- already paid
+  p.give_item(item)
+  particles("confetti", p, {amount: 60})
+  sound("win", {volume: 0.8, pitch: 1.2})
+end
+
+on countdown(label, p)
+  for q in players() do leaderboard("coins", q, q.coins) end
+  show_leaderboard("coins")
+end
+```
+
+- **Leaderboards** keep each player's best (`{lower: true}` for times) on the
+  host's iPad between games; `leaderboard` returns the player's place.
+- **Music** is made on the iPad: `calm adventure spooky race boss shop party
+  space`. `music("off")` is quiet; `music(nil)` goes back to the world's own
+  (`world.music`). Players set its volume in Settings.
+- **Sounds** can be louder, softer, higher or lower: `sound("coin", {volume,
+  pitch})`. There are 30 of them (`coin jump powerup explosion splash door click
+  whoosh win lose magic pop bell laser alarm drum` and the older ones).
+- **Particles**: `fire smoke sparkles confetti rain snow bubbles hearts stars
+  leaves magic dust`, as a puff or `{seconds: 5}` of them, anywhere, or
+  `b.particles = "fire"` for a block that keeps burning.
+- **speak(text)** reads a line aloud for players who switched on *Read
+  characters' lines aloud*; the same setting reads dialog boxes.
+- **The world**: `world.weather` (`clear rain snow fog storm`), `world.time`
+  (the hour) and `world.day_length` (minutes a day takes; 0 stands still),
+  `world.sky_style` (`gradient clouds sunset stars aurora space`),
+  `world.effect` (`none bloom vivid warm cool noir retro dream`) and
+  `world.shadows`. The day is counted on every iPad's own clock from when it
+  started, so everyone sees the same sky without it being sent.
+
+Blocks can do more without a script too: **ladders** (climb), **doors** (open
+when walked into), **moving platforms** (carry whoever stands on them),
+**vehicles** (touch to ride faster; *Get out* to leave) and **pushable**
+blocks, and the natural materials `wood stone brick grass sand ice water`
+(swim in water). A world using any of these is saved as format 2, which an
+iPad that has not updated will not open; everything else stays format 1.
 
 ## Saving progress
 

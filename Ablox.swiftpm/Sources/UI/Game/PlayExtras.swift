@@ -537,6 +537,8 @@ struct PauseMenu: View {
                 Slider(value: $settings.preferences.musicVolume, in: 0...1)
                     .tint(Ablox.Palette.accent)
             }
+            Toggle(L("Read characters' lines aloud"), isOn: $settings.preferences.readLinesAloud)
+                .tint(Ablox.Palette.accent)
             Button(action: onEditButtons) {
                 Label(L("Move and resize the buttons"), systemImage: "hand.draw")
             }

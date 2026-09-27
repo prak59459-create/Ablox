@@ -233,6 +233,51 @@ world.sky = "#87CEEB"   world.gravity = -3   world.light = 0.2   world.fall_heig
 
 `restart_round()` でやり直すと、スクリプトが変えたマップは元に戻ります。
 
+## すぐ使える部品
+
+よく作るものが 1 行で使えます。画面はアプリが描き、ボタンは `on button` より先にゲームが受け取ります。
+
+```lua
+on join(p)
+  p.coins = 100
+  p.give_item("カギ", 1, "🔑")           -- 画面下の持ち物バー。タップで on use
+  p.waypoint(block("Door"), "出口")      -- 行き先を指す矢印と距離
+  countdown(90, "のこり時間")            -- 大きなタイマー。0 で on countdown
+end
+
+on use(p, item)
+  if item == "カギ" then
+    p.dialog("門番", "出口を見つけたね！", ["お店", "バイバイ"])
+  end
+end
+
+on choice(p, answer, n)
+  if answer == "お店" then
+    p.shop("武器屋", [{name: "剣", price: 50, icon: "⚔️"}], {currency: "coins"})
+  end
+end
+
+on buy(p, item, price)                 -- 代金はもう払われています
+  p.give_item(item)
+  particles("confetti", p, {amount: 60})
+  sound("win", {volume: 0.8, pitch: 1.2})
+end
+
+on countdown(label, p)
+  for q in players() do leaderboard("coins", q, q.coins) end
+  show_leaderboard("coins")
+end
+```
+
+- **ランキング** はプレイヤーごとの最高記録をホストの iPad に残します（タイムなら `{lower: true}`）。`leaderboard` は順位を返します。
+- **音楽** は iPad が作ります：`calm adventure spooky race boss shop party space`。`music("off")` で無音、`music(nil)` でワールドの音楽（`world.music`）に戻ります。
+- **効果音** は大きさ・高さを変えられます：`sound("coin", {volume: 0.5, pitch: 1.5})`。
+- **パーティクル**：`fire smoke sparkles confetti rain snow bubbles hearts stars leaves magic dust`。`b.particles = "fire"` でずっと燃えるブロックになります。
+- **speak(文)** は「キャラクターのセリフを読み上げる」をオンにした人に声で読み上げます。会話の吹き出しも読み上げます。
+- **ワールド**：`world.weather`（`clear rain snow fog storm`）、`world.time`（時刻）、`world.day_length`（1日が何分か。0 で止まる）、`world.sky_style`（`gradient clouds sunset stars aurora space`）、`world.effect`（`none bloom vivid warm cool noir retro dream`）、`world.shadows`。
+
+スクリプトなしでも、ブロックに **はしご**・**ドア**・**動く床**・**乗り物**・**押せるブロック** の動きや、`wood stone brick grass sand ice water`（水は泳げる）の素材を付けられます。これらを使ったワールドは形式 2 で保存され、アップデートしていない iPad では開けません。
+
 ## 武器
 
 最初から: `blaster` `rifle` `shotgun` `pistol`。自分で作るとき:

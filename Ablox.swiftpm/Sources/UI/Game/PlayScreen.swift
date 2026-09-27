@@ -115,6 +115,7 @@ public struct PlayScreen: View {
                 controlsLayer
             }
             ScriptHUDLayer(session: session, reduceFlashing: settings.preferences.reduceFlashing)
+            PartsHUDLayer(session: session, readAloud: settings.preferences.readLinesAloud)
             hudLayer
             familyNotices
             if !session.isSolo {
