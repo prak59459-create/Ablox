@@ -428,6 +428,7 @@ struct InternetFamilySection: View {
     @EnvironmentObject private var settings: AppSettings
     @EnvironmentObject private var cloud: CloudService
     @State private var copied = false
+    @State private var showingAdvanced = false
 
     var body: some View {
         Section {
@@ -439,27 +440,44 @@ struct InternetFamilySection: View {
                 .disabled(!settings.cloud.allowFriends)
 
             if CloudConfig.builtIn.isUsable {
-                Label(L("Uses the database built into this copy of Ablox."), systemImage: "checkmark.seal.fill")
+                Label(L("Uses Ablox's own database."), systemImage: "checkmark.seal.fill")
                     .font(.caption)
                     .foregroundStyle(Ablox.Palette.success)
             }
-            HStack {
-                AbloxTextField(L("Database URL (https://…firebasedatabase.app)"), text: $settings.cloud.custom.databaseURL)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                pasteButton { settings.cloud.custom.databaseURL = $0 }
+            // Only for a family running its own database; the built-in one
+            // needs nothing typed.
+            DisclosureGroup(L("Advanced: use a different database"), isExpanded: $showingAdvanced) {
+                HStack {
+                    AbloxTextField(L("Database URL (https://…firebasedatabase.app)"), text: $settings.cloud.custom.databaseURL)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                    pasteButton { settings.cloud.custom.databaseURL = $0 }
+                }
+                HStack {
+                    AbloxTextField(L("Web API key"), text: $settings.cloud.custom.apiKey)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                    pasteButton { settings.cloud.custom.apiKey = $0 }
+                }
+                if !settings.cloud.custom.databaseURL.isEmpty && !settings.cloud.custom.isUsable {
+                    Text(L("That doesn't look like a Firebase Realtime Database address and key yet."))
+                        .font(.caption)
+                        .foregroundStyle(Ablox.Palette.warning)
+                }
+                if settings.cloud.custom != CloudConfig() {
+                    Button(L("Go back to Ablox's own database"), role: .destructive) {
+                        settings.cloud.custom = CloudConfig()
+                    }
+                }
+                Button {
+                    UIPasteboard.general.string = CloudRules.json
+                    copied = true
+                } label: {
+                    Label(copied ? L("Copied — paste them in the Firebase console") : L("Copy the database rules"),
+                          systemImage: copied ? "checkmark" : "doc.on.clipboard")
+                }
             }
-            HStack {
-                AbloxTextField(L("Web API key"), text: $settings.cloud.custom.apiKey)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                pasteButton { settings.cloud.custom.apiKey = $0 }
-            }
-            if !settings.cloud.custom.databaseURL.isEmpty && !settings.cloud.custom.isUsable {
-                Text(L("That doesn't look like a Firebase Realtime Database address and key yet."))
-                    .font(.caption)
-                    .foregroundStyle(Ablox.Palette.warning)
-            }
+            .onAppear { showingAdvanced = !CloudConfig.builtIn.isUsable }
 
             HStack {
                 Text(L("Status"))
@@ -470,17 +488,10 @@ struct InternetFamilySection: View {
                     .multilineTextAlignment(.trailing)
             }
 
-            Button {
-                UIPasteboard.general.string = CloudRules.json
-                copied = true
-            } label: {
-                Label(copied ? L("Copied — paste them in the Firebase console") : L("Copy the database rules"),
-                      systemImage: copied ? "checkmark" : "doc.on.clipboard")
-            }
         } header: {
             Text(L("Internet"))
         } footer: {
-            Text(L("Everything here starts off. Internet rooms and friends go through your own Firebase database: games travel through it encrypted, a profile (name, look, what they're playing) is readable only by friends who have added each other, and chat only by the two friends in it. No real names or places are sent."))
+            Text(L("Everything here starts off. Internet rooms and friends go through Ablox's database: games travel through it encrypted, a profile (name, look, what they're playing) is readable only by friends who have added each other, and chat only by the two friends in it. No real names or places are sent."))
         }
     }
 
