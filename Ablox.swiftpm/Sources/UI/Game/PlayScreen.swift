@@ -920,12 +920,11 @@ public struct PlayScreen: View {
                     .foregroundStyle(Ablox.Palette.warning)
             } else if settings.parental.chat == .full {
             HStack(spacing: 9) {
-                TextField(L("Say something…"), text: $chatDraft)
+                AbloxTextField(L("Say something…"), text: $chatDraft, limit: AbloxProtocol.maxChatLength, onSubmit: sendChat)
                     .textFieldStyle(.plain)
                     .padding(.horizontal, 13)
                     .padding(.vertical, 9)
                     .background(.ultraThinMaterial, in: Capsule())
-                    .onSubmit(sendChat)
 
                 Button(action: sendChat) {
                     Image(systemName: "paperplane.fill")

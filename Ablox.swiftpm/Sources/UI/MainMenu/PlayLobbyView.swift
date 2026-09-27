@@ -277,6 +277,7 @@ private struct JoinSheet: View {
     var onJoin: () -> Void
 
     @FocusState private var codeFocused: Bool
+    @AppStorage(KeyboardPreference.key) private var usesAbloxKeyboard = false
 
     private var isValid: Bool { RoomCode.isPlausible(code) }
 
@@ -298,17 +299,26 @@ private struct JoinSheet: View {
                         .foregroundStyle(Ablox.Palette.inkMuted)
 
                     // Still a real text field, so a hardware keyboard types
-                    // straight into it. The pad below edits the same value.
-                    TextField("ABC DEF", text: Binding(
-                        get: { RoomCode.formatted(code) },
-                        set: { code = RoomCode.normalize($0) }
-                    ))
-                        .textFieldStyle(.plain)
+                    // straight into it. The pad below edits the same value —
+                    // and with the Ablox keyboard on, the pad is the keyboard.
+                    Group {
+                        if usesAbloxKeyboard {
+                            Text(verbatim: code.isEmpty ? "ABC DEF" : RoomCode.formatted(code))
+                                .foregroundStyle(code.isEmpty ? Ablox.Palette.inkFaint : Ablox.Palette.ink)
+                                .frame(maxWidth: .infinity)
+                        } else {
+                            TextField("ABC DEF", text: Binding(
+                                get: { RoomCode.formatted(code) },
+                                set: { code = RoomCode.normalize($0) }
+                            ))
+                            .textFieldStyle(.plain)
+                            .textInputAutocapitalization(.characters)
+                            .autocorrectionDisabled()
+                            .focused($codeFocused)
+                        }
+                    }
                         .font(.system(size: 30, weight: .bold, design: .monospaced))
                         .multilineTextAlignment(.center)
-                        .textInputAutocapitalization(.characters)
-                        .autocorrectionDisabled()
-                        .focused($codeFocused)
                         .padding(.vertical, 12)
                         .frame(maxWidth: 260)
                         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
@@ -340,7 +350,7 @@ private struct JoinSheet: View {
             // has settled works everywhere the system keyboard can appear at
             // all — and where it cannot, the pad above is already on screen.
             try? await Task.sleep(nanoseconds: 600_000_000)
-            codeFocused = true
+            if !usesAbloxKeyboard { codeFocused = true }
         }
     }
 }

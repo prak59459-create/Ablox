@@ -251,7 +251,7 @@ struct AvatarCustomizerView: View {
             Text(L("Display name"))
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(Ablox.Palette.inkMuted)
-            TextField(L("Player"), text: $settings.profile.displayName)
+            AbloxTextField(L("Player"), text: $settings.profile.displayName, limit: AvatarProfile.maximumNameLength)
                 .textFieldStyle(.plain)
                 .font(.body.weight(.medium))
                 .padding(12)

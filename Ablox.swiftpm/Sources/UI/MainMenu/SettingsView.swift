@@ -73,6 +73,13 @@ struct SettingsView: View {
                 Text(L("Ablox Studio has the same setting."))
                     .font(.caption)
                     .foregroundStyle(Ablox.Palette.inkMuted)
+
+                Divider().background(Color.white.opacity(0.08))
+
+                // Here, near the top, so it is found by whoever cannot type
+                // anything else yet.
+                KeyboardSettingToggle()
+                    .tint(Ablox.Palette.accent)
             }
         }
     }
@@ -128,7 +135,7 @@ struct SettingsView: View {
     }
 
     private func repositoryField(_ placeholder: String, text: Binding<String>) -> some View {
-        TextField(placeholder, text: text)
+        AbloxTextField(placeholder, text: text)
             .textFieldStyle(.plain)
             .autocorrectionDisabled()
             .textInputAutocapitalization(.never)

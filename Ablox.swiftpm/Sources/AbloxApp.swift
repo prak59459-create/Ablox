@@ -46,6 +46,9 @@ struct AbloxApp: App {
                 // open tab, which is acceptable for something that happens
                 // once in a while and arguably wanted.
                 .id(settings.language)
+                // Offers Ablox's own keyboard on an iPad where the system one
+                // does not come up.
+                .onAppear { KeyboardController.shared.startWatching() }
         }
     }
 }

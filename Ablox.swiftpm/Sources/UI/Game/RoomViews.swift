@@ -324,9 +324,9 @@ struct PollComposerSheet: View {
                     }
                 }
                 Section(L("Your own question")) {
-                    TextField(L("Question"), text: $question)
+                    AbloxTextField(L("Question"), text: $question, limit: Poll.maximumQuestionLength)
                     ForEach(options.indices, id: \.self) { index in
-                        TextField(L("Answer {}", index + 1), text: $options[index])
+                        AbloxTextField(L("Answer {}", index + 1), text: $options[index], limit: Poll.maximumOptionLength)
                     }
                     if options.count < Poll.maximumOptions {
                         Button(L("Add an answer")) { options.append("") }
@@ -364,12 +364,11 @@ struct WhisperSheet: View {
             Text(L("Only {} sees this. Be kind — the word filter still works.", player.profile.displayName))
                 .font(.caption)
                 .foregroundStyle(Ablox.Palette.inkMuted)
-            TextField(L("Say something…"), text: $text)
+            AbloxTextField(L("Say something…"), text: $text, limit: AbloxProtocol.maxChatLength, onSubmit: send)
                 .textFieldStyle(.plain)
                 .padding(12)
                 .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                 .focused($focused)
-                .onSubmit(send)
             HStack {
                 Button(L("Cancel")) { dismiss() }
                     .buttonStyle(NeonButtonStyle(.secondary))
@@ -467,7 +466,7 @@ struct ReportSheet: View {
                     }
                     .pickerStyle(.inline)
                     .labelsHidden()
-                    TextField(L("Anything else (optional)"), text: $note, axis: .vertical)
+                    AbloxTextField(L("Anything else (optional)"), text: $note, axis: .vertical, limit: PlayerReport.maximumNoteLength)
                         .lineLimit(1...4)
                 }
                 Section {

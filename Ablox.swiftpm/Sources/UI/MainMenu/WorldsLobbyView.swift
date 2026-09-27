@@ -117,14 +117,11 @@ struct WorldsLobbyView: View {
         } message: {
             Text(L("“{}” moves to Recently Deleted, where it can be put back for 30 days.", pendingDeletion?.name ?? ""))
         }
-        .alert(L("Rename world"), isPresented: .constant(renaming != nil)) {
-            TextField(L("Name"), text: $renameText)
-            Button(L("Cancel"), role: .cancel) { renaming = nil }
-            Button(L("Rename")) {
-                if let renaming, !renameText.trimmingCharacters(in: .whitespaces).isEmpty {
-                    store.rename(renaming, to: renameText)
-                }
-                renaming = nil
+        // Sheets rather than alerts: an alert's text field only types with
+        // the iPad keyboard.
+        .sheet(item: $renaming) { entry in
+            TextPromptSheet(title: L("Rename world"), placeholder: L("Name"), confirm: L("Rename"), text: $renameText) {
+                store.rename(entry, to: renameText)
             }
         }
     }
@@ -159,13 +156,9 @@ struct WorldsLobbyView: View {
             }
             .buttonStyle(NeonButtonStyle(.primary))
         }
-        // Kept on the header so it never shares a view with the other alerts.
-        .alert(L("New folder"), isPresented: .constant(filingInNewFolder != nil)) {
-            TextField(L("Folder name"), text: $newFolderName)
-            Button(L("Cancel"), role: .cancel) { filingInNewFolder = nil }
-            Button(L("Add")) {
-                if let entry = filingInNewFolder { store.setFolder(newFolderName, for: entry) }
-                filingInNewFolder = nil
+        .sheet(item: $filingInNewFolder) { entry in
+            TextPromptSheet(title: L("New folder"), placeholder: L("Folder name"), confirm: L("Add"), text: $newFolderName) {
+                store.setFolder(newFolderName, for: entry)
             }
         }
     }
@@ -337,7 +330,7 @@ struct WorldsLobbyView: View {
 
             VStack(alignment: .leading, spacing: 7) {
                 Text(L("Name")).font(.caption.weight(.semibold)).foregroundStyle(Ablox.Palette.inkMuted)
-                TextField(L("My World"), text: $newWorldName)
+                AbloxTextField(L("My World"), text: $newWorldName)
                     .textFieldStyle(.plain)
                     .font(.body)
                     .padding(12)

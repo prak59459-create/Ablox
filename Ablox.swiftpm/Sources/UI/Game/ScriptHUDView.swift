@@ -204,12 +204,11 @@ struct ScriptInputField: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            TextField(element.text, text: $draft)
+            AbloxTextField(element.text, text: $draft, onSubmit: send)
                 .textFieldStyle(.plain)
                 .font(font)
                 .foregroundStyle(foreground)
                 .autocorrectionDisabled()
-                .onSubmit(send)
             Button(action: send) {
                 Image(systemName: "arrow.up.circle.fill")
                     .font(.title2)

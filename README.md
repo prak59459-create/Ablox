@@ -18,6 +18,13 @@ press Run. It also opens in Xcode 15+.
 On first launch iPadOS asks for **Local Network** permission. Say yes — without
 it, Ablox cannot see other iPads and the Play tab stays empty.
 
+If the keyboard never comes up on an iPad (an attached keyboard case, or a
+Swift Playgrounds quirk on some models), turn on **Settings → Use the Ablox
+keyboard** (in Ablox Studio, the keyboard button beside the language switch).
+Both apps then type with their own on-screen keyboard — letters, kana,
+numbers and marks — drawn above everything, sheets and the game included.
+Ablox also offers it by itself when a text box opens with no keyboard.
+
 ### Updating
 
 From 1.1 on, Ablox keeps itself up to date: it finds a new version, downloads

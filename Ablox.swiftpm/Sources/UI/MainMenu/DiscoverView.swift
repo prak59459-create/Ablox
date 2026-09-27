@@ -75,9 +75,12 @@ struct DiscoverView: View {
                 .environmentObject(settings)
                 .environmentObject(session)
         }
-        .alert(L("Add a game list"), isPresented: $addingCatalogue) {
-            TextField(L("owner/repository"), text: $newCatalogue)
-            Button(L("Add")) {
+        // A sheet rather than an alert: an alert's text field only types
+        // with the iPad keyboard.
+        .sheet(isPresented: $addingCatalogue) {
+            TextPromptSheet(title: L("Add a game list"),
+                            message: L("Another public GitHub repository with an index.json, like the built-in list."),
+                            placeholder: L("owner/repository"), confirm: L("Add"), text: $newCatalogue) {
                 let name = newCatalogue.trimmingCharacters(in: .whitespaces)
                 if CatalogueSource.chosen(repository: name, branch: "main").repository == name,
                    !settings.memory.extraCatalogues.contains(name) {
@@ -85,9 +88,6 @@ struct DiscoverView: View {
                 }
                 newCatalogue = ""
             }
-            Button(L("Cancel"), role: .cancel) { newCatalogue = "" }
-        } message: {
-            Text(L("Another public GitHub repository with an index.json, like the built-in list."))
         }
     }
 
@@ -108,7 +108,7 @@ struct DiscoverView: View {
             HStack(spacing: 9) {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(Ablox.Palette.inkFaint)
-                TextField(L("Search games"), text: $search)
+                AbloxTextField(L("Search games"), text: $search)
                     .textFieldStyle(.plain)
                     .autocorrectionDisabled()
             }
@@ -607,7 +607,7 @@ private struct GameDetailSheet: View {
                         Text(L("My note"))
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(Ablox.Palette.inkMuted)
-                        TextField(L("A few words for yourself — a tip, a password, who to play with"), text: $memo, axis: .vertical)
+                        AbloxTextField(L("A few words for yourself — a tip, a password, who to play with"), text: $memo, axis: .vertical, limit: 300)
                             .textFieldStyle(.plain)
                             .lineLimit(1...4)
                             .padding(10)
