@@ -75,18 +75,20 @@ let package = Package(
         //
         // `-gnone`: no debug information. Nothing on an iPad reads it, and
         // making it was about a fifth of the build (docs/ipad-build.md). It
-        // comes after the `-g` a debug build adds, and the last one wins.
+        // goes to the compiler itself (`-Xfrontend`): package flags come
+        // before the `-g` of a debug build, so given to the driver it would
+        // lose, and the last one wins.
         .target(
             name: "AbloxCore",
             path: "Sources/AbloxCore",
-            swiftSettings: [.unsafeFlags(["-gnone"])]
+            swiftSettings: [.unsafeFlags(["-Xfrontend", "-gnone"])]
         ),
         .executableTarget(
             name: "AbloxApp",
             dependencies: ["AbloxCore"],
             path: "Sources",
             exclude: ["AbloxCore"],
-            swiftSettings: [.unsafeFlags(["-gnone"])]
+            swiftSettings: [.unsafeFlags(["-Xfrontend", "-gnone"])]
         )
     ]
 )
