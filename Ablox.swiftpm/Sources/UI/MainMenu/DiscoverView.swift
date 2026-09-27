@@ -546,103 +546,12 @@ private struct GameDetailSheet: View {
     /// redrawn on every keystroke of the note, and a world is not small.
     @State private var cachedWorld: WorldDocument?
 
+    // In pieces, each type-checked on its own: as one body this page was
+    // the slowest thing in the app to compile.
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    CoverImage(data: cover, title: listing.title)
-                        .frame(height: 190)
-                        .clipShape(RoundedRectangle(cornerRadius: Ablox.Metrics.cardRadius, style: .continuous))
-
-                    HStack(alignment: .top) {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(listing.title)
-                                .font(.title2.weight(.bold))
-                            Text(L("by {}", listing.displayAuthor))
-                                .font(.subheadline)
-                                .foregroundStyle(Ablox.Palette.inkMuted)
-                        }
-                        Spacer()
-                        Button {
-                            if isFavourite { settings.memory.favoriteGames.remove(listing.id) } else { settings.memory.favoriteGames.insert(listing.id) }
-                        } label: {
-                            Image(systemName: isFavourite ? "star.fill" : "star")
-                                .font(.title2)
-                                .foregroundStyle(isFavourite ? Ablox.Palette.warning : Ablox.Palette.inkMuted)
-                        }
-                        .accessibilityLabel(isFavourite ? L("Remove from favourites") : L("Add to favourites"))
-                        Button {
-                            var note = settings.memory.gameNotes[listing.id] ?? GameNote()
-                            note.liked.toggle()
-                            settings.memory.gameNotes[listing.id] = note
-                        } label: {
-                            Image(systemName: isLiked ? "heart.fill" : "heart")
-                                .font(.title2)
-                                .foregroundStyle(isLiked ? Ablox.Palette.danger : Ablox.Palette.inkMuted)
-                        }
-                        .accessibilityLabel(isLiked ? L("Unlike") : L("Like"))
-                    }
-
-                    if !shots.isEmpty {
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 10) {
-                                ForEach(shots.indices, id: \.self) { index in
-                                    CoverImage(data: shots[index], title: listing.title)
-                                        .frame(width: 220, height: 124)
-                                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                                }
-                            }
-                        }
-                    }
-
-                    traitsRow
-
-                    if !listing.summary.isEmpty {
-                        Text(listing.summary)
-                            .font(.callout)
-                            .foregroundStyle(Ablox.Palette.inkMuted)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-
-                    facts
-
-                    playRecord
-
-                    howToPlay
-
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(L("My note"))
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(Ablox.Palette.inkMuted)
-                        AbloxTextField(L("A few words for yourself — a tip, a password, who to play with"), text: $memo, axis: .vertical, limit: 300)
-                            .textFieldStyle(.plain)
-                            .lineLimit(1...4)
-                            .padding(10)
-                            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                            .onChange(of: memo) { _, text in
-                                var note = settings.memory.gameNotes[listing.id] ?? GameNote()
-                                note.memo = String(text.prefix(300))
-                                settings.memory.gameNotes[listing.id] = note
-                            }
-                    }
-
-                    if !listing.tags.isEmpty {
-                        HStack(spacing: 7) {
-                            ForEach(listing.tags, id: \.self) { tag in
-                                Badge(tag, color: Ablox.Palette.accent, systemImage: "tag.fill")
-                            }
-                        }
-                    }
-
-                    if let problem {
-                        Label(problem, systemImage: "exclamationmark.triangle.fill")
-                            .font(.caption)
-                            .foregroundStyle(Ablox.Palette.danger)
-                    }
-
-                    actions
-                }
-                .padding(20)
+                page.padding(20)
             }
             .background(Ablox.Palette.surface)
             .navigationTitle(L("Game"))
@@ -655,14 +564,133 @@ private struct GameDetailSheet: View {
         }
         .abloxColorScheme()
         .tint(Ablox.Palette.accent)
-        .task {
-            // Seen now: its "new" or "updated" badge can go.
-            settings.memory.seenGames[listing.id] = listing.revisionKey
-            memo = settings.memory.gameNotes[listing.id]?.memo ?? ""
-            cachedWorld = library.cachedWorld(for: listing)
-            cover = await library.coverData(for: listing)
-            shots = await library.shotData(for: listing)
+        .task { await arrive() }
+    }
+
+    private var page: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            CoverImage(data: cover, title: listing.title)
+                .frame(height: 190)
+                .clipShape(RoundedRectangle(cornerRadius: Ablox.Metrics.cardRadius, style: .continuous))
+
+            header
+            shotsRow
+            traitsRow
+
+            if !listing.summary.isEmpty {
+                Text(listing.summary)
+                    .font(.callout)
+                    .foregroundStyle(Ablox.Palette.inkMuted)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            facts
+            playRecord
+            howToPlay
+            noteField
+            tagsRow
+
+            if let problem {
+                Label(problem, systemImage: "exclamationmark.triangle.fill")
+                    .font(.caption)
+                    .foregroundStyle(Ablox.Palette.danger)
+            }
+
+            actions
         }
+    }
+
+    /// The title, who made it, and the star and heart.
+    private var header: some View {
+        HStack(alignment: .top) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(listing.title)
+                    .font(.title2.weight(.bold))
+                Text(L("by {}", listing.displayAuthor))
+                    .font(.subheadline)
+                    .foregroundStyle(Ablox.Palette.inkMuted)
+            }
+            Spacer()
+            Button(action: toggleFavourite) {
+                Image(systemName: isFavourite ? "star.fill" : "star")
+                    .font(.title2)
+                    .foregroundStyle(isFavourite ? Ablox.Palette.warning : Ablox.Palette.inkMuted)
+            }
+            .accessibilityLabel(isFavourite ? L("Remove from favourites") : L("Add to favourites"))
+            Button(action: toggleLiked) {
+                Image(systemName: isLiked ? "heart.fill" : "heart")
+                    .font(.title2)
+                    .foregroundStyle(isLiked ? Ablox.Palette.danger : Ablox.Palette.inkMuted)
+            }
+            .accessibilityLabel(isLiked ? L("Unlike") : L("Like"))
+        }
+    }
+
+    @ViewBuilder private var shotsRow: some View {
+        if !shots.isEmpty {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    ForEach(shots.indices, id: \.self) { index in
+                        CoverImage(data: shots[index], title: listing.title)
+                            .frame(width: 220, height: 124)
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    }
+                }
+            }
+        }
+    }
+
+    private var noteField: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(L("My note"))
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(Ablox.Palette.inkMuted)
+            AbloxTextField(L("A few words for yourself — a tip, a password, who to play with"), text: $memo, axis: .vertical, limit: 300)
+                .textFieldStyle(.plain)
+                .lineLimit(1...4)
+                .padding(10)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .onChange(of: memo) { _, text in saveMemo(text) }
+        }
+    }
+
+    @ViewBuilder private var tagsRow: some View {
+        if !listing.tags.isEmpty {
+            HStack(spacing: 7) {
+                ForEach(listing.tags, id: \.self) { tag in
+                    Badge(tag, color: Ablox.Palette.accent, systemImage: "tag.fill")
+                }
+            }
+        }
+    }
+
+    private func arrive() async {
+        // Seen now: its "new" or "updated" badge can go.
+        settings.memory.seenGames[listing.id] = listing.revisionKey
+        memo = settings.memory.gameNotes[listing.id]?.memo ?? ""
+        cachedWorld = library.cachedWorld(for: listing)
+        cover = await library.coverData(for: listing)
+        shots = await library.shotData(for: listing)
+    }
+
+    private func toggleFavourite() {
+        if isFavourite {
+            settings.memory.favoriteGames.remove(listing.id)
+        } else {
+            settings.memory.favoriteGames.insert(listing.id)
+        }
+    }
+
+    private func toggleLiked() {
+        var note = settings.memory.gameNotes[listing.id] ?? GameNote()
+        note.liked.toggle()
+        settings.memory.gameNotes[listing.id] = note
+    }
+
+    private func saveMemo(_ text: String) {
+        var note = settings.memory.gameNotes[listing.id] ?? GameNote()
+        note.memo = String(text.prefix(300))
+        settings.memory.gameNotes[listing.id] = note
     }
 
     private var isFavourite: Bool { settings.memory.favoriteGames.contains(listing.id) }

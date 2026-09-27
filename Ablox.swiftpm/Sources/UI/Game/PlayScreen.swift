@@ -80,148 +80,179 @@ public struct PlayScreen: View {
                       cameraYawDegrees: cameraYaw)
     }
 
+    // In pieces, each type-checked on its own: as one expression the play
+    // screen was among the slowest things in the app to compile.
     public var body: some View {
+        reactions(lifecycle(screen))
+    }
+
+    private var screen: some View {
         ZStack {
-            GameViewport(
-                session: session,
-                input: .constant(movementInput),
-                cameraYaw: $cameraYaw,
-                cameraPitch: $cameraPitch,
-                soundEnabled: settings.soundEnabled,
-                hapticsEnabled: settings.hapticsEnabled,
-                isFiring: (isFiring || hardware.firing) && session.scripted.weapon != nil,
-                graphicsQuality: settings.graphicsQuality,
-                showFrameRate: settings.showFrameRate,
-                preferences: settings.preferences,
-                spectating: spectating,
-                preferFirstPerson: preferFirstPerson,
-                photoMode: photoMode,
-                link: link
-            )
-            .ignoresSafeArea()
-
-            // Settings → Comfort: warmer, dimmer, over the game only.
-            if settings.preferences.warmScreen {
-                Color(red: 1, green: 0.55, blue: 0.2).opacity(0.14)
-                    .blendMode(.multiply)
-                    .ignoresSafeArea()
-                    .allowsHitTesting(false)
-            }
-            if settings.preferences.dimming > 0 {
-                Color.black.opacity(settings.preferences.dimming)
-                    .ignoresSafeArea()
-                    .allowsHitTesting(false)
-            }
-
+            viewport
+            comfortFilters
             if photoMode {
                 photoLayer
             } else {
-            // A script can hide the joystick and buttons — a title screen,
-            // a cutscene — and the top bar and chat.
-            if session.scripted.showsControls && !editingButtons {
-                controlsLayer
-            }
-            ScriptHUDLayer(session: session, reduceFlashing: settings.preferences.reduceFlashing)
-            PartsHUDLayer(session: session, readAloud: settings.preferences.readLinesAloud)
-            hudLayer
-            familyNotices
-            if !session.isSolo {
-                RoomHUD(session: session)
-                    .padding(.top, 68)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-            }
-            spectateBar
-            if showMenu {
-                PauseMenu(
-                    session: session,
-                    clips: clips,
-                    preferFirstPerson: $preferFirstPerson,
-                    playSeconds: sessionSeconds,
-                    onResume: closeMenu,
-                    onScreenshot: { closeMenu(); takePicture() },
-                    onSaveClip: { closeMenu(); saveClip() },
-                    onPhotoMode: { closeMenu(); withAnimation { photoMode = true } },
-                    onReturnToStart: { closeMenu(); link.returnToStart() },
-                    onEditButtons: { closeMenu(); editingButtons = true },
-                    onLeave: onExit
-                )
-                .transition(.opacity)
-            }
-            if editingButtons {
-                ButtonLayoutEditor(preferences: $settings.preferences, stickOnLeft: !settings.joystickOnRight) {
-                    editingButtons = false
-                }
-            }
+                playLayers
             }
             if let toast {
                 toastView(toast)
             }
-
-            if session.status.isBusy {
-                connectingOverlay
-            }
-            if case let .reconnecting(progress) = session.status {
-                reconnectingOverlay(progress)
-            }
-            if case let .error(message) = session.status {
-                errorOverlay(message)
-            }
+            statusOverlays
         }
         .statusBarHidden()
         .persistentSystemOverlays(.hidden)
         // The game is always dark, whatever the menus are set to: its buttons
         // sit over the 3D world, not over a page.
         .preferredColorScheme(.dark)
-        .onAppear {
-            enterSession()
-            startHardware()
+    }
+
+    private var viewport: some View {
+        GameViewport(
+            session: session,
+            input: .constant(movementInput),
+            cameraYaw: $cameraYaw,
+            cameraPitch: $cameraPitch,
+            soundEnabled: settings.soundEnabled,
+            hapticsEnabled: settings.hapticsEnabled,
+            isFiring: (isFiring || hardware.firing) && session.scripted.weapon != nil,
+            graphicsQuality: settings.graphicsQuality,
+            showFrameRate: settings.showFrameRate,
+            preferences: settings.preferences,
+            spectating: spectating,
+            preferFirstPerson: preferFirstPerson,
+            photoMode: photoMode,
+            link: link
+        )
+        .ignoresSafeArea()
+    }
+
+    @ViewBuilder private var comfortFilters: some View {
+        // Settings → Comfort: warmer, dimmer, over the game only.
+        if settings.preferences.warmScreen {
+            Color(red: 1, green: 0.55, blue: 0.2).opacity(0.14)
+                .blendMode(.multiply)
+                .ignoresSafeArea()
+                .allowsHitTesting(false)
         }
-        .onChange(of: showChat) { _, open in hardware.suspended = open || showMenu }
-        .onChange(of: showMenu) { _, open in hardware.suspended = open || showChat }
-        .sheet(item: $sharing) { file in
-            ActivityShareSheet(items: [file.url])
+        if settings.preferences.dimming > 0 {
+            Color.black.opacity(settings.preferences.dimming)
+                .ignoresSafeArea()
+                .allowsHitTesting(false)
         }
-        .onChange(of: session.roster) { _, roster in
-            // Whoever was being watched has gone.
-            if let watched = spectating, !roster.contains(where: { $0.peerID == watched }) { spectating = nil }
-            noticeWhoIsHere()
+    }
+
+    @ViewBuilder private var playLayers: some View {
+        // A script can hide the joystick and buttons — a title screen,
+        // a cutscene — and the top bar and chat.
+        if session.scripted.showsControls && !editingButtons {
+            controlsLayer
         }
-        .onReceive(playClock) { _ in countPlay(seconds: 5) }
-        .onChange(of: session.announcement) { _, announcement in
-            // The end-of-round banner is the one signal that the round is
-            // over for everyone, host or client.
-            guard let message = announcement?.message else { return }
-            speak(message)
-            if message.contains("goal") || message.localizedCaseInsensitiveContains("win") {
-                bankCoins(completed: true)
+        ScriptHUDLayer(session: session, reduceFlashing: settings.preferences.reduceFlashing)
+        PartsHUDLayer(session: session, readAloud: settings.preferences.readLinesAloud)
+        hudLayer
+        familyNotices
+        if !session.isSolo {
+            RoomHUD(session: session)
+                .padding(.top, 68)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        }
+        spectateBar
+        if showMenu {
+            pauseMenu
+        }
+        if editingButtons {
+            ButtonLayoutEditor(preferences: $settings.preferences, stickOnLeft: !settings.joystickOnRight) {
+                editingButtons = false
             }
         }
-        // Settings → Problem reports: what went wrong here, kept to send.
-        .onChange(of: session.status) { _, status in
-            if case let .error(message) = status {
-                ProblemRecorder.shared.record(.network, message, detail: session.world.name)
+    }
+
+    private var pauseMenu: some View {
+        PauseMenu(
+            session: session,
+            clips: clips,
+            preferFirstPerson: $preferFirstPerson,
+            playSeconds: sessionSeconds,
+            onResume: closeMenu,
+            onScreenshot: { closeMenu(); takePicture() },
+            onSaveClip: { closeMenu(); saveClip() },
+            onPhotoMode: { closeMenu(); withAnimation { photoMode = true } },
+            onReturnToStart: { closeMenu(); link.returnToStart() },
+            onEditButtons: { closeMenu(); editingButtons = true },
+            onLeave: onExit
+        )
+        .transition(.opacity)
+    }
+
+    @ViewBuilder private var statusOverlays: some View {
+        if session.status.isBusy {
+            connectingOverlay
+        }
+        if case let .reconnecting(progress) = session.status {
+            reconnectingOverlay(progress)
+        }
+        if case let .error(message) = session.status {
+            errorOverlay(message)
+        }
+    }
+
+    private func lifecycle<Content: View>(_ content: Content) -> some View {
+        content
+            .onAppear {
+                enterSession()
+                startHardware()
             }
-        }
-        .onChange(of: session.scriptLog) { old, new in
-            let added = new.filter { line in !old.contains { $0.id == line.id } }
-            for line in added where line.isError {
-                ProblemRecorder.shared.record(.script, line.text, detail: session.world.name)
+            .onChange(of: showChat) { _, open in hardware.suspended = open || showMenu }
+            .onChange(of: showMenu) { _, open in hardware.suspended = open || showChat }
+            .sheet(item: $sharing) { file in
+                ActivityShareSheet(items: [file.url])
             }
-        }
-        .onChange(of: session.messageLog) { _, log in
-            if let newest = log.last { speak(newest.text) }
-        }
-        .onDisappear {
-            bankCoins(completed: false)
-            hardware.stop()
-        }
-        .onChange(of: scenePhase) { _, phase in
-            // Backgrounding is what kills the TCP connection, so returning is
-            // the single most likely moment a session needs recovering. Bring
-            // any pending attempt forward rather than waiting out a backoff
-            // scheduled while the iPad was asleep.
-            if phase == .active { session.applicationDidBecomeActive() }
-        }
+            .onChange(of: session.roster) { _, roster in
+                // Whoever was being watched has gone.
+                if let watched = spectating, !roster.contains(where: { $0.peerID == watched }) { spectating = nil }
+                noticeWhoIsHere()
+            }
+            .onReceive(playClock) { _ in countPlay(seconds: 5) }
+    }
+
+    private func reactions<Content: View>(_ content: Content) -> some View {
+        content
+            .onChange(of: session.announcement) { _, announcement in
+                // The end-of-round banner is the one signal that the round is
+                // over for everyone, host or client.
+                guard let message = announcement?.message else { return }
+                speak(message)
+                if message.contains("goal") || message.localizedCaseInsensitiveContains("win") {
+                    bankCoins(completed: true)
+                }
+            }
+            // Settings → Problem reports: what went wrong here, kept to send.
+            .onChange(of: session.status) { _, status in
+                if case let .error(message) = status {
+                    ProblemRecorder.shared.record(.network, message, detail: session.world.name)
+                }
+            }
+            .onChange(of: session.scriptLog) { old, new in
+                let added = new.filter { line in !old.contains { $0.id == line.id } }
+                for line in added where line.isError {
+                    ProblemRecorder.shared.record(.script, line.text, detail: session.world.name)
+                }
+            }
+            .onChange(of: session.messageLog) { _, log in
+                if let newest = log.last { speak(newest.text) }
+            }
+            .onDisappear {
+                bankCoins(completed: false)
+                hardware.stop()
+            }
+            .onChange(of: scenePhase) { _, phase in
+                // Backgrounding is what kills the TCP connection, so returning is
+                // the single most likely moment a session needs recovering. Bring
+                // any pending attempt forward rather than waiting out a backoff
+                // scheduled while the iPad was asleep.
+                if phase == .active { session.applicationDidBecomeActive() }
+            }
     }
 
     // MARK: Who is here

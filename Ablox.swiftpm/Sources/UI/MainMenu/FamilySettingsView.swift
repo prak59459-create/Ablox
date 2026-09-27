@@ -147,91 +147,19 @@ struct FamilySettingsSheet: View {
     private let breaks: [Int?] = [nil, 20, 30, 45, 60]
     private let coinLimits: [Int?] = [nil, 20, 50, 100, 300, 1000]
 
+    // A section at a time, each type-checked on its own: as one Form this
+    // sheet was among the slowest things in the app to compile.
     var body: some View {
         NavigationStack {
             Form {
-                Section(L("Play time")) {
-                    Picker(L("Each day"), selection: $settings.parental.dailyLimitMinutes) {
-                        ForEach(limits, id: \.self) { minutes in
-                            Text(minutes.map { L("{} minutes", $0) } ?? L("No limit")).tag(minutes)
-                        }
-                    }
-                    Picker(L("Rest reminder"), selection: $settings.parental.breakEveryMinutes) {
-                        ForEach(breaks, id: \.self) { minutes in
-                            Text(minutes.map { L("Every {} minutes", $0) } ?? L("Off")).tag(minutes)
-                        }
-                    }
-                    Toggle(L("Quiet hours (no games)"), isOn: Binding(
-                        get: { settings.parental.quietHours != nil },
-                        set: { settings.parental.quietHours = $0 ? QuietHours(start: 21 * 60, end: 7 * 60) : nil }
-                    ))
-                    if settings.parental.quietHours != nil {
-                        Picker(L("From"), selection: quietBinding(\.start)) { clockOptions }
-                        Picker(L("Until"), selection: quietBinding(\.end)) { clockOptions }
-                    }
-                }
-
-                Section {
-                    Picker(L("Chat"), selection: $settings.parental.chat) {
-                        ForEach(ChatAllowance.allCases, id: \.self) { Text($0.displayName).tag($0) }
-                    }
-                    Toggle(L("May open public rooms"), isOn: $settings.parental.allowPublicRooms)
-                    Toggle(L("May join other people's rooms"), isOn: $settings.parental.allowJoiningRooms)
-                    Button {
-                        readingReports = true
-                    } label: {
-                        let count = ReportStore.all().count
-                        Label(count == 0 ? L("Reports") : L("Reports ({})", count), systemImage: "exclamationmark.bubble")
-                    }
-                    if !settings.social.blocked.isEmpty {
-                        NavigationLink {
-                            List(settings.social.blocked) { contact in
-                                HStack {
-                                    Text(contact.name)
-                                    Spacer()
-                                    Button(L("Unblock")) { settings.unblock(contact.id) }
-                                }
-                            }
-                            .navigationTitle(L("Blocked"))
-                        } label: {
-                            Label(L("Blocked players ({})", settings.social.blocked.count), systemImage: "hand.raised.slash")
-                        }
-                    }
-                } header: {
-                    Text(L("Playing with others"))
-                } footer: {
-                    Text(L("“Ready-made phrases only” lets them say hello and thank you with buttons; nothing typed is sent."))
-                }
-
+                playTimeSection
+                othersSection
                 InternetFamilySection()
-
-                Section(L("Coins and games")) {
-                    Picker(L("Coins spent a day"), selection: $settings.parental.dailyCoinLimit) {
-                        ForEach(coinLimits, id: \.self) { coins in
-                            Text(coins.map { L("{} coins", $0) } ?? L("No limit")).tag(coins)
-                        }
-                    }
-                    Toggle(L("Hide scary games"), isOn: $settings.parental.hideScaryGames)
-                }
-
+                coinsSection
                 Section(L("What was played")) {
                     ActivitySummary(log: settings.playtime)
                 }
-
-                Section {
-                    Button(settings.parental.isLocked ? L("Change the passcode") : L("Lock with a passcode")) {
-                        settingPasscode = true
-                    }
-                    if settings.parental.isLocked {
-                        Button(L("Remove the passcode"), role: .destructive) {
-                            settings.parental.setPasscode(nil)
-                        }
-                    }
-                } header: {
-                    Text(L("Passcode"))
-                } footer: {
-                    Text(L("With a passcode, only someone who knows it can change these. Everything stays on this iPad."))
-                }
+                passcodeSection
             }
             .navigationTitle(L("Family"))
             .toolbar {
@@ -244,12 +172,99 @@ struct FamilySettingsSheet: View {
             ReportsSheet()
         }
         .sheet(isPresented: $settingPasscode) {
-            PasscodeSheet(title: L("Choose a passcode (4–8 digits)")) { code in
-                guard ParentalControls.isValidPasscode(code) else { return false }
-                settings.parental.setPasscode(code)
-                settingPasscode = false
-                return true
+            PasscodeSheet(title: L("Choose a passcode (4–8 digits)"), onEnter: choosePasscode)
+        }
+    }
+
+    private func choosePasscode(_ code: String) -> Bool {
+        guard ParentalControls.isValidPasscode(code) else { return false }
+        settings.parental.setPasscode(code)
+        settingPasscode = false
+        return true
+    }
+
+    private var playTimeSection: some View {
+        Section(L("Play time")) {
+            Picker(L("Each day"), selection: $settings.parental.dailyLimitMinutes) {
+                ForEach(limits, id: \.self) { minutes in
+                    Text(minutes.map { L("{} minutes", $0) } ?? L("No limit")).tag(minutes)
+                }
             }
+            Picker(L("Rest reminder"), selection: $settings.parental.breakEveryMinutes) {
+                ForEach(breaks, id: \.self) { minutes in
+                    Text(minutes.map { L("Every {} minutes", $0) } ?? L("Off")).tag(minutes)
+                }
+            }
+            Toggle(L("Quiet hours (no games)"), isOn: Binding(
+                get: { settings.parental.quietHours != nil },
+                set: { settings.parental.quietHours = $0 ? QuietHours(start: 21 * 60, end: 7 * 60) : nil }
+            ))
+            if settings.parental.quietHours != nil {
+                Picker(L("From"), selection: quietBinding(\.start)) { clockOptions }
+                Picker(L("Until"), selection: quietBinding(\.end)) { clockOptions }
+            }
+        }
+    }
+
+    private var othersSection: some View {
+        Section {
+            Picker(L("Chat"), selection: $settings.parental.chat) {
+                ForEach(ChatAllowance.allCases, id: \.self) { Text($0.displayName).tag($0) }
+            }
+            Toggle(L("May open public rooms"), isOn: $settings.parental.allowPublicRooms)
+            Toggle(L("May join other people's rooms"), isOn: $settings.parental.allowJoiningRooms)
+            Button {
+                readingReports = true
+            } label: {
+                let count = ReportStore.all().count
+                Label(count == 0 ? L("Reports") : L("Reports ({})", count), systemImage: "exclamationmark.bubble")
+            }
+            if !settings.social.blocked.isEmpty {
+                NavigationLink {
+                    List(settings.social.blocked) { contact in
+                        HStack {
+                            Text(contact.name)
+                            Spacer()
+                            Button(L("Unblock")) { settings.unblock(contact.id) }
+                        }
+                    }
+                    .navigationTitle(L("Blocked"))
+                } label: {
+                    Label(L("Blocked players ({})", settings.social.blocked.count), systemImage: "hand.raised.slash")
+                }
+            }
+        } header: {
+            Text(L("Playing with others"))
+        } footer: {
+            Text(L("“Ready-made phrases only” lets them say hello and thank you with buttons; nothing typed is sent."))
+        }
+    }
+
+    private var coinsSection: some View {
+        Section(L("Coins and games")) {
+            Picker(L("Coins spent a day"), selection: $settings.parental.dailyCoinLimit) {
+                ForEach(coinLimits, id: \.self) { coins in
+                    Text(coins.map { L("{} coins", $0) } ?? L("No limit")).tag(coins)
+                }
+            }
+            Toggle(L("Hide scary games"), isOn: $settings.parental.hideScaryGames)
+        }
+    }
+
+    private var passcodeSection: some View {
+        Section {
+            Button(settings.parental.isLocked ? L("Change the passcode") : L("Lock with a passcode")) {
+                settingPasscode = true
+            }
+            if settings.parental.isLocked {
+                Button(L("Remove the passcode"), role: .destructive) {
+                    settings.parental.setPasscode(nil)
+                }
+            }
+        } header: {
+            Text(L("Passcode"))
+        } footer: {
+            Text(L("With a passcode, only someone who knows it can change these. Everything stays on this iPad."))
         }
     }
 

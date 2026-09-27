@@ -356,11 +356,11 @@ struct NetworkBadge: View {
             HStack(alignment: .bottom, spacing: 2) {
                 ForEach(1...3, id: \.self) { level in
                     RoundedRectangle(cornerRadius: 1)
-                        .fill(level <= bars ? (bars >= 2 ? Ablox.Palette.success : Ablox.Palette.warning) : Color.white.opacity(0.25))
-                        .frame(width: 4, height: CGFloat(4 + level * 4))
+                        .fill(colour(ofBar: level))
+                        .frame(width: 4, height: height(ofBar: level))
                 }
             }
-            Text(isReconnecting ? L("Reconnecting") : ping.map { L("{}ms", Int($0)) } ?? L("Local"))
+            Text(caption)
                 .font(.caption2.weight(.bold).monospacedDigit())
         }
         .padding(.horizontal, 9)
@@ -368,7 +368,26 @@ struct NetworkBadge: View {
         .background(.ultraThinMaterial, in: Capsule())
         .foregroundStyle(.white)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(isReconnecting ? L("Reconnecting") : L("Connection: {} of 3 bars", bars))
+        .accessibilityLabel(spoken)
+    }
+
+    private func colour(ofBar level: Int) -> Color {
+        guard level <= bars else { return Color.white.opacity(0.25) }
+        return bars >= 2 ? Ablox.Palette.success : Ablox.Palette.warning
+    }
+
+    private func height(ofBar level: Int) -> CGFloat {
+        CGFloat(4 + level * 4)
+    }
+
+    private var caption: String {
+        if isReconnecting { return L("Reconnecting") }
+        guard let ping else { return L("Local") }
+        return L("{}ms", Int(ping))
+    }
+
+    private var spoken: String {
+        isReconnecting ? L("Reconnecting") : L("Connection: {} of 3 bars", bars)
     }
 }
 

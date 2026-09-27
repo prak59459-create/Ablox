@@ -369,53 +369,71 @@ struct CombatControls: View {
     @Binding var isFiring: Bool
 
     var body: some View {
-        let state = session.scripted
         HStack(alignment: .bottom, spacing: 12) {
             VStack(spacing: 8) {
-                if let ammo = state.ammo {
-                    Text(verbatim: ammo.isReloading ? "…" : "\(ammo.current) / \(ammo.magazine)")
-                        .font(.subheadline.weight(.bold).monospacedDigit())
-                        .foregroundStyle(ammo.current == 0 ? Ablox.Palette.warning : .white)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
-                        .background(.ultraThinMaterial, in: Capsule())
-                        .accessibilityLabel(ammo.isReloading ? L("Reloading") : L("{} of {} rounds", ammo.current, ammo.magazine))
+                if let ammo = session.scripted.ammo {
+                    ammoCount(ammo)
                 }
-                Button {
-                    session.send(input: .reload)
-                } label: {
-                    Image(systemName: "arrow.triangle.2.circlepath")
-                        .font(.headline)
-                        .frame(width: 48, height: 48)
-                        .background(.ultraThinMaterial, in: Circle())
-                        .foregroundStyle(.white)
-                }
-                .accessibilityLabel(L("Reload"))
+                reloadButton
             }
-
-            Circle()
-                .fill(isFiring ? Ablox.Palette.danger.opacity(0.55) : Color.black.opacity(0.25))
-                .background(.ultraThinMaterial, in: Circle())
-                .overlay(Circle().strokeBorder(Ablox.Palette.danger.opacity(isFiring ? 1 : 0.6), lineWidth: 3))
-                .overlay(
-                    Image(systemName: "scope")
-                        .font(.system(size: 34, weight: .bold))
-                        .foregroundStyle(.white)
-                )
-                .frame(width: 96, height: 96)
-                .scaleEffect(isFiring ? 0.93 : 1)
-                .opacity(state.canFire ? 1 : 0.5)
-                .animation(.spring(response: 0.2, dampingFraction: 0.6), value: isFiring)
-                .gesture(
-                    // Held, not tapped: holding keeps firing at the weapon's
-                    // rate, which is how every shooter on a phone works.
-                    DragGesture(minimumDistance: 0)
-                        .onChanged { _ in isFiring = true }
-                        .onEnded { _ in isFiring = false }
-                )
-                .accessibilityLabel(L("Fire"))
-                .accessibilityAddTraits(.isButton)
+            fireButton(canFire: session.scripted.canFire)
         }
+    }
+
+    private func ammoCount(_ ammo: ScriptedPlayerState.Ammo) -> some View {
+        let text: String = ammo.isReloading ? "…" : "\(ammo.current) / \(ammo.magazine)"
+        let colour: Color = ammo.current == 0 ? Ablox.Palette.warning : .white
+        let spoken: String = ammo.isReloading ? L("Reloading") : L("{} of {} rounds", ammo.current, ammo.magazine)
+        return Text(verbatim: text)
+            .font(.subheadline.weight(.bold).monospacedDigit())
+            .foregroundStyle(colour)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(.ultraThinMaterial, in: Capsule())
+            .accessibilityLabel(spoken)
+    }
+
+    private var reloadButton: some View {
+        Button {
+            session.send(input: .reload)
+        } label: {
+            Image(systemName: "arrow.triangle.2.circlepath")
+                .font(.headline)
+                .frame(width: 48, height: 48)
+                .background(.ultraThinMaterial, in: Circle())
+                .foregroundStyle(.white)
+        }
+        .accessibilityLabel(L("Reload"))
+    }
+
+    private func fireButton(canFire: Bool) -> some View {
+        let fill: Color = isFiring ? Ablox.Palette.danger.opacity(0.55) : Color.black.opacity(0.25)
+        let ring: Color = Ablox.Palette.danger.opacity(isFiring ? 1 : 0.6)
+        let scale: CGFloat = isFiring ? 0.93 : 1
+        return Circle()
+            .fill(fill)
+            .background(.ultraThinMaterial, in: Circle())
+            .overlay(Circle().strokeBorder(ring, lineWidth: 3))
+            .overlay(
+                Image(systemName: "scope")
+                    .font(.system(size: 34, weight: .bold))
+                    .foregroundStyle(.white)
+            )
+            .frame(width: 96, height: 96)
+            .scaleEffect(scale)
+            .opacity(canFire ? 1 : 0.5)
+            .animation(.spring(response: 0.2, dampingFraction: 0.6), value: isFiring)
+            .gesture(hold)
+            .accessibilityLabel(L("Fire"))
+            .accessibilityAddTraits(.isButton)
+    }
+
+    /// Held, not tapped: holding keeps firing at the weapon's rate, which is
+    /// how every shooter on a phone works.
+    private var hold: some SwiftUI.Gesture {
+        DragGesture(minimumDistance: 0)
+            .onChanged { _ in isFiring = true }
+            .onEnded { _ in isFiring = false }
     }
 }
 

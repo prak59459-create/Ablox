@@ -40,33 +40,44 @@ struct AbloxApp: App {
 
     var body: some Scene {
         WindowGroup {
-            MainMenuView()
-                .environmentObject(settings)
-                .environmentObject(session)
-                .environmentObject(store)
-                .environmentObject(saves)
-                .environmentObject(updater)
-                .environmentObject(cloud)
-                .environmentObject(notices)
-                // Settings → Comfort → Text size, for the whole app.
-                .dynamicTypeSize(settings.preferences.textSize.dynamicType)
-                // Rebuilds the interface when the language changes.
-                //
-                // `L(...)` reads a global that SwiftUI knows nothing about, so
-                // nothing would redraw on its own. Changing the identity here
-                // forces one full rebuild — deliberately *below* the state
-                // objects above, so the session, wallet and settings are not
-                // recreated with it. It resets view-local state such as the
-                // open tab, which is acceptable for something that happens
-                // once in a while and arguably wanted.
-                .id(settings.language.rawValue + "-" + accent)
-                // Offers Ablox's own keyboard on an iPad where the system one
-                // does not come up.
-                .onAppear { KeyboardController.shared.startWatching() }
-                // Going to the background is not a crash.
-                .onChange(of: scenePhase) { _, phase in
-                    ProblemRecorder.shared.markRunning(phase != .background)
-                }
+            watching(menus)
         }
+    }
+
+    private var menus: some View {
+        MainMenuView()
+            .environmentObject(settings)
+            .environmentObject(session)
+            .environmentObject(store)
+            .environmentObject(saves)
+            .environmentObject(updater)
+            .environmentObject(cloud)
+            .environmentObject(notices)
+            // Settings → Comfort → Text size, for the whole app.
+            .dynamicTypeSize(settings.preferences.textSize.dynamicType)
+    }
+
+    /// Rebuilds the interface when the language changes.
+    ///
+    /// `L(...)` reads a global that SwiftUI knows nothing about, so nothing
+    /// would redraw on its own. Changing the identity here forces one full
+    /// rebuild — deliberately *below* the state objects above, so the
+    /// session, wallet and settings are not recreated with it. It resets
+    /// view-local state such as the open tab, which is acceptable for
+    /// something that happens once in a while and arguably wanted.
+    private var interfaceIdentity: String {
+        "\(settings.language.rawValue)-\(accent)"
+    }
+
+    private func watching<Content: View>(_ content: Content) -> some View {
+        content
+            .id(interfaceIdentity)
+            // Offers Ablox's own keyboard on an iPad where the system one
+            // does not come up.
+            .onAppear { KeyboardController.shared.startWatching() }
+            // Going to the background is not a crash.
+            .onChange(of: scenePhase) { _, phase in
+                ProblemRecorder.shared.markRunning(phase != .background)
+            }
     }
 }
