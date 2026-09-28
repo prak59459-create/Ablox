@@ -319,29 +319,14 @@ struct AvatarCustomizerView: View {
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(Ablox.Palette.inkMuted)
 
-            HStack(spacing: 9) {
+            // Only hats that are owned can be worn, as with faces and pets;
+            // the rest are in the shop.
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 70), spacing: 9)], spacing: 9) {
                 ForEach(AvatarProfile.HatStyle.allCases, id: \.self) { hat in
-                    Button {
+                    let owned = settings.wallet.owns("hat.\(hat.rawValue)")
+                    choice(hat.displayName, hat.symbolName, selected: settings.profile.hat == hat, locked: !owned) {
                         settings.profile.hat = hat
-                    } label: {
-                        VStack(spacing: 5) {
-                            Image(systemName: hat.symbolName)
-                                .font(.title3)
-                            Text(hat.displayName)
-                                .font(.system(size: 10, weight: .semibold))
-                        }
-                        .frame(maxWidth: .infinity, minHeight: 58)
-                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .strokeBorder(
-                                    settings.profile.hat == hat ? Ablox.Palette.accent : Ablox.Palette.line,
-                                    lineWidth: settings.profile.hat == hat ? 2 : 1
-                                )
-                        )
-                        .foregroundStyle(settings.profile.hat == hat ? Ablox.Palette.accent : Ablox.Palette.inkMuted)
                     }
-                    .buttonStyle(.plain)
                 }
             }
         }
