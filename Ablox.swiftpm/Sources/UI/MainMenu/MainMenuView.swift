@@ -52,6 +52,7 @@ public struct MainMenuView: View {
     @EnvironmentObject private var notices: NoticeService
 
     @State private var selectedTab: MenuTab = .play
+    @State private var openedStartTab = false
     /// Set when the player enters a world; drives the full-screen cover.
     @State private var activeSession: ActiveSession?
     /// A game on its way in, waiting for a sheet to finish leaving.
@@ -80,6 +81,17 @@ public struct MainMenuView: View {
     // slowest things in the app to compile.
     public var body: some View {
         watching(presenting(layout))
+            .abloxAccess(settings.preferences.access)
+            .onChange(of: selectedTab) { _, tab in
+                // Access: each tab's name read aloud.
+                if settings.preferences.access.readTabsAloud { LineReader.shared.speak(tab.displayName) }
+            }
+            .onChange(of: settings.parental) { _, parental in
+                // A tab put away while open: back to Play.
+                if (selectedTab == .shop && !parental.family.shopAllowed) || (selectedTab == .worlds && !parental.family.buildingAllowed) {
+                    selectedTab = .play
+                }
+            }
     }
 
     private var layout: some View {
@@ -205,6 +217,11 @@ public struct MainMenuView: View {
     }
 
     private func arrive() {
+        // Access: the tab chosen to open first, once per launch.
+        if !openedStartTab {
+            openedStartTab = true
+            if let tab = MenuTab(rawValue: settings.preferences.access.startTab ?? "") { selectedTab = tab }
+        }
         updater.start()
         let remembered = settings
         session.saveSlotFor = { id in remembered.memory.saveSlots[id.uuidString] ?? 1 }
@@ -405,6 +422,19 @@ public struct ActiveSession: Identifiable, Equatable {
 struct SidebarView: View {
     @Binding var selectedTab: MenuTab
     @EnvironmentObject private var session: SessionCoordinator
+    @EnvironmentObject private var settings: AppSettings
+
+    /// Tabs a grown-up has put away do not show.
+    private var tabs: [MenuTab] {
+        let family = settings.parental.family
+        return MenuTab.allCases.filter { tab in
+            switch tab {
+            case .shop: return family.shopAllowed
+            case .worlds: return family.buildingAllowed
+            default: return true
+            }
+        }
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
@@ -413,7 +443,7 @@ struct SidebarView: View {
                 .padding(.top, 28)
 
             VStack(spacing: 6) {
-                ForEach(MenuTab.allCases) { tab in
+                ForEach(tabs) { tab in
                     tabButton(tab)
                 }
             }

@@ -20,6 +20,8 @@ struct ShopView: View {
     @State private var onlyAffordable = false
     @State private var priceOrder: PriceOrder = .cheapest
     @State private var search = ""
+    /// Waiting for a grown-up's passcode to buy this.
+    @State private var askingFor: ShopItem?
     /// What was new when the shop opened; marked seen as it opens.
     @State private var newItems: Set<String> = []
 
@@ -58,6 +60,18 @@ struct ShopView: View {
             CoinHistorySheet(ledger: settings.coinLedger)
         }
         .onAppear(perform: noticeNewItems)
+        .sheet(item: $askingFor) { item in
+            PasscodeSheet(title: L("Ask a grown-up: {} costs {} coins", item.displayName, settings.price(of: item))) { code in
+                guard settings.parental.accepts(code) else { return false }
+                askingFor = nil
+                // The purchase goes ahead once the sheet has gone.
+                Task { @MainActor in
+                    try? await Task.sleep(nanoseconds: 350_000_000)
+                    completePurchase(item)
+                }
+                return true
+            }
+        }
     }
 
     private var header: some View {
@@ -245,7 +259,8 @@ struct ShopView: View {
         }
     }
 
-    private func buy(_ item: ShopItem) {
+    /// Buys after a grown-up said yes.
+    private func completePurchase(_ item: ShopItem) {
         withAnimation {
             if let result = settings.buy(item) {
                 lastResult = result
@@ -258,6 +273,15 @@ struct ShopView: View {
         }
         if lastResult?.succeeded == true { apply(item) }
         clearResultSoon()
+    }
+
+    private func buy(_ item: ShopItem) {
+        // Family: dear things need a grown-up's passcode.
+        if settings.parental.isLocked, settings.parental.family.needsPermission(price: settings.price(of: item)) {
+            askingFor = item
+            return
+        }
+        completePurchase(item)
     }
 
     private func itemCard(_ item: ShopItem, owned: Bool) -> some View {

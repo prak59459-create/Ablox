@@ -548,6 +548,7 @@ struct PauseMenu: View {
     let onCameraBehind: () -> Void
     let onHideButtons: () -> Void
     let onShortcuts: () -> Void
+    var onAround: () -> Void = {}
 
     enum Tab: String, CaseIterable, Identifiable {
         case game, room, controls, messages, help
@@ -658,6 +659,7 @@ struct PauseMenu: View {
             row(L("Camera behind me"), "camera.rotate", action: onCameraBehind)
             row(L("Hide the buttons"), "eye.slash", action: onHideButtons)
             row(L("Keyboard shortcuts"), "keyboard", action: onShortcuts)
+            row(L("What's around me"), "dot.radiowaves.left.and.right", action: onAround)
             if session.role == .hosting, !session.roomCode.isEmpty {
                 row(copiedCode ? L("Copied!") : L("Copy the room code"), copiedCode ? "checkmark" : "doc.on.doc") {
                     UIPasteboard.general.string = RoomCode.formatted(session.roomCode)

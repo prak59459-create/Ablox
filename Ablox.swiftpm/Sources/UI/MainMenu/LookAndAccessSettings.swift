@@ -63,6 +63,7 @@ struct AccessibilityCard: View {
         GlassCard {
             VStack(alignment: .leading, spacing: 14) {
                 SectionHeader(L("Seeing and hearing"), systemImage: "eye.circle")
+                AccessOptionsSection()
 
                 VStack(alignment: .leading, spacing: 6) {
                     Text(L("Colour vision"))

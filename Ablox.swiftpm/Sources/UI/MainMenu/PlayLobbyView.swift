@@ -20,6 +20,8 @@ struct PlayLobbyView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 26) {
                 hero
+                FamilyNoteBanner()
+                PlayTimeLeftChip()
                 BirthdayBanner()
                 EventBanner()
                 ContinueCard(onEnter: onEnter)

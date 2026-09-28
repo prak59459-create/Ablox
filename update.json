@@ -1,28 +1,24 @@
 {
   "app": "Ablox",
-  "version": "1.3",
-  "build": 2,
+  "version": "1.4",
+  "build": 3,
   "protocol": 8,
   "date": "2026-09-28",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "Avatar: 20 hats, 15 faces, 10 pets, 5 colours, 20 emotes, trails, auras, name cards and chat bubbles",
-      "Levels with coin rewards, 25 more badges, and look codes that carry every piece of a look",
-      "Play screen options: compass, speed, battery, run and zoom buttons, stick size and style, camera that follows, keyboard shortcuts",
-      "Chat: phrases in groups and your own, emoji, whispers from the chat bar; phone numbers, emails and links are hidden",
-      "Friends: search, pins, groups and notes. Games: better search, quick filters, your own lists, stars and new shelves",
-      "Photos: 12 new filters, a timer, bursts, frames and shapes; an album with hearts, captions, a viewer and editing",
-      "Missions of the week, seasonal events with bonuses and sales, streak prizes, a deal of the day, a coin jar and birthdays"
+      "Family: ready-made settings by age, a weekend limit, days off, extra time today, a pause button, and choosing which games can be played",
+      "Family: switch off pictures, the shop, building or whispers; chat with friends only; ask before big purchases; eye rests; a note on the Play tab; a record of changes and a report of the week",
+      "Seeing and hearing: bold text, less motion, words on screen for sounds, a tap or a flash for important ones, a gentler walking pace, asking before leaving, and which tab opens first",
+      "Settings: search every card, a tip each day, and move your settings to another iPad as a file",
+      "Play: minutes left today on screen, warnings at 10 and 5 minutes and before quiet hours, and 'What's around me' in the pause menu"
     ],
     "ja": [
-      "アバター: ぼうし20・顔15・ペット10・色5・エモート20、トレイル、オーラ、ネームカード、チャットのふきだし",
-      "レベルとコインのごほうび、バッジ25個追加、コーデコードでぜんぶのアイテムを共有",
-      "プレイ画面の設定: コンパス、スピード、バッテリー、走る・ズームボタン、スティックの大きさと種類、ついてくるカメラ、キーボードショートカット",
-      "チャット: グループ分けした定型文と自分のフレーズ、絵文字、ひそひそ話。電話番号・メール・リンクはかくされます",
-      "フレンド: 検索・固定・グループ・メモ。ゲーム: 検索の強化、すばやい絞り込み、マイリスト、星、新しい棚",
-      "写真: 新しいフィルター12種、タイマー、連写、フレームと形。アルバムにハート・キャプション・ビューア・編集",
-      "今週のミッション、季節のイベント（ボーナスとセール）、連続ログインのごほうび、今日のお買い得、貯金ビン、誕生日"
+      "家族: 年齢に合わせたおすすめ設定、週末の時間、お休みの日、今日だけの延長、いますぐ止めるボタン、遊べるゲームの選択",
+      "家族: 写真・ショップ・ワールドづくり・ひそひそ話のオン/オフ、フレンドとだけチャット、高い買い物の前に確認、目の休けい、プレイタブのメモ、変更の記録と1週間のレポート",
+      "見る・聞く: 太字、動きをへらす、音を文字で表示、大事な音でブルッ・ピカッ、ゆっくり歩く、ゲームを出る前に確認、最初に開くタブ",
+      "設定: すべての項目を検索、毎日のヒント、設定をファイルにして別のiPadにうつす",
+      "プレイ: 今日の残り時間を表示、残り10分・5分とおやすみ時間の前にお知らせ、ポーズメニューに「まわりのようす」"
     ]
   }
 }

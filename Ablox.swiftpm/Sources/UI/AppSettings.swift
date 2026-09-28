@@ -137,7 +137,12 @@ public final class AppSettings: ObservableObject {
     /// Settings → Family: limits, bedtime, chat and the passcode that guards
     /// them. See `ParentalControls`.
     @Published public var parental: ParentalControls {
-        didSet { persist(parental, forKey: Key.parental) }
+        didSet {
+            persist(parental, forKey: Key.parental)
+            // A record a grown-up can look back on.
+            let changes = parental.changes(from: oldValue)
+            if !changes.isEmpty { memory.familyLog.record(changes) }
+        }
     }
 
     /// How long was played, per day and per game.
@@ -705,6 +710,8 @@ public struct MenuMemory: Codable, Hashable, Sendable {
     /// Shop items already seen, to mark new ones; nil until the shop is
     /// first opened.
     public var seenShopItems: Set<String>?
+    /// Changes to the family settings.
+    public var familyLog = FamilyLog()
     /// The highest level whose coins have been given.
     public var rewardedLevel = 1
 
@@ -752,6 +759,7 @@ public struct MenuMemory: Codable, Hashable, Sendable {
         lastPurchase = try? c.decodeIfPresent(LastPurchase.self, forKey: .lastPurchase)
         eventsJoined = (try? c.decodeIfPresent(Set<String>.self, forKey: .eventsJoined)) ?? []
         seenShopItems = try? c.decodeIfPresent(Set<String>.self, forKey: .seenShopItems)
+        familyLog = (try? c.decodeIfPresent(FamilyLog.self, forKey: .familyLog)) ?? FamilyLog()
         rewardedLevel = (try? c.decodeIfPresent(Int.self, forKey: .rewardedLevel)) ?? 1
     }
 

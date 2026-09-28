@@ -18,6 +18,12 @@ struct SettingsView: View {
     @State private var choosingSaveFile = false
     @State private var choosingBackupFolder = false
     @State private var moving = false
+    @State private var search = ""
+
+    /// Whether a card matches the search: its words or its title.
+    private func shows(_ words: String, _ title: String) -> Bool {
+        SearchText.matches(search, in: [words, title])
+    }
 
     var body: some View {
         ScrollView {
@@ -30,27 +36,37 @@ struct SettingsView: View {
                         .foregroundStyle(Ablox.Palette.inkMuted)
                 }
 
-                languageCard
-                LookCard()
-                UpdateSettingsCard(updater: updater) {
-                    installing = UpdateInstall(backup: saves.makeBackupBeforeUpdate(settings: settings, worlds: store))
+                // Finds a card by what it is about, in either language.
+                AbloxTextField(L("Search settings"), text: $search)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
+                    .background(Ablox.Palette.wash, in: Capsule())
+                    .frame(maxWidth: 420)
+                if shows("language", L("Language")) { languageCard }
+                if shows("look theme colour accent light dark", L("Look")) { LookCard() }
+                if shows("update version", L("Updates")) {
+                    UpdateSettingsCard(updater: updater) {
+                        installing = UpdateInstall(backup: saves.makeBackupBeforeUpdate(settings: settings, worlds: store))
+                    }
                 }
-                FamilyCard()
-                gamesCard
-                dataCard
-                StorageCard()
-                ComfortCard()
-                AccessibilityCard()
-                graphicsCard
-                controlsCard
-                PlayScreenOptionsCard()
-                ChatOptionsCard()
-                MoreSettingsCard()
-                ControllersCard()
-                movementCard
-                networkCard
-                ProblemReportsCard()
-                aboutCard
+                if shows("family parent passcode limit time chat rooms coins", L("Family")) { FamilyCard() }
+                if shows("games list catalogue", L("Games")) { gamesCard }
+                if shows("data backup save restore", L("Data")) { dataCard }
+                if shows("storage space delete", L("Storage")) { StorageCard() }
+                if shows("comfort shake field of view warm dim battery", L("Comfort")) { ComfortCard() }
+                if shows("seeing hearing colour vision bold motion captions speed accessibility", L("Seeing and hearing")) { AccessibilityCard() }
+                if shows("graphics quality frame rate", L("Graphics")) { graphicsCard }
+                if shows("controls joystick camera sensitivity invert", L("Controls")) { controlsCard }
+                if shows("play screen buttons compass map stick", L("Play screen")) { PlayScreenOptionsCard() }
+                if shows("chat bubbles names emoji", L("Chat and names")) { ChatOptionsCard() }
+                if shows("crosshair hidden games searches birthday", L("Aiming and searching")) { MoreSettingsCard() }
+                if shows("controller keyboard mouse", L("Controllers")) { ControllersCard() }
+                if shows("movement walk run jump", L("Movement")) { movementCard }
+                if shows("network wifi internet", L("Network")) { networkCard }
+                if shows("problem report error crash", L("Problem reports")) { ProblemReportsCard() }
+                if shows("tips shortcuts keyboard help", L("Tips")) { SettingsHelpCard() }
+                if shows("move settings file export import another ipad", L("Move my settings")) { SettingsTransferCard() }
+                if shows("about version", L("About")) { aboutCard }
             }
             .padding(Ablox.Metrics.gutter)
             .frame(maxWidth: 780, alignment: .leading)

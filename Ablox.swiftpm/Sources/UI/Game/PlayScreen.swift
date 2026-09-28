@@ -74,6 +74,10 @@ public struct PlayScreen: View {
     @State private var flashing = false
     @State private var lastShot: URL?
     @State private var shooting = false
+    // Access (see AccessExtras.swift).
+    @State private var captions: [SoundCaption] = []
+    @State private var confirmingLeave = false
+    @State private var importantFlash = false
 
     public init(session: SessionCoordinator, activeSession: ActiveSession, onExit: @escaping () -> Void) {
         self.session = session
@@ -107,6 +111,53 @@ public struct PlayScreen: View {
     // screen was among the slowest things in the app to compile.
     public var body: some View {
         reactions(lifecycle(screen))
+            .abloxAccess(settings.preferences.access)
+            // With VoiceOver: who is near, and which way.
+            .accessibilityAction(named: L("What's around me")) { describeSurroundings() }
+            .alert(L("Leave this game?"), isPresented: $confirmingLeave) {
+                Button(L("Stay"), role: .cancel) {}
+                Button(L("Leave"), role: .destructive) { onExit() }
+            }
+    }
+
+    /// Says who is nearby and where, aloud with VoiceOver and on screen.
+    private func describeSurroundings() {
+        guard let me = session.localPlayer else { return }
+        showToast(SurroundingsReport.describe(me: me, others: session.roster))
+    }
+
+    /// A word for a sound, for a moment (Access: words on screen for sounds),
+    /// and a tap or a flash for an important one.
+    private func showCaption(_ cue: SoundCue) {
+        let access = settings.preferences.access
+        if cue.isImportant {
+            if access.vibrateImportant { UINotificationFeedbackGenerator().notificationOccurred(.warning) }
+            if access.flashImportant {
+                withAnimation(.easeOut(duration: 0.08)) { importantFlash = true }
+                Task { @MainActor in
+                    try? await Task.sleep(nanoseconds: 180_000_000)
+                    withAnimation(.easeIn(duration: 0.3)) { importantFlash = false }
+                }
+            }
+        }
+        guard access.soundCaptions else { return }
+        let caption = SoundCaption(text: cue.caption, important: cue.isImportant, shownAt: Date())
+        withAnimation {
+            captions.append(caption)
+            if captions.count > 3 { captions.removeFirst(captions.count - 3) }
+        }
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 1_800_000_000)
+            withAnimation { captions.removeAll { $0.id == caption.id } }
+        }
+    }
+
+    private func listenForSounds(_ on: Bool) {
+        if on {
+            link.onSound = { cue in showCaption(cue) }
+        } else {
+            link.onSound = nil
+        }
     }
 
     /// Photo mode's zoom lens is the field of view, for photo mode only.
@@ -129,6 +180,14 @@ public struct PlayScreen: View {
             }
             if let toast {
                 toastView(toast)
+            }
+            if importantFlash {
+                Color.white.opacity(0.35).ignoresSafeArea().allowsHitTesting(false)
+            }
+            if !captions.isEmpty {
+                SoundCaptionsView(captions: captions)
+                    .padding(.top, 118)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             }
             statusOverlays
         }
@@ -222,7 +281,8 @@ public struct PlayScreen: View {
             tracker: tracker,
             onCameraBehind: { closeMenu(); cameraBehind() },
             onHideButtons: { closeMenu(); withAnimation { buttonsHidden = true } },
-            onShortcuts: { closeMenu(); withAnimation { showShortcuts = true } }
+            onShortcuts: { closeMenu(); withAnimation { showShortcuts = true } },
+            onAround: { closeMenu(); describeSurroundings() }
         )
         .transition(.opacity)
     }
@@ -244,7 +304,9 @@ public struct PlayScreen: View {
             .onAppear {
                 enterSession()
                 startHardware()
+                listenForSounds(settings.preferences.access.hearsSounds)
             }
+            .onChange(of: settings.preferences.access.hearsSounds) { _, on in listenForSounds(on) }
             .onChange(of: showChat) { _, open in
                 hardware.suspended = open || showMenu
                 if open {
@@ -409,6 +471,12 @@ public struct PlayScreen: View {
         checkAway()
         checkPower()
         checkBigMissions()
+        warnAboutTime()
+        // Family: a moment for the eyes, every so often.
+        if let every = settings.parental.family.eyeRestMinutes, sessionSeconds - tracker.lastEyeRest >= Double(every * 60) {
+            tracker.lastEyeRest = sessionSeconds
+            showToast(L("Rest your eyes: look at something far away for 20 seconds."))
+        }
 
         if PlayGate.breakDue(settings.parental, sessionSeconds: sessionSeconds, lastReminder: lastRestReminder) {
             lastRestReminder = sessionSeconds
@@ -439,6 +507,21 @@ public struct PlayScreen: View {
         tracker.idle.touched(at: now)
         openMenu()
         showToast(L("Paused while you were away."))
+    }
+
+    /// Family: a word at 10 and 5 minutes left, and 10 minutes before quiet
+    /// hours begin.
+    private func warnAboutTime() {
+        if let left = PlayGate.minutesLeft(settings.parental, log: settings.playtime),
+           let mark = FamilyExtras.warningMinutes.first(where: { left <= $0 && !tracker.timeWarnings.contains($0) }) {
+            // Every warning this late counts as given, so none repeats.
+            tracker.timeWarnings.formUnion(FamilyExtras.warningMinutes.filter { $0 >= min(mark, left) })
+            showToast(L("{} minutes of play left today.", left))
+        }
+        if let quiet = PlayGate.minutesUntilQuiet(settings.parental), quiet > 0, quiet <= 10, !tracker.warnedQuiet {
+            tracker.warnedQuiet = true
+            showToast(L("Quiet time starts in {} minutes.", quiet))
+        }
     }
 
     /// Says so when this week's missions or the season's one are done.
@@ -517,7 +600,8 @@ public struct PlayScreen: View {
         hasBankedThisRound = false
         session.allowsPlayerChat = settings.parental.chat != .off
         session.chatOptions = settings.preferences.chat
-        session.allowsWhispers = Whisper.isAllowed(settings.parental.chat)
+        session.allowsWhispers = Whisper.isAllowed(settings.parental.chat) && settings.parental.family.whispersAllowed
+        session.chatOnlyFrom = settings.parental.family.chatFriendsOnly ? Set(settings.social.friends.map(\.id)) : nil
         switch activeSession.mode {
         case let .solo(world):
             session.startSoloSession(world: world)
@@ -733,6 +817,10 @@ public struct PlayScreen: View {
     /// In photo mode the picture is also cut, framed and stamped as chosen,
     /// and kept in the corner rather than shared straight away.
     private func takePicture(inPhotoMode: Bool) {
+        guard settings.parental.family.picturesAllowed else {
+            showToast(L("Pictures are switched off by a grown-up."))
+            return
+        }
         let filter = photoFilter
         let game = session.world.name
         let options = settings.memory.photo
@@ -842,7 +930,7 @@ public struct PlayScreen: View {
         speak(text)
         withAnimation { toast = text }
         Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 2_500_000_000)
+            try? await Task.sleep(nanoseconds: settings.preferences.access.longerMessages ? 5_000_000_000 : 2_500_000_000)
             withAnimation { if toast == text { toast = nil } }
         }
     }
@@ -1044,7 +1132,13 @@ public struct PlayScreen: View {
     }
 
     private func leaveTapped() {
-        if session.canHandOver { choosingHowToLeave = true } else { onExit() }
+        if session.canHandOver {
+            choosingHowToLeave = true
+        } else if settings.preferences.access.confirmLeaving {
+            confirmingLeave = true
+        } else {
+            onExit()
+        }
     }
 
     private var hud: HUDOptions { settings.preferences.hud }
@@ -1123,7 +1217,7 @@ public struct PlayScreen: View {
                 }
             }
 
-            if hud.shows(.camera) {
+            if hud.shows(.camera), settings.parental.family.picturesAllowed {
                 barButton("camera.fill", L("Take a picture")) { takePicture() }
             }
 

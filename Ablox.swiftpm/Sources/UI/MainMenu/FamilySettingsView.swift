@@ -44,7 +44,8 @@ struct FamilyCard: View {
             }
         }
         .sheet(isPresented: $asking) {
-            PasscodeSheet(title: L("Enter the family passcode")) { code in
+            PasscodeSheet(title: settings.parental.family.passcodeHint.map { L("Enter the family passcode (hint: {})", $0) }
+                          ?? L("Enter the family passcode")) { code in
                 if settings.parental.accepts(code) {
                     asking = false
                     // After this sheet has gone: one sheet at a time.
@@ -159,6 +160,7 @@ struct FamilySettingsSheet: View {
                 Section(L("What was played")) {
                     ActivitySummary(log: settings.playtime)
                 }
+                FamilyMoreSections()
                 passcodeSection
             }
             .navigationTitle(L("Family"))

@@ -29,6 +29,11 @@ final class PlayTracker {
     /// This week's missions done, and the season's, at the last look.
     var weeklyDone: Set<String> = []
     var eventWaiting = false
+    /// When the last eye-rest note was shown, in seconds of this visit.
+    var lastEyeRest: Double = 0
+    /// Time warnings already given this visit.
+    var timeWarnings: Set<Int> = []
+    var warnedQuiet = false
 
     func note(_ text: String) {
         notices.append((Date(), text))
@@ -129,6 +134,11 @@ struct FactChips: View {
             }
             if hud.showMissionTracker {
                 missionChip
+            }
+            // Family: how long is left today, when there is a limit.
+            if let left = PlayGate.minutesLeft(settings.parental, log: settings.playtime) {
+                FactChip(systemImage: "hourglass", text: L("{} min left today", left),
+                         tint: left <= 10 ? Ablox.Palette.warning : .white)
             }
         }
     }

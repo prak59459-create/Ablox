@@ -33,7 +33,9 @@ struct DiscoverView: View {
     /// Everything the list may show: Settings → Family can keep scary games
     /// out, and the player can put games out of sight.
     private var allowed: [GameListing] {
-        let shown = CatalogueBrowsing.visible(library.listings, hidden: settings.memory.hiddenGames)
+        let family = settings.parental.family
+        // A grown-up's choice of games comes first.
+        let shown = CatalogueBrowsing.visible(library.listings, hidden: settings.memory.hiddenGames).filter { family.allows(game: $0.id) }
         return settings.parental.hideScaryGames ? shown.filter { !$0.tags.contains("horror") } : shown
     }
 
