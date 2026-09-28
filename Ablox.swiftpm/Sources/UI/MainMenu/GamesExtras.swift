@@ -328,6 +328,7 @@ struct GameDetailExtras: View {
             starsRow
             organiseRow
             record
+            GamePicturesRow(game: listing.title)
             related(L("Games like this"), GameShelves.similar(to: listing, in: allowed))
             related(L("More by {}", listing.displayAuthor), GameShelves.byAuthor(of: listing, in: allowed))
             tools

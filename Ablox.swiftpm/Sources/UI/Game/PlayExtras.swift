@@ -71,11 +71,29 @@ enum ScreenshotStore {
     static func delete(_ url: URL) {
         try? FileManager.default.removeItem(at: url)
     }
+
+    /// Every picture and clip with what its name says, newest first.
+    static func entries() -> [(url: URL, entry: AlbumEntry)] {
+        all().compactMap { url in
+            let values = try? url.resourceValues(forKeys: [.fileSizeKey, .creationDateKey])
+            guard let entry = AlbumEntry.parse(url.lastPathComponent, bytes: values?.fileSize ?? 0,
+                                               fallbackDate: values?.creationDate ?? .distantPast) else { return nil }
+            return (url, entry)
+        }
+    }
+
+    /// An edited picture saved beside the one it came from.
+    static func saveCopy(_ image: UIImage, of original: URL) -> URL? {
+        let game = AlbumEntry.parse(original.lastPathComponent)?.game ?? L("Edited")
+        return save(image, game: game)
+    }
 }
 
 /// A look for photo mode, applied to the picture as it is taken.
 enum PhotoFilter: String, CaseIterable, Identifiable {
     case none, vivid, warm, cool, mono, retro
+    // The second round.
+    case noir, fade, chrome, instant, process, transfer, tonal, bloom, vignette, comic, pixel, poster
 
     var id: String { rawValue }
 
@@ -87,6 +105,18 @@ enum PhotoFilter: String, CaseIterable, Identifiable {
         case .cool: return L("Cool")
         case .mono: return L("Black and white")
         case .retro: return L("Retro")
+        case .noir: return L("Noir")
+        case .fade: return L("Faded")
+        case .chrome: return L("Chrome")
+        case .instant: return L("Instant")
+        case .process: return L("Process")
+        case .transfer: return L("Transfer")
+        case .tonal: return L("Tonal")
+        case .bloom: return L("Glow")
+        case .vignette: return L("Vignette")
+        case .comic: return L("Comic")
+        case .pixel: return L("Pixels")
+        case .poster: return L("Poster")
         }
     }
 
@@ -98,6 +128,13 @@ enum PhotoFilter: String, CaseIterable, Identifiable {
         case .cool: return Color.blue.opacity(0.16)
         case .mono: return Color.gray.opacity(0.35)
         case .retro: return Color(red: 0.7, green: 0.5, blue: 0.25).opacity(0.25)
+        case .noir, .tonal: return Color.black.opacity(0.3)
+        case .fade: return Color.white.opacity(0.2)
+        case .chrome, .process: return Color.teal.opacity(0.12)
+        case .instant, .transfer: return Color(red: 0.9, green: 0.75, blue: 0.5).opacity(0.18)
+        case .bloom: return Color.white.opacity(0.12)
+        case .vignette: return Color.black.opacity(0.12)
+        case .comic, .pixel, .poster: return .clear
         }
     }
 
@@ -117,6 +154,24 @@ enum PhotoFilter: String, CaseIterable, Identifiable {
             output = input.applyingFilter("CIPhotoEffectMono")
         case .retro:
             output = input.applyingFilter("CISepiaTone", parameters: [kCIInputIntensityKey: 0.6])
+        case .noir: output = input.applyingFilter("CIPhotoEffectNoir")
+        case .fade: output = input.applyingFilter("CIPhotoEffectFade")
+        case .chrome: output = input.applyingFilter("CIPhotoEffectChrome")
+        case .instant: output = input.applyingFilter("CIPhotoEffectInstant")
+        case .process: output = input.applyingFilter("CIPhotoEffectProcess")
+        case .transfer: output = input.applyingFilter("CIPhotoEffectTransfer")
+        case .tonal: output = input.applyingFilter("CIPhotoEffectTonal")
+        case .bloom:
+            output = input.applyingFilter("CIBloom", parameters: [kCIInputRadiusKey: 12, kCIInputIntensityKey: 0.8])
+        case .vignette:
+            output = input.applyingFilter("CIVignette", parameters: [kCIInputRadiusKey: 2, kCIInputIntensityKey: 1.2])
+        case .comic: output = input.applyingFilter("CIComicEffect")
+        case .pixel:
+            // Blocks sized to the picture, so a big screen is not a blur.
+            let scale = max(6, min(input.extent.width, input.extent.height) / 90)
+            output = input.applyingFilter("CIPixellate", parameters: [kCIInputScaleKey: scale])
+        case .poster:
+            output = input.applyingFilter("CIColorPosterize", parameters: ["inputLevels": 6])
         }
         let context = CIContext()
         guard let cg = context.createCGImage(output, from: input.extent) else { return image }

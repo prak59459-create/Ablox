@@ -519,6 +519,9 @@ public struct MenuMemory: Codable, Hashable, Sendable {
     /// The best score in each game, by name.
     public var bestScores: [String: Int] = [:]
     public var gamesLayout: GamesLayout = .bigCards
+    // Pictures (see PhotoAlbum.swift).
+    public var albumNotes = AlbumNotes()
+    public var photo = PhotoModeOptions()
     /// The highest level whose coins have been given.
     public var rewardedLevel = 1
 
@@ -555,6 +558,8 @@ public struct MenuMemory: Codable, Hashable, Sendable {
         lastPlayedAt = (try? c.decodeIfPresent([String: Date].self, forKey: .lastPlayedAt)) ?? [:]
         bestScores = (try? c.decodeIfPresent([String: Int].self, forKey: .bestScores)) ?? [:]
         gamesLayout = (try? c.decodeIfPresent(GamesLayout.self, forKey: .gamesLayout)) ?? .bigCards
+        albumNotes = (try? c.decodeIfPresent(AlbumNotes.self, forKey: .albumNotes)) ?? AlbumNotes()
+        photo = (try? c.decodeIfPresent(PhotoModeOptions.self, forKey: .photo)) ?? PhotoModeOptions()
         rewardedLevel = (try? c.decodeIfPresent(Int.self, forKey: .rewardedLevel)) ?? 1
     }
 

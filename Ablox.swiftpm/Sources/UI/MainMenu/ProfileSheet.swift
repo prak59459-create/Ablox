@@ -22,7 +22,6 @@ struct ProfileSheet: View {
 
     @State private var tab: Tab = .badges
     @State private var pictures: [URL] = []
-    @State private var sharing: SharedFile?
 
     private var stats: ProgressStats {
         settings.progressStats(worldsMade: store.entries.count, pictures: pictures.count)
@@ -58,9 +57,6 @@ struct ProfileSheet: View {
         .abloxColorScheme()
         .tint(Ablox.Palette.accent)
         .onAppear { pictures = ScreenshotStore.all() }
-        .sheet(item: $sharing) { file in
-            ActivityShareSheet(items: [file.url])
-        }
     }
 
     // MARK: Badges
@@ -166,66 +162,8 @@ struct ProfileSheet: View {
     // MARK: Album
 
     private var album: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            if pictures.isEmpty {
-                EmptyStateView(title: L("No pictures yet"),
-                               message: L("Take pictures while playing (the camera button), or in the photo booth."),
-                               systemImage: "photo.on.rectangle")
-            }
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 180), spacing: 10)], spacing: 10) {
-                ForEach(pictures, id: \.self) { url in
-                    AlbumTile(url: url)
-                        .contextMenu {
-                            Button {
-                                sharing = SharedFile(url: url)
-                            } label: {
-                                Label(L("Share or save to Files"), systemImage: "square.and.arrow.up")
-                            }
-                            Button(role: .destructive) {
-                                ScreenshotStore.delete(url)
-                                pictures = ScreenshotStore.all()
-                            } label: {
-                                Label(L("Delete"), systemImage: "trash")
-                            }
-                        }
-                        .onTapGesture { sharing = SharedFile(url: url) }
-                }
-            }
-        }
-        .padding(20)
-    }
-}
-
-/// One picture (or a clip) in the album.
-private struct AlbumTile: View {
-    let url: URL
-    @State private var image: UIImage?
-
-    var body: some View {
-        ZStack {
-            if let image {
-                Image(uiImage: image)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-            } else {
-                Ablox.Palette.wash
-                Image(systemName: url.pathExtension.lowercased() == "png" ? "photo" : "film")
-                    .font(.largeTitle)
-                    .foregroundStyle(Ablox.Palette.inkFaint)
-            }
-        }
-        .frame(height: 110)
-        .frame(maxWidth: .infinity)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .task(id: url) {
-            guard url.pathExtension.lowercased() == "png" else { return }
-            // Small, off the main thread: an album of big pictures should not
-            // stutter the sheet.
-            let path = url
-            image = await Task.detached(priority: .utility) { () -> UIImage? in
-                guard let full = UIImage(contentsOfFile: path.path) else { return nil }
-                return full.preparingThumbnail(of: CGSize(width: 360, height: 220))
-            }.value
-        }
+        // Favourites, captions, days and games, a viewer and editing: see
+        // AlbumViews.swift.
+        AlbumView()
     }
 }

@@ -69,6 +69,11 @@ public struct PlayScreen: View {
     @State private var unreadChat = 0
     /// A line naming this player came while the chat was closed.
     @State private var mentioned = false
+    // Photo mode (see PhotoExtras.swift).
+    @State private var countdown: Int?
+    @State private var flashing = false
+    @State private var lastShot: URL?
+    @State private var shooting = false
 
     public init(session: SessionCoordinator, activeSession: ActiveSession, onExit: @escaping () -> Void) {
         self.session = session
@@ -104,6 +109,15 @@ public struct PlayScreen: View {
         reactions(lifecycle(screen))
     }
 
+    /// Photo mode's zoom lens is the field of view, for photo mode only.
+    private var viewportPreferences: PlayPreferences {
+        let zoom = settings.memory.photo.zoom
+        guard photoMode, zoom != 0 else { return settings.preferences }
+        var preferences = settings.preferences
+        preferences.fieldOfViewBoost += zoom
+        return preferences
+    }
+
     private var screen: some View {
         ZStack {
             viewport
@@ -136,7 +150,7 @@ public struct PlayScreen: View {
             isFiring: (isFiring || hardware.firing) && session.scripted.weapon != nil,
             graphicsQuality: settings.graphicsQuality,
             showFrameRate: settings.showFrameRate,
-            preferences: settings.preferences,
+            preferences: viewportPreferences,
             spectating: spectating,
             preferFirstPerson: preferFirstPerson,
             photoMode: photoMode,
@@ -687,21 +701,61 @@ public struct PlayScreen: View {
     /// Takes a picture of the world (no buttons), keeps it in the album and
     /// offers to share it.
     private func takePicture() {
+        takePicture(inPhotoMode: false)
+    }
+
+    /// In photo mode the picture is also cut, framed and stamped as chosen,
+    /// and kept in the corner rather than shared straight away.
+    private func takePicture(inPhotoMode: Bool) {
         let filter = photoFilter
         let game = session.world.name
+        let options = settings.memory.photo
         link.snapshot { image in
             guard let image else {
                 showToast(L("The picture could not be taken."))
                 return
             }
-            let finished = filter.apply(to: image)
+            let filtered = filter.apply(to: image)
+            let finished = inPhotoMode ? PhotoComposer.compose(filtered, options: options, game: game) : filtered
             if let url = ScreenshotStore.save(finished, game: game) {
                 advance(settings.mission(.takePicture))
-                showToast(L("Saved to your album"))
-                sharing = SharedFile(url: url)
+                if inPhotoMode {
+                    lastShot = url
+                } else {
+                    showToast(L("Saved to your album"))
+                    sharing = SharedFile(url: url)
+                }
             } else {
                 showToast(L("The picture could not be saved."))
             }
+        }
+    }
+
+    /// The shutter: the timer first if there is one, then one picture or a
+    /// burst of three, each with a flash.
+    private func shoot() {
+        guard !shooting else { return }
+        shooting = true
+        let options = settings.memory.photo
+        Task { @MainActor in
+            defer { shooting = false }
+            if options.timer > 0 {
+                for left in stride(from: options.timer, to: 0, by: -1) {
+                    countdown = left
+                    try? await Task.sleep(nanoseconds: 1_000_000_000)
+                    guard photoMode else { countdown = nil; return }
+                }
+                countdown = nil
+            }
+            for shot in 0..<options.shots {
+                takePicture(inPhotoMode: true)
+                withAnimation(.easeOut(duration: 0.05)) { flashing = true }
+                if settings.hapticsEnabled { UIImpactFeedbackGenerator(style: .medium).impactOccurred() }
+                try? await Task.sleep(nanoseconds: 120_000_000)
+                withAnimation(.easeIn(duration: 0.25)) { flashing = false }
+                if shot < options.shots - 1 { try? await Task.sleep(nanoseconds: 400_000_000) }
+            }
+            if options.shots > 1 { showToast(L("{} pictures saved to your album", options.shots)) } else { showToast(L("Saved to your album")) }
         }
     }
 
@@ -833,53 +887,74 @@ public struct PlayScreen: View {
                 .ignoresSafeArea()
                 .allowsHitTesting(false)
             cameraPad
-            VStack {
-                HStack {
-                    Button {
-                        withAnimation { photoMode = false }
-                    } label: {
-                        Label(L("Done"), systemImage: "xmark")
-                            .font(.subheadline.weight(.bold))
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 10)
-                            .background(.ultraThinMaterial, in: Capsule())
-                            .foregroundStyle(.white)
-                    }
-                    Spacer()
-                    Text(L("Drag to move the camera, pinch to zoom"))
-                        .font(.caption.weight(.semibold))
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
+            if settings.memory.photo.grid || settings.memory.photo.crop != .original {
+                ThirdsGrid(crop: settings.memory.photo.crop)
+            }
+            if flashing {
+                Color.white.opacity(0.85).ignoresSafeArea().allowsHitTesting(false)
+            }
+            if let countdown {
+                Text("\(countdown)")
+                    .font(.system(size: 120, weight: .black, design: .rounded).monospacedDigit())
+                    .foregroundStyle(.white)
+                    .shadow(radius: 12)
+                    .allowsHitTesting(false)
+            }
+            photoControls
+        }
+    }
+
+    private var photoControls: some View {
+        VStack {
+            HStack {
+                Button {
+                    withAnimation { photoMode = false }
+                } label: {
+                    Label(L("Done"), systemImage: "xmark")
+                        .font(.subheadline.weight(.bold))
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 10)
                         .background(.ultraThinMaterial, in: Capsule())
                         .foregroundStyle(.white)
                 }
-                .padding(18)
                 Spacer()
-                HStack(spacing: 8) {
-                    ForEach(PhotoFilter.allCases) { filter in
-                        Button {
-                            photoFilter = filter
-                        } label: {
-                            Text(filter.displayName)
-                                .font(.caption.weight(.semibold))
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 8)
-                                .background(photoFilter == filter ? Ablox.Palette.accent.opacity(0.45) : Color.black.opacity(0.35), in: Capsule())
-                                .foregroundStyle(.white)
-                        }
-                        .buttonStyle(.plain)
-                    }
-                    Spacer()
-                    Button(action: takePicture) {
-                        Circle()
-                            .strokeBorder(.white, lineWidth: 5)
-                            .background(Circle().fill(Color.white.opacity(0.35)))
-                            .frame(width: 78, height: 78)
-                    }
-                    .accessibilityLabel(L("Take a picture"))
-                }
-                .padding(24)
+                PhotoOptionsBar(options: $settings.memory.photo)
             }
+            .padding(18)
+            Spacer()
+            PhotoPoseBar(zoom: $settings.memory.photo.zoom, poses: Array(settings.memory.emotes.ordered.prefix(10))) { pose in
+                session.send(gesture: .emote(pose))
+            }
+            HStack(spacing: 12) {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(PhotoFilter.allCases) { filter in
+                            Button {
+                                photoFilter = filter
+                            } label: {
+                                Text(filter.displayName)
+                                    .font(.caption.weight(.semibold))
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 8)
+                                    .background(photoFilter == filter ? Ablox.Palette.accent.opacity(0.45) : Color.black.opacity(0.35), in: Capsule())
+                                    .foregroundStyle(.white)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+                LastShotButton(url: lastShot) {
+                    if let lastShot { sharing = SharedFile(url: lastShot) }
+                }
+                Button(action: shoot) {
+                    Circle()
+                        .strokeBorder(.white, lineWidth: 5)
+                        .background(Circle().fill(Color.white.opacity(shooting ? 0.7 : 0.35)))
+                        .frame(width: 78, height: 78)
+                }
+                .accessibilityLabel(L("Take a picture"))
+            }
+            .padding(24)
         }
     }
 
