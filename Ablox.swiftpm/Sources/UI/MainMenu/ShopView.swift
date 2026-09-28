@@ -16,12 +16,32 @@ struct ShopView: View {
     @State private var onlyWishlist = false
     @State private var tryingOn: ShopItem?
     @State private var showingHistory = false
+    // The second round: filters, order, and undoing a mistaken tap.
+    @State private var onlyAffordable = false
+    @State private var priceOrder: PriceOrder = .cheapest
+    @State private var search = ""
+    /// What was new when the shop opened; marked seen as it opens.
+    @State private var newItems: Set<String> = []
+
+    enum PriceOrder: String, CaseIterable, Identifiable {
+        case cheapest, dearest, name
+        var id: String { rawValue }
+        var title: String {
+            switch self {
+            case .cheapest: return L("Cheapest first")
+            case .dearest: return L("Dearest first")
+            case .name: return L("Name")
+            }
+        }
+    }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
                 header
                 walletCard
+                undoBar
+                DailyDealCard { buy($0) }
                 SavingsGoalCard()
                 wishlistReady
                 kindPicker
@@ -37,6 +57,7 @@ struct ShopView: View {
         .sheet(isPresented: $showingHistory) {
             CoinHistorySheet(ledger: settings.coinLedger)
         }
+        .onAppear(perform: noticeNewItems)
     }
 
     private var header: some View {
@@ -134,9 +155,61 @@ struct ShopView: View {
                     }
                 }
             }
-            Toggle(L("Only my wishlist"), isOn: $onlyWishlist)
-                .tint(Ablox.Palette.accent)
-                .frame(maxWidth: 320)
+            AbloxTextField(L("Search the shop"), text: $search)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(Ablox.Palette.wash, in: Capsule())
+                .frame(maxWidth: 360)
+            HStack(spacing: 18) {
+                Toggle(L("Only my wishlist"), isOn: $onlyWishlist)
+                    .tint(Ablox.Palette.accent)
+                    .frame(maxWidth: 260)
+                Toggle(L("Only what I can buy"), isOn: $onlyAffordable)
+                    .tint(Ablox.Palette.accent)
+                    .frame(maxWidth: 260)
+                Picker(L("Order"), selection: $priceOrder) {
+                    ForEach(PriceOrder.allCases) { Text($0.title).tag($0) }
+                }
+                .pickerStyle(.menu)
+            }
+        }
+    }
+
+    /// Items added since the shop was last opened get a NEW mark for this
+    /// visit. The very first visit marks nothing: everything is new then.
+    private func noticeNewItems() {
+        let all = Set(ShopCatalogue.items.map(\.id))
+        if let seen = settings.memory.seenShopItems {
+            newItems = all.subtracting(seen)
+        }
+        settings.memory.seenShopItems = all
+    }
+
+    /// Undo for five minutes after buying something.
+    @ViewBuilder private var undoBar: some View {
+        if let item = settings.undoablePurchase {
+            HStack {
+                Label(L("Bought {}", item.displayName), systemImage: "bag.fill")
+                    .font(.subheadline.weight(.semibold))
+                Spacer()
+                Button(L("Undo")) {
+                    withAnimation { _ = settings.undoLastPurchase() }
+                }
+                .buttonStyle(NeonButtonStyle(.secondary))
+            }
+            .padding(12)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        }
+    }
+
+    /// Locked items as chosen: all or affordable, in the order picked.
+    private func arranged(_ items: [ShopItem]) -> [ShopItem] {
+        let shown = (onlyAffordable ? items.filter { settings.wallet.coins >= settings.price(of: $0) } : items)
+            .filter { SearchText.matches(search, in: [$0.displayName, $0.name]) }
+        switch priceOrder {
+        case .cheapest: return shown.sorted { settings.price(of: $0) < settings.price(of: $1) }
+        case .dearest: return shown.sorted { settings.price(of: $0) > settings.price(of: $1) }
+        case .name: return shown.sorted { $0.displayName.localizedStandardCompare($1.displayName) == .orderedAscending }
         }
     }
 
@@ -144,7 +217,7 @@ struct ShopView: View {
         // Locked items first, cheapest at the top, so the next thing worth
         // saving for is always the first thing you see.
         let wanted = settings.memory.wishlist
-        let locked = settings.wallet.lockedItems(of: kind).filter { !onlyWishlist || wanted.contains($0.id) }
+        let locked = arranged(settings.wallet.lockedItems(of: kind).filter { !onlyWishlist || wanted.contains($0.id) })
         let owned = settings.wallet.ownedItems(of: kind).filter { !onlyWishlist || wanted.contains($0.id) }
 
         return VStack(alignment: .leading, spacing: 20) {
@@ -188,7 +261,9 @@ struct ShopView: View {
     }
 
     private func itemCard(_ item: ShopItem, owned: Bool) -> some View {
-        let affordable = settings.wallet.canAfford(item)
+        // Today's price: the deal of the day, or an event's sale.
+        let cost = settings.price(of: item)
+        let affordable = settings.wallet.coins >= cost
         let wanted = settings.memory.wishlist.contains(item.id)
 
         return GlassCard(padding: 14) {
@@ -216,6 +291,22 @@ struct ShopView: View {
                         .foregroundStyle(Ablox.Palette.ink)
                         .lineLimit(1)
                     Spacer(minLength: 4)
+                    if newItems.contains(item.id) {
+                        Text(L("NEW"))
+                            .font(.system(size: 9, weight: .black))
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 2)
+                            .background(Ablox.Palette.danger, in: Capsule())
+                            .foregroundStyle(.white)
+                    }
+                    if !owned, cost < item.price {
+                        Text(L("SALE"))
+                            .font(.system(size: 9, weight: .black))
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 2)
+                            .background(Ablox.Palette.warning, in: Capsule())
+                            .foregroundStyle(.black)
+                    }
                     if !item.isFree {
                         Text(item.rarity.displayName)
                             .font(.system(size: 9, weight: .heavy))
@@ -242,7 +333,13 @@ struct ShopView: View {
                             HStack(spacing: 5) {
                                 Image(icon: .star)
                                     .font(.caption2)
-                                Text("\(item.price)")
+                                if cost < item.price {
+                                    Text("\(item.price)")
+                                        .font(.caption2.monospacedDigit())
+                                        .strikethrough()
+                                        .foregroundStyle(Ablox.Palette.inkFaint)
+                                }
+                                Text("\(cost)")
                                     .font(.caption.weight(.bold).monospacedDigit())
                             }
                             .foregroundStyle(affordable ? Ablox.Palette.warning : Ablox.Palette.inkFaint)
@@ -262,7 +359,7 @@ struct ShopView: View {
         // saving for is the point of a shop.
         .opacity(owned || affordable ? 1 : 0.6)
         .accessibilityElement(children: .contain)
-        .accessibilityLabel(owned ? L("{}, owned", item.displayName) : L("{}, {} coins", item.displayName, item.price))
+        .accessibilityLabel(owned ? L("{}, owned", item.displayName) : L("{}, {} coins", item.displayName, cost))
     }
 
     @ViewBuilder
@@ -394,26 +491,76 @@ private struct CoinHistorySheet: View {
     let ledger: CoinLedger
     @Environment(\.dismiss) private var dismiss
 
+    private enum Show: String, CaseIterable, Identifiable {
+        case all, earned, spent
+        var id: String { rawValue }
+        var title: String {
+            switch self {
+            case .all: return L("All")
+            case .earned: return L("Earned")
+            case .spent: return L("Spent")
+            }
+        }
+    }
+
+    @State private var show: Show = .all
+
+    private var entries: [CoinLedger.Entry] {
+        switch show {
+        case .all: return ledger.entries
+        case .earned: return ledger.entries.filter { $0.amount > 0 }
+        case .spent: return ledger.entries.filter { $0.amount < 0 }
+        }
+    }
+
+    /// The entries by day, newest first.
+    private var days: [(day: Date, entries: [CoinLedger.Entry])] {
+        let calendar = Calendar.current
+        var order: [Date] = []
+        var groups: [Date: [CoinLedger.Entry]] = [:]
+        for entry in entries {
+            let day = calendar.startOfDay(for: entry.date)
+            if groups[day] == nil { order.append(day) }
+            groups[day, default: []].append(entry)
+        }
+        return order.map { ($0, groups[$0] ?? []) }
+    }
+
     var body: some View {
         NavigationStack {
             List {
+                Picker(L("Show"), selection: $show) {
+                    ForEach(Show.allCases) { Text($0.title).tag($0) }
+                }
+                .pickerStyle(.segmented)
+                .listRowBackground(Color.clear)
+                let earned = ledger.entries.filter { $0.amount > 0 }.reduce(0) { $0 + $1.amount }
+                let spent = ledger.entries.filter { $0.amount < 0 }.reduce(0) { $0 - $1.amount }
+                HStack {
+                    Label(L("Earned {}", earned), systemImage: "arrow.down.circle.fill")
+                        .foregroundStyle(Ablox.Palette.success)
+                    Spacer()
+                    Label(L("Spent {}", spent), systemImage: "arrow.up.circle.fill")
+                        .foregroundStyle(Ablox.Palette.warning)
+                }
+                .font(.subheadline.weight(.semibold))
                 if ledger.entries.isEmpty {
                     Text(L("Nothing yet. Coins you earn and spend are listed here."))
                         .foregroundStyle(Ablox.Palette.inkMuted)
                 }
-                ForEach(ledger.entries) { entry in
-                    HStack {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(verbatim: entry.reason)
-                                .font(.subheadline)
-                            Text(entry.date.formatted(date: .abbreviated, time: .shortened))
-                                .font(.caption2)
-                                .foregroundStyle(Ablox.Palette.inkFaint)
+                ForEach(days, id: \.day) { group in
+                    Section {
+                        ForEach(group.entries) { entry in
+                            line(entry)
                         }
-                        Spacer()
-                        Text(entry.amount > 0 ? "+\(entry.amount)" : "\(entry.amount)")
-                            .font(.subheadline.weight(.bold).monospacedDigit())
-                            .foregroundStyle(entry.amount > 0 ? Ablox.Palette.success : Ablox.Palette.warning)
+                    } header: {
+                        let total = group.entries.reduce(0) { $0 + $1.amount }
+                        HStack {
+                            Text(group.day.formatted(date: .abbreviated, time: .omitted))
+                            Spacer()
+                            Text(total >= 0 ? "+\(total)" : "\(total)")
+                                .monospacedDigit()
+                        }
                     }
                 }
             }
@@ -426,5 +573,55 @@ private struct CoinHistorySheet: View {
             }
         }
         .abloxColorScheme()
+    }
+
+    private func line(_ entry: CoinLedger.Entry) -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(verbatim: entry.reason)
+                    .font(.subheadline)
+                Text(entry.date.formatted(date: .omitted, time: .shortened))
+                    .font(.caption2)
+                    .foregroundStyle(Ablox.Palette.inkFaint)
+            }
+            Spacer()
+            Text(entry.amount > 0 ? "+\(entry.amount)" : "\(entry.amount)")
+                .font(.subheadline.weight(.bold).monospacedDigit())
+                .foregroundStyle(entry.amount > 0 ? Ablox.Palette.success : Ablox.Palette.warning)
+        }
+    }
+}
+
+// MARK: - Deal of the day
+
+/// One locked thing a day, 30% off.
+private struct DailyDealCard: View {
+    @EnvironmentObject private var settings: AppSettings
+    let onBuy: (ShopItem) -> Void
+
+    var body: some View {
+        if let deal = ShopDeals.dailyDeal(on: settings.today, owned: settings.wallet.ownedItemIDs) {
+            let cost = settings.price(of: deal)
+            HStack(spacing: 14) {
+                Image(systemName: "tag.fill")
+                    .font(.title2)
+                    .foregroundStyle(Ablox.Palette.danger)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(L("Deal of the day: {}", deal.displayName))
+                        .font(.headline)
+                    Text(L("{}% off today only: {} instead of {}", ShopDeals.dealPercent, cost, deal.price))
+                        .font(.caption)
+                        .foregroundStyle(Ablox.Palette.inkMuted)
+                }
+                Spacer()
+                Button(L("Buy for {}", cost)) { onBuy(deal) }
+                    .buttonStyle(NeonButtonStyle(.primary))
+                    .disabled(settings.wallet.coins < cost)
+            }
+            .padding(14)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: Ablox.Metrics.cardRadius, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: Ablox.Metrics.cardRadius, style: .continuous)
+                .strokeBorder(Ablox.Palette.danger.opacity(0.4), lineWidth: 1.5))
+        }
     }
 }

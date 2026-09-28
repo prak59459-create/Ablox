@@ -20,6 +20,12 @@ struct MissionsCard: View {
                 HStack {
                     SectionHeader(L("Today's missions"), systemImage: "target")
                     Spacer()
+                    // When today's become tomorrow's.
+                    if let midnight = Calendar.current.nextDate(after: Date(), matching: DateComponents(hour: 0), matchingPolicy: .nextTime) {
+                        Text(L("New in {} h", max(1, Int(midnight.timeIntervalSinceNow / 3600))))
+                            .font(.caption2)
+                            .foregroundStyle(Ablox.Palette.inkFaint)
+                    }
                     if let justClaimed {
                         Text(L("+{} coins", justClaimed))
                             .font(.caption.weight(.bold))
@@ -29,13 +35,58 @@ struct MissionsCard: View {
                 }
                 ForEach(book.missions(on: day)) { mission in
                     row(mission, progress: book.progress(of: mission, on: day),
-                        done: book.isDone(mission, on: day), claimed: book.isClaimed(mission, on: day))
+                        done: book.isDone(mission, on: day), claimed: book.isClaimed(mission, on: day),
+                        swappable: book.canSwap(mission, on: day))
+                }
+                eventMission
+                if book.isAllDoneBonusWaiting(on: day) {
+                    Button {
+                        if let coins = settings.claimAllDoneBonus() { withAnimation { justClaimed = coins } }
+                    } label: {
+                        Label(L("All done! Take {} more", MissionBook.allDoneBonus), systemImage: "gift.fill")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(NeonButtonStyle(.primary, fullWidth: true))
                 }
             }
         }
     }
 
-    private func row(_ mission: Mission, progress: Int, done: Bool, claimed: Bool) -> some View {
+    /// A season's extra mission, while it is on.
+    @ViewBuilder private var eventMission: some View {
+        if let event = settings.currentEvent {
+            let mission = event.mission
+            let progress = settings.memory.missions.progress(of: mission, on: settings.today)
+            let claimed = settings.memory.eventMissionDay == settings.today
+            HStack(spacing: 12) {
+                Image(systemName: event.symbolName)
+                    .font(.title3)
+                    .foregroundStyle(Color(event.colours.0))
+                    .frame(width: 28)
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(L("{}: {}", event.displayName, mission.title))
+                        .font(.subheadline.weight(.semibold))
+                        .strikethrough(claimed)
+                    ProgressView(value: Double(min(progress, mission.target)), total: Double(mission.target))
+                        .tint(Color(event.colours.0))
+                }
+                if claimed {
+                    Text(L("Done")).font(.caption).foregroundStyle(Ablox.Palette.inkFaint)
+                } else if settings.eventMissionWaiting {
+                    Button(L("Take {}", mission.reward)) {
+                        if let coins = settings.claimEventMission() { withAnimation { justClaimed = coins } }
+                    }
+                    .buttonStyle(NeonButtonStyle(.primary))
+                } else {
+                    Text("\(min(progress, mission.target))/\(mission.target)")
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(Ablox.Palette.inkMuted)
+                }
+            }
+        }
+    }
+
+    private func row(_ mission: Mission, progress: Int, done: Bool, claimed: Bool, swappable: Bool) -> some View {
         HStack(spacing: 12) {
             Image(systemName: claimed ? "checkmark.circle.fill" : mission.kind.symbolName)
                 .font(.title3)
@@ -45,6 +96,11 @@ struct MissionsCard: View {
                 Text(mission.title)
                     .font(.subheadline.weight(.semibold))
                     .strikethrough(claimed)
+                if !done {
+                    Text(mission.kind.hint)
+                        .font(.caption2)
+                        .foregroundStyle(Ablox.Palette.inkFaint)
+                }
                 ProgressView(value: Double(min(progress, mission.target)), total: Double(mission.target))
                     .tint(done ? Ablox.Palette.success : Ablox.Palette.accent)
             }
@@ -61,9 +117,19 @@ struct MissionsCard: View {
                 Text("\(min(progress, mission.target))/\(mission.target)")
                     .font(.caption.monospacedDigit())
                     .foregroundStyle(Ablox.Palette.inkMuted)
+                if swappable {
+                    // One a day: a different mission instead.
+                    Button {
+                        withAnimation { _ = settings.memory.missions.swap(mission, on: settings.today) }
+                    } label: {
+                        Image(systemName: "arrow.triangle.2.circlepath")
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(Ablox.Palette.accent)
+                    .accessibilityLabel(L("Swap for another mission"))
+                }
             }
         }
-        .accessibilityElement(children: .combine)
     }
 }
 
@@ -143,6 +209,7 @@ struct ContinueCard: View {
 struct SessionSummarySheet: View {
     let summary: SessionSummary
     var levelUp: LevelUp?
+    var badgeCoins: Int?
     var onPlayAgain: (() -> Void)?
     @Environment(\.dismiss) private var dismiss
 
@@ -161,6 +228,11 @@ struct SessionSummarySheet: View {
                 Label(L("Level {}! +{} coins", levelUp.level, levelUp.coins), systemImage: "arrow.up.circle.fill")
                     .font(.headline)
                     .foregroundStyle(Ablox.Palette.accent)
+            }
+            if let badgeCoins {
+                Label(L("+{} coins for new badges", badgeCoins), systemImage: "rosette")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Ablox.Palette.warning)
             }
             if !summary.badges.isEmpty {
                 VStack(spacing: 6) {
@@ -188,7 +260,7 @@ struct SessionSummarySheet: View {
         }
         .padding(26)
         .frame(maxWidth: 520)
-        .presentationDetents([.height((summary.badges.isEmpty ? 300 : 380) + (levelUp == nil ? 0 : 40))])
+        .presentationDetents([.height((summary.badges.isEmpty ? 300 : 380) + (levelUp == nil ? 0 : 40) + (badgeCoins == nil ? 0 : 32))])
         .abloxColorScheme()
     }
 

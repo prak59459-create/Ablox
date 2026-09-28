@@ -20,8 +20,14 @@ struct PlayLobbyView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 26) {
                 hero
+                BirthdayBanner()
+                EventBanner()
                 ContinueCard(onEnter: onEnter)
                 MissionsCard()
+                WeeklyMissionsCard()
+                StreakCard()
+                WeekSummaryCard()
+                CoinJarCard()
                 if cloud.allowsInternetPlay {
                     InternetRoomsSection { room in onEnter(ActiveSession(mode: .cloud(room))) }
                 }

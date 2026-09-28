@@ -93,7 +93,7 @@ public struct MainMenuView: View {
                     .alert(L("Welcome back!"), isPresented: Binding(get: { dailyBonus != nil }, set: { if !$0 { dailyBonus = nil } })) {
                         Button(L("Thanks!"), role: .cancel) { dailyBonus = nil }
                     } message: {
-                        Text(verbatim: L("Here are {} coins for coming back. Day {} in a row!", dailyBonus ?? 0, settings.memory.dailyBonus.streak))
+                        Text(verbatim: bonusMessage)
                     }
 
                 Divider().background(Ablox.Palette.line)
@@ -157,7 +157,7 @@ public struct MainMenuView: View {
                 UpdateInstallSheet(updater: updater, backup: install.backup)
             }
             .sheet(item: $summary) { card in
-                SessionSummarySheet(summary: card.summary, levelUp: card.levelUp, onPlayAgain: playAgain(card))
+                SessionSummarySheet(summary: card.summary, levelUp: card.levelUp, badgeCoins: card.badgeCoins, onPlayAgain: playAgain(card))
             }
             // The first time a new version runs: what changed.
             .sheet(isPresented: Binding(get: { updater.justUpdated != nil && activeSession == nil && summary == nil },
@@ -223,6 +223,16 @@ public struct MainMenuView: View {
 }
 
 extension MainMenuView {
+
+    /// The welcome-back message, with the weekend and any streak prize said.
+    var bonusMessage: String {
+        let streak = settings.memory.dailyBonus.streak
+        var text = L("Here are {} coins for coming back. Day {} in a row!", dailyBonus ?? 0, streak)
+        if StreakRewards.weekendMultiplier(on: Date()) > 1 { text += "\n" + L("It's the weekend: twice the coins!") }
+        if let prize = StreakRewards.bonus(forStreak: streak) { text += "\n" + L("That includes a {}-day prize of {} coins!", streak, prize) }
+        return text
+    }
+
     /// Every way into a world comes through here, so Settings → Family is
     /// checked in one place: time left today, quiet hours, joining others.
     private func enter(_ active: ActiveSession) {
@@ -286,7 +296,8 @@ extension MainMenuView {
         let after = settings.summarySnapshot(worldsMade: store.entries.count, pictures: ScreenshotStore.all().count)
         let result = SessionSummary(game: lastGameName, before: before, after: after)
         let levelUp = settings.claimLevelRewards(worldsMade: store.entries.count, pictures: ScreenshotStore.all().count)
-        guard result.isWorthShowing || levelUp != nil else { return }
+        let badgeCoins = settings.claimBadgeRewards(worldsMade: store.entries.count, pictures: ScreenshotStore.all().count)
+        guard result.isWorthShowing || levelUp != nil || badgeCoins != nil else { return }
         // Joining again by code or invitation may not work a second time;
         // Play again is for games started here.
         var again: ActiveSession.Mode?
@@ -294,7 +305,8 @@ extension MainMenuView {
         case .solo?, .hosting?: again = lastMode
         default: again = nil
         }
-        summary = SummaryCard(summary: result, mode: again, levelUp: levelUp.map { LevelUp(level: $0.level, coins: $0.coins) })
+        summary = SummaryCard(summary: result, mode: again, levelUp: levelUp.map { LevelUp(level: $0.level, coins: $0.coins) },
+                              badgeCoins: badgeCoins)
     }
 
     private func playAgain(_ card: SummaryCard) -> (() -> Void)? {
@@ -343,6 +355,8 @@ struct SummaryCard: Identifiable {
     let mode: ActiveSession.Mode?
     /// A level reached on the way, and its coins.
     var levelUp: LevelUp?
+    /// Coins for badges earned on the way.
+    var badgeCoins: Int?
 }
 
 struct LevelUp: Hashable {

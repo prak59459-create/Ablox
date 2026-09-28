@@ -348,7 +348,12 @@ public struct PlayScreen: View {
         if arrived.contains(where: { settings.social.isBlocked($0) }) {
             showToast(L("Someone you blocked is in this room. You won't see what they say."))
         } else if let friend = people.first(where: { arrived.contains($0.peerID) && settings.social.isFriend($0.peerID) }) {
-            showToast(L("Your friend {} is here!", friend.profile.displayName))
+            // The first time today with a friend earns a little extra.
+            if let coins = settings.friendBonus() {
+                showToast(L("Your friend {} is here! +{} coins", friend.profile.displayName, coins))
+            } else {
+                showToast(L("Your friend {} is here!", friend.profile.displayName))
+            }
         }
     }
 
@@ -379,6 +384,10 @@ public struct PlayScreen: View {
             countedStart = true
             settings.playtime.startedPlaying(game)
             advance(settings.missionGame(game))
+            if let coins = settings.firstVisitBonus(game) { showToast(L("First visit here: +{} coins", coins)) }
+            settings.joinEvent()
+            tracker.weeklyDone = settings.memory.weekly.done(on: settings.thisWeek)
+            tracker.eventWaiting = settings.eventMissionWaiting
         }
         settings.recordPlay(seconds: seconds, game: game)
         advance(settings.mission(.playMinutes, amount: Int(seconds.rounded())))
@@ -399,6 +408,7 @@ public struct PlayScreen: View {
         if sessionSeconds >= 20 { takeThumbnailIfMine() }
         checkAway()
         checkPower()
+        checkBigMissions()
 
         if PlayGate.breakDue(settings.parental, sessionSeconds: sessionSeconds, lastReminder: lastRestReminder) {
             lastRestReminder = sessionSeconds
@@ -429,6 +439,21 @@ public struct PlayScreen: View {
         tracker.idle.touched(at: now)
         openMenu()
         showToast(L("Paused while you were away."))
+    }
+
+    /// Says so when this week's missions or the season's one are done.
+    private func checkBigMissions() {
+        let week = settings.thisWeek
+        let done = settings.memory.weekly.done(on: week)
+        if let finished = settings.memory.weekly.missions(on: week).first(where: { done.contains($0.id) && !tracker.weeklyDone.contains($0.id) }) {
+            showToast(L("Weekly mission done: {}! Take the coins on the Play tab.", finished.title))
+        }
+        tracker.weeklyDone = done
+        let waiting = settings.eventMissionWaiting
+        if waiting, !tracker.eventWaiting, let event = settings.currentEvent {
+            showToast(L("{} mission done! Take the coins on the Play tab.", event.displayName))
+        }
+        tracker.eventWaiting = waiting
     }
 
     /// Once each per visit: a low battery, a hot iPad.
@@ -499,6 +524,7 @@ public struct PlayScreen: View {
         case let .hosting(world, access):
             session.startHosting(world: world, isPublic: access.isPublicOnRouter)
             if access == .internet { cloud.hostRoom(session: session) }
+            if let coins = settings.hostBonus() { showToast(L("Hosting a room: +{} coins", coins)) }
         case let .cloud(room):
             Task { await cloud.join(room, session: session) }
         case let .joining(peer, code):

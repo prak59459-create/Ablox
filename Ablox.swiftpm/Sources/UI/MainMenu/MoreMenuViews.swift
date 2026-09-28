@@ -62,6 +62,7 @@ struct MoreSettingsCard: View {
                         .buttonStyle(NeonButtonStyle(.secondary))
                         .disabled(settings.memory.hiddenGames.isEmpty)
                 }
+                BirthdayPicker()
                 HStack {
                     Text(L("Recent searches"))
                     Spacer()
@@ -209,7 +210,16 @@ struct SavingsGoalCard: View {
                         Text(left == 0 ? L("You have enough! Buy it below.") : L("{} more coins to go.", left))
                             .font(.caption)
                             .foregroundStyle(left == 0 ? Ablox.Palette.success : Ablox.Palette.inkMuted)
-                    } else {
+                        // At this week's pace, roughly when.
+                        let perDay = Double(WeekSummary.make(days: settings.playtime.days, ledger: settings.coinLedger).coinsEarned) / 7
+                        if left > 0, let days = SavingsGoal.daysToGo(balance: balance, price: goal.price, perDay: perDay) {
+                            Text(L("About {} days at this week's pace.", days))
+                                .font(.caption2)
+                                .foregroundStyle(Ablox.Palette.inkFaint)
+                        }
+                    } else if !wanted.isEmpty {
+                        Text(L("Your wishlist: {} things, {} coins in all.", wanted.count, wanted.reduce(0) { $0 + $1.price }))
+                            .font(.caption.weight(.semibold))
                         Text(L("Pick something from your wishlist to see how close you are."))
                             .font(.caption)
                             .foregroundStyle(Ablox.Palette.inkMuted)

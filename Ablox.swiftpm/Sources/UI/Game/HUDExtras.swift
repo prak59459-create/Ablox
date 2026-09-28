@@ -26,6 +26,9 @@ final class PlayTracker {
     /// What was said lately, and the guard against flooding the chat.
     var sent = SentHistory()
     var limiter = ChatRateLimiter()
+    /// This week's missions done, and the season's, at the last look.
+    var weeklyDone: Set<String> = []
+    var eventWaiting = false
 
     func note(_ text: String) {
         notices.append((Date(), text))

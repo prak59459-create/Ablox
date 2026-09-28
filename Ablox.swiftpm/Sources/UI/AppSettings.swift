@@ -274,9 +274,15 @@ public final class AppSettings: ObservableObject {
     /// Banks a round's score as coins. Called when a round ends.
     public func award(score: Int, completedRound: Bool, game: String = "") {
         if !game.isEmpty, score > (memory.bestScores[game] ?? 0) { memory.bestScores[game] = score }
-        let coins = CoinRate.coins(forScore: score, completedRound: completedRound)
+        var coins = CoinRate.coins(forScore: score, completedRound: completedRound)
+        var reason = game.isEmpty ? L("A round") : game
+        // A season's bonus on top.
+        if let event = currentEvent, coins > 0 {
+            coins = event.boosted(coins)
+            reason += " · " + L("{} bonus", event.displayName)
+        }
         wallet.earn(coins)
-        coinLedger.record(coins, reason: game.isEmpty ? L("A round") : game)
+        coinLedger.record(coins, reason: reason)
         mission(.earnCoins, amount: coins)
     }
 
@@ -288,13 +294,65 @@ public final class AppSettings: ObservableObject {
     /// say so while playing.
     @discardableResult
     public func mission(_ kind: MissionKind, amount: Int = 1) -> [Mission] {
-        finished { $0.record(kind, amount: amount, on: $1) }
+        memory.weekly.record(kind, amount: amount, on: thisWeek)
+        return finished { $0.record(kind, amount: amount, on: $1) }
+    }
+
+    public var thisWeek: String { WeeklyMissionBook.weekKey(Date()) }
+
+    /// A finished mission of the week, into the wallet.
+    @discardableResult
+    public func claimWeekly(_ mission: Mission) -> Int? {
+        guard let coins = memory.weekly.claim(mission, on: thisWeek) else { return nil }
+        give(coins: coins, reason: L("Weekly mission: {}", mission.title))
+        memory.counters.missionsClaimed += 1
+        return coins
+    }
+
+    /// The bonus for finishing all of this week's missions.
+    @discardableResult
+    public func claimWeeklyAllDoneBonus() -> Int? {
+        guard let coins = memory.weekly.claimAllDoneBonus(on: thisWeek) else { return nil }
+        give(coins: coins, reason: L("All of this week's missions"))
+        return coins
+    }
+
+    /// Notes that the player played during a season.
+    public func joinEvent() {
+        guard let event = currentEvent else { return }
+        memory.eventsJoined.insert("\(event.rawValue)-\(Calendar.current.component(.year, from: Date()))")
+    }
+
+    /// The bonus for finishing all of today's missions.
+    @discardableResult
+    public func claimAllDoneBonus() -> Int? {
+        guard let coins = memory.missions.claimAllDoneBonus(on: today) else { return nil }
+        give(coins: coins, reason: L("All of today's missions"))
+        return coins
+    }
+
+    /// The event on today, if any.
+    public var currentEvent: SeasonalEvent? { SeasonalEvent.current() }
+
+    /// The event's extra mission for today, done and not yet taken.
+    public var eventMissionWaiting: Bool {
+        guard let event = currentEvent, memory.eventMissionDay != today else { return false }
+        return memory.missions.progress(of: event.mission, on: today) >= event.mission.target
+    }
+
+    @discardableResult
+    public func claimEventMission() -> Int? {
+        guard eventMissionWaiting, let event = currentEvent else { return nil }
+        memory.eventMissionDay = today
+        give(coins: event.mission.reward, reason: L("{} mission", event.displayName))
+        return event.mission.reward
     }
 
     /// A game started today, for "different games".
     @discardableResult
     public func missionGame(_ game: String) -> [Mission] {
-        finished { $0.played(game: game, on: $1) }
+        memory.weekly.played(game: game, on: thisWeek)
+        return finished { $0.played(game: game, on: $1) }
     }
 
     private func finished(_ change: (inout MissionBook, String) -> Void) -> [Mission] {
@@ -332,24 +390,124 @@ public final class AppSettings: ObservableObject {
         coinLedger.record(coins, reason: reason)
     }
 
-    /// Buys from the shop, within today's spending limit.
+    /// What an item costs today: the deal of the day or an event's sale.
+    public func price(of item: ShopItem) -> Int {
+        ShopDeals.price(of: item, day: today, event: currentEvent, owned: wallet.ownedItemIDs)
+    }
+
+    /// Buys from the shop, within today's spending limit, at today's price.
     public func buy(_ item: ShopItem) -> PlayerWallet.PurchaseResult? {
+        let cost = price(of: item)
         if !wallet.owns(item), !item.isFree,
-           !coinLedger.allows(spending: item.price, limit: parental.dailyCoinLimit) {
+           !coinLedger.allows(spending: cost, limit: parental.dailyCoinLimit) {
             return nil
         }
-        let result = wallet.purchase(item.id)
-        if result.succeeded, !item.isFree { coinLedger.record(-item.price, reason: item.displayName) }
+        let result = wallet.purchase(item.id, price: cost)
+        if result.succeeded, !item.isFree {
+            coinLedger.record(-cost, reason: item.displayName)
+            memory.lastPurchase = LastPurchase(itemID: item.id, price: cost, date: Date())
+        }
         return result
+    }
+
+    /// The last purchase, if it can still be undone (five minutes).
+    public var undoablePurchase: ShopItem? {
+        guard let last = memory.lastPurchase, Date().timeIntervalSince(last.date) < LastPurchase.undoSeconds,
+              let item = ShopCatalogue.item(id: last.itemID), wallet.owns(item) else { return nil }
+        return item
+    }
+
+    /// Gives the last purchase back and takes it off the avatar.
+    @discardableResult
+    public func undoLastPurchase() -> Bool {
+        guard let item = undoablePurchase, let last = memory.lastPurchase,
+              wallet.refund(item.id, coins: last.price) else { return false }
+        coinLedger.record(last.price, reason: L("Undone: {}", item.displayName))
+        profile = profile.removing(item)
+        memory.lastPurchase = nil
+        return true
+    }
+
+    // MARK: Coin jar
+
+    /// Adds the jar's weekly growth; returns how much it grew.
+    @discardableResult
+    public func growCoinJar() -> Int {
+        let grown = memory.coinJar.grow()
+        if grown > 0 {
+            wallet.countEarned(grown)
+            coinLedger.record(grown, reason: L("The coin jar grew"))
+        }
+        return grown
+    }
+
+    public func putInJar(_ amount: Int) {
+        let amount = memory.coinJar.room(from: min(amount, wallet.coins))
+        guard amount > 0, wallet.setAside(amount) else { return }
+        memory.coinJar.put(amount)
+    }
+
+    public func takeFromJar(_ amount: Int) {
+        let out = memory.coinJar.take(amount)
+        wallet.takeBack(out)
+    }
+
+    // MARK: Small gifts
+
+    /// Coins for badges earned since the last look.
+    public func claimBadgeRewards(worldsMade: Int, pictures: Int) -> Int? {
+        let earned = Achievement.earned(progressStats(worldsMade: worldsMade, pictures: pictures))
+        let fresh = earned.filter { !memory.rewardedBadges.contains($0.rawValue) }
+        guard !fresh.isEmpty else { return nil }
+        let coins = fresh.reduce(0) { $0 + $1.reward }
+        memory.rewardedBadges.formUnion(fresh.map(\.rawValue))
+        give(coins: coins, reason: L("Badges"))
+        return coins
+    }
+
+    /// Coins the first time a game is played here.
+    public func firstVisitBonus(_ game: String) -> Int? {
+        guard let coins = memory.firstTimes.firstVisit(game) else { return nil }
+        give(coins: coins, reason: L("First visit: {}", game))
+        return coins
+    }
+
+    /// Coins the first time today a room is hosted.
+    public func hostBonus() -> Int? {
+        guard let coins = memory.firstTimes.hosted(on: today) else { return nil }
+        give(coins: coins, reason: L("Hosting a room"))
+        return coins
+    }
+
+    /// Coins the first time today a friend is played with.
+    public func friendBonus() -> Int? {
+        guard let coins = memory.firstTimes.playedWithFriend(on: today) else { return nil }
+        give(coins: coins, reason: L("Playing with a friend"))
+        return coins
+    }
+
+    /// The birthday gift, on the day.
+    public func claimBirthdayGift() -> Int? {
+        guard var birthday = memory.birthday, let coins = birthday.claimGift() else { return nil }
+        memory.birthday = birthday
+        give(coins: coins, reason: L("Happy birthday!"))
+        return coins
     }
 
     /// Today's coins for coming back, if not yet given — added to the wallet
     /// and returned so the menu can say so.
     public func claimDailyBonus() -> Int? {
-        guard let coins = memory.dailyBonus.claim() else { return nil }
+        guard let base = memory.dailyBonus.claim() else { return nil }
         memory.bestStreak = max(memory.bestStreak, memory.dailyBonus.streak)
+        // Twice as much at the weekend.
+        let coins = base * StreakRewards.weekendMultiplier(on: Date())
         give(coins: coins, reason: L("Daily bonus"))
-        return coins
+        var total = coins
+        if let milestone = StreakRewards.bonus(forStreak: memory.dailyBonus.streak) {
+            give(coins: milestone, reason: L("{} days in a row!", memory.dailyBonus.streak))
+            total += milestone
+        }
+        return total
     }
 
     /// Blocks a player: never a friend, never heard. Their chat stays
@@ -463,6 +621,15 @@ public struct LastPlayed: Codable, Hashable, Sendable {
 }
 
 /// A player's own note on a game: liked, and a few words.
+/// The last thing bought, and when, to undo a mistaken tap.
+public struct LastPurchase: Codable, Hashable, Sendable {
+    public let itemID: String
+    public let price: Int
+    public let date: Date
+
+    public static let undoSeconds: TimeInterval = 5 * 60
+}
+
 public struct GameNote: Codable, Hashable, Sendable {
     public var liked = false
     public var memo = ""
@@ -522,6 +689,22 @@ public struct MenuMemory: Codable, Hashable, Sendable {
     // Pictures (see PhotoAlbum.swift).
     public var albumNotes = AlbumNotes()
     public var photo = PhotoModeOptions()
+    // Missions, events and coins (see EventsAndRewards.swift).
+    public var weekly = WeeklyMissionBook()
+    public var coinJar = CoinJar()
+    public var firstTimes = FirstTimes()
+    public var birthday: Birthday?
+    /// Badges whose coins have been given.
+    public var rewardedBadges: Set<String> = []
+    /// The day an event's extra mission was claimed.
+    public var eventMissionDay: String?
+    /// The last purchase, for five minutes' "undo".
+    public var lastPurchase: LastPurchase?
+    /// Seasons played in, as "halloween-2026".
+    public var eventsJoined: Set<String> = []
+    /// Shop items already seen, to mark new ones; nil until the shop is
+    /// first opened.
+    public var seenShopItems: Set<String>?
     /// The highest level whose coins have been given.
     public var rewardedLevel = 1
 
@@ -560,6 +743,15 @@ public struct MenuMemory: Codable, Hashable, Sendable {
         gamesLayout = (try? c.decodeIfPresent(GamesLayout.self, forKey: .gamesLayout)) ?? .bigCards
         albumNotes = (try? c.decodeIfPresent(AlbumNotes.self, forKey: .albumNotes)) ?? AlbumNotes()
         photo = (try? c.decodeIfPresent(PhotoModeOptions.self, forKey: .photo)) ?? PhotoModeOptions()
+        weekly = (try? c.decodeIfPresent(WeeklyMissionBook.self, forKey: .weekly)) ?? WeeklyMissionBook()
+        coinJar = (try? c.decodeIfPresent(CoinJar.self, forKey: .coinJar)) ?? CoinJar()
+        firstTimes = (try? c.decodeIfPresent(FirstTimes.self, forKey: .firstTimes)) ?? FirstTimes()
+        birthday = try? c.decodeIfPresent(Birthday.self, forKey: .birthday)
+        rewardedBadges = (try? c.decodeIfPresent(Set<String>.self, forKey: .rewardedBadges)) ?? []
+        eventMissionDay = try? c.decodeIfPresent(String.self, forKey: .eventMissionDay)
+        lastPurchase = try? c.decodeIfPresent(LastPurchase.self, forKey: .lastPurchase)
+        eventsJoined = (try? c.decodeIfPresent(Set<String>.self, forKey: .eventsJoined)) ?? []
+        seenShopItems = try? c.decodeIfPresent(Set<String>.self, forKey: .seenShopItems)
         rewardedLevel = (try? c.decodeIfPresent(Int.self, forKey: .rewardedLevel)) ?? 1
     }
 

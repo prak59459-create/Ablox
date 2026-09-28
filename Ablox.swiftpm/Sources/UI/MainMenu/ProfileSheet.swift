@@ -133,6 +133,10 @@ struct ProfileSheet: View {
                 record(L("Pictures"), "\(s.pictures)", "photo.fill")
                 record(L("Worlds made"), "\(s.worldsMade)", "hammer.fill")
                 record(L("Best streak"), L("{} days", s.bestStreak), "flame.fill")
+                record(L("Festivals joined"), "\(settings.memory.eventsJoined.count)", "party.popper.fill")
+                // Earned, less what is in the wallet and the jar.
+                record(L("Coins spent"), "\(max(0, settings.wallet.lifetimeEarned - settings.wallet.coins - settings.memory.coinJar.balance))",
+                       "bag.fill")
             }
             Text(L("Days played"))
                 .font(.headline)
