@@ -58,6 +58,9 @@ struct AvatarCustomizerView: View {
                     hatSection
                     faceSection
                     petSection
+                    trailSection
+                    auraSection
+                    victorySection
                     heightSection
                     randomiseButton
                     Button {
@@ -199,6 +202,58 @@ struct AvatarCustomizerView: View {
         }
     }
 
+    private var trailSection: some View {
+        VStack(alignment: .leading, spacing: 11) {
+            Text(L("Trail"))
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(Ablox.Palette.inkMuted)
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 70), spacing: 9)], spacing: 9) {
+                ForEach(AvatarProfile.Trail.allCases, id: \.self) { trail in
+                    let owned = settings.wallet.owns("trail.\(trail.rawValue)")
+                    choice(trail.displayName, trail.symbolName, selected: settings.profile.trail == trail, locked: !owned) {
+                        settings.profile.trail = trail
+                    }
+                }
+            }
+        }
+    }
+
+    private var auraSection: some View {
+        VStack(alignment: .leading, spacing: 11) {
+            Text(L("Aura"))
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(Ablox.Palette.inkMuted)
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 70), spacing: 9)], spacing: 9) {
+                ForEach(AvatarProfile.Aura.allCases, id: \.self) { aura in
+                    let owned = settings.wallet.owns("aura.\(aura.rawValue)")
+                    choice(aura.displayName, aura.symbolName, selected: settings.profile.aura == aura, locked: !owned) {
+                        settings.profile.aura = aura
+                    }
+                }
+            }
+        }
+    }
+
+    /// The pose played by itself on winning a round.
+    private var victorySection: some View {
+        HStack {
+            Text(L("Winning pose"))
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(Ablox.Palette.inkMuted)
+            Spacer()
+            Picker(L("Winning pose"), selection: Binding(
+                get: { settings.memory.emotes.victory?.rawValue ?? "" },
+                set: { settings.memory.emotes.victory = Emote(rawValue: $0) }
+            )) {
+                Text(L("None")).tag("")
+                ForEach(Emote.allCases.filter { $0 != .sit }, id: \.self) { emote in
+                    Text(emote.displayName).tag(emote.rawValue)
+                }
+            }
+            .pickerStyle(.menu)
+        }
+    }
+
     /// One option: tap to wear it, or — locked — a hint that the shop has it.
     private func choice(_ title: String, _ symbol: String, selected: Bool, locked: Bool, action: @escaping () -> Void) -> some View {
         Button {
@@ -228,19 +283,22 @@ struct AvatarCustomizerView: View {
 
     private var photoBooth: some View {
         VStack(spacing: 10) {
-            HStack(spacing: 8) {
-                ForEach(Emote.allCases.filter { $0 != .sit }, id: \.self) { emote in
-                    Button {
-                        previewLink.play(emote)
-                    } label: {
-                        Image(systemName: emote.symbolName)
-                            .font(.headline)
-                            .frame(width: 40, height: 40)
-                            .background(.ultraThinMaterial, in: Circle())
-                            .foregroundStyle(Ablox.Palette.ink)
+            // Every emote, to pose for the picture; they scroll.
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(Emote.allCases.filter { $0 != .sit }, id: \.self) { emote in
+                        Button {
+                            previewLink.play(emote)
+                        } label: {
+                            Image(systemName: emote.symbolName)
+                                .font(.headline)
+                                .frame(width: 40, height: 40)
+                                .background(.ultraThinMaterial, in: Circle())
+                                .foregroundStyle(Ablox.Palette.ink)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(emote.displayName)
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(emote.displayName)
                 }
             }
             Button {
@@ -366,6 +424,8 @@ struct AvatarCustomizerView: View {
                 look.hat = pick(.hat) { $0.hat } ?? look.hat
                 look.face = pick(.face) { $0.face } ?? look.face
                 look.pet = pick(.pet) { $0.pet } ?? look.pet
+                look.trail = pick(.trail) { $0.trail } ?? look.trail
+                look.aura = pick(.aura) { $0.aura } ?? look.aura
                 look.hatColor = ColorRGBA.palette.randomElement()
                 look.petColor = ColorRGBA.palette.randomElement() ?? look.petColor
                 settings.profile = look

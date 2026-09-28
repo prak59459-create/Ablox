@@ -468,6 +468,9 @@ public struct MenuMemory: Codable, Hashable, Sendable {
     public var savingsGoal: String?
     /// The last game played, for "Carry on" on the Play tab.
     public var lastPlayed: LastPlayed?
+    /// Favourite emotes (first in the list, keys 1 to 4) and the one for
+    /// winning.
+    public var emotes = EmoteFavourites()
 
     public init() {}
 
@@ -492,6 +495,7 @@ public struct MenuMemory: Codable, Hashable, Sendable {
         gameSort = (try? c.decodeIfPresent(GameSort.self, forKey: .gameSort)) ?? .suggested
         savingsGoal = try? c.decodeIfPresent(String.self, forKey: .savingsGoal)
         lastPlayed = try? c.decodeIfPresent(LastPlayed.self, forKey: .lastPlayed)
+        emotes = (try? c.decodeIfPresent(EmoteFavourites.self, forKey: .emotes)) ?? EmoteFavourites()
     }
 
     /// Puts a game at the front of "recently played".

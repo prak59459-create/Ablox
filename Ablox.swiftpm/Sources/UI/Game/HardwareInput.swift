@@ -10,7 +10,8 @@ import AbloxCore
 ///   runs), right stick looks, A / ✕ jumps, R2 fires, L1 runs, Menu or
 ///   Options pauses, the D-pad zooms.
 /// - Keyboard: W A S D walk, Space jumps, Shift runs, F fires, the arrow keys
-///   look, Esc or Tab pauses.
+///   look, Esc or Tab pauses, 1 to 4 play the favourite emotes (Y or △ on a
+///   controller plays them in turn).
 /// - Mouse or trackpad: hold the right button (or two fingers with a click)
 ///   and move to look; scroll to zoom. The left button is a touch, as always.
 ///
@@ -38,10 +39,14 @@ final class HardwareInput: NSObject, ObservableObject {
     var onMenu: (() -> Void)?
     /// Positive zooms out.
     var onZoom: ((Float) -> Void)?
+    /// A favourite emote: keys 1 to 4 give its slot (from 0); the
+    /// controller's Y (△) gives -1, the next one in turn.
+    var onEmote: ((Int) -> Void)?
 
     private var link: CADisplayLink?
     private var lastTimestamp: CFTimeInterval = 0
     private var menuWasDown = false
+    private var emoteWasDown: Int?
     private var observers: [NSObjectProtocol] = []
     private let mouse = MouseAccumulator()
 
@@ -97,6 +102,7 @@ final class HardwareInput: NSObject, ObservableObject {
 
         var move = Vec3.zero
         var jump = false, run = false, fire = false, menu = false
+        var emote: Int?
         var yaw: Float = 0, pitch: Float = 0, zoom: Float = 0
 
         if let pad = GCController.current?.extendedGamepad ?? GCController.controllers().first?.extendedGamepad {
@@ -110,6 +116,7 @@ final class HardwareInput: NSObject, ObservableObject {
                 || (left.x * left.x + left.y * left.y) > 0.9
             fire = pad.rightTrigger.isPressed || pad.rightShoulder.isPressed
             menu = pad.buttonMenu.isPressed || (pad.buttonOptions?.isPressed ?? false)
+            if pad.buttonY.isPressed { emote = -1 }
             if pad.dpad.up.isPressed { zoom -= seconds * 1.5 }
             if pad.dpad.down.isPressed { zoom += seconds * 1.5 }
         }
@@ -122,6 +129,7 @@ final class HardwareInput: NSObject, ObservableObject {
             run = run || down(.leftShift) || down(.rightShift)
             fire = fire || down(.keyF)
             menu = menu || down(.escape) || down(.tab)
+            for (slot, code) in [GCKeyCode.one, .two, .three, .four].enumerated() where down(code) { emote = slot }
             let turn: Float = (down(.rightArrow) ? 1 : 0) - (down(.leftArrow) ? 1 : 0)
             let tilt: Float = (down(.upArrow) ? 1 : 0) - (down(.downArrow) ? 1 : 0)
             yaw += turn * 120 * seconds * sensitivity
@@ -141,6 +149,8 @@ final class HardwareInput: NSObject, ObservableObject {
         if fire != firing { firing = fire }
         if menu && !menuWasDown { onMenu?() }
         menuWasDown = menu
+        if let emote, emote != emoteWasDown { onEmote?(emote) }
+        emoteWasDown = emote
         if yaw != 0 || pitch != 0 { onLook?(yaw, invertY ? -pitch : pitch) }
         if zoom != 0 { onZoom?(zoom) }
     }

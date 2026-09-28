@@ -56,6 +56,8 @@ public struct PlayScreen: View {
     @State private var selfTimer = SelfTimer()
     /// Whether "play with someone else" was counted this visit.
     @State private var countedTogether = false
+    /// Which favourite emote the controller's Y plays next.
+    @State private var nextFavourite = 0
     /// A game controller, keyboard or mouse, beside the touch controls.
     @StateObject private var hardware = HardwareInput()
 
@@ -231,6 +233,8 @@ public struct PlayScreen: View {
                 speak(message)
                 if message.contains("goal") || message.localizedCaseInsensitiveContains("win") {
                     bankCoins(completed: true)
+                    // The pose chosen for winning, if there is one.
+                    if let victory = settings.memory.emotes.victory { session.send(gesture: .emote(victory)) }
                 }
             }
             // Settings → Problem reports: what went wrong here, kept to send.
@@ -422,6 +426,7 @@ public struct PlayScreen: View {
         hardware.onMenu = {
             if showMenu { closeMenu() } else if !photoMode { openMenu() }
         }
+        hardware.onEmote = { slot in playFavourite(slot) }
         hardware.onZoom = { amount in
             let range = PlayPreferences.cameraZoomRange
             settings.preferences.cameraZoom = min(range.upperBound, max(range.lowerBound, settings.preferences.cameraZoom + amount))
@@ -568,6 +573,23 @@ public struct PlayScreen: View {
                 showToast(clips.lastError ?? L("The clip could not be saved."))
             }
         }
+    }
+
+    /// A favourite emote from a key (its slot) or the controller (-1: the
+    /// next one in turn).
+    private func playFavourite(_ slot: Int) {
+        let favourites = settings.memory.emotes.emotes
+        guard !favourites.isEmpty else { return }
+        let emote: Emote
+        if slot >= 0 {
+            guard let chosen = settings.memory.emotes.emote(inSlot: slot) else { return }
+            emote = chosen
+        } else {
+            emote = favourites[nextFavourite % favourites.count]
+            nextFavourite += 1
+        }
+        session.send(gesture: .emote(emote))
+        advance(settings.mission(.useEmote))
     }
 
     /// Says so when something done here finished one of today's missions.

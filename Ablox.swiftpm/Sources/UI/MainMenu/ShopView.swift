@@ -276,7 +276,8 @@ struct ShopView: View {
                         .strokeBorder(Ablox.Palette.lineStrong, lineWidth: 1)
                 )
         } else {
-            let symbol = item.hat?.symbolName ?? item.face?.symbolName ?? item.pet?.symbolName ?? "questionmark"
+            let symbol = item.hat?.symbolName ?? item.face?.symbolName ?? item.pet?.symbolName
+                ?? item.trail?.symbolName ?? item.aura?.symbolName ?? "questionmark"
             ZStack {
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
                     .fill(Ablox.Palette.wash)
@@ -296,6 +297,8 @@ struct ShopView: View {
         case .hat: return item.hat == settings.profile.hat
         case .face: return item.face == settings.profile.face
         case .pet: return item.pet == settings.profile.pet
+        case .trail: return item.trail == settings.profile.trail
+        case .aura: return item.aura == settings.profile.aura
         }
     }
 
@@ -327,6 +330,8 @@ extension ShopItem {
         case .hat: if let h = hat { look.hat = h }
         case .face: if let f = face { look.face = f }
         case .pet: if let p = pet { look.pet = p }
+        case .trail: if let t = trail { look.trail = t }
+        case .aura: if let a = aura { look.aura = a }
         }
         return look
     }

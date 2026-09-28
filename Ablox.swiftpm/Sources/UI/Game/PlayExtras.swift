@@ -191,45 +191,81 @@ final class ClipRecorder: ObservableObject {
 /// Emotes and emoji stamps, in a panel that opens from the top bar.
 struct EmotePanel: View {
     let onChoose: (Gesture) -> Void
+    @EnvironmentObject private var settings: AppSettings
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            LazyVGrid(columns: Array(repeating: GridItem(.fixed(64), spacing: 8), count: 4), spacing: 8) {
-                ForEach(Emote.allCases, id: \.self) { emote in
-                    Button {
-                        onChoose(.emote(emote))
-                    } label: {
-                        VStack(spacing: 4) {
-                            Image(systemName: emote.symbolName)
-                                .font(.title3)
-                            Text(emote.displayName)
-                                .font(.caption2.weight(.semibold))
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.7)
+        let favourites = settings.memory.emotes
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text(L("Hold one to make it a favourite (keys 1–4)."))
+                    .font(.caption2)
+                    .foregroundStyle(.white.opacity(0.7))
+                Spacer()
+                Button {
+                    if let any = Emote.allCases.filter({ $0 != .sit }).randomElement() { onChoose(.emote(any)) }
+                } label: {
+                    Label(L("Surprise me"), systemImage: "dice.fill")
+                        .font(.caption.weight(.bold))
+                }
+                .foregroundStyle(Ablox.Palette.accent)
+            }
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
+                    LazyVGrid(columns: Array(repeating: GridItem(.fixed(64), spacing: 8), count: 4), spacing: 8) {
+                        ForEach(favourites.ordered, id: \.self) { emote in
+                            emoteButton(emote, favourite: favourites.contains(emote))
                         }
-                        .frame(width: 64, height: 58)
-                        .background(Color.white.opacity(0.1), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                        .foregroundStyle(.white)
                     }
-                    .buttonStyle(.plain)
+                    LazyVGrid(columns: Array(repeating: GridItem(.fixed(42), spacing: 6), count: 6), spacing: 6) {
+                        ForEach(Stamp.all, id: \.self) { emoji in
+                            Button {
+                                onChoose(.stamp(emoji))
+                            } label: {
+                                Text(verbatim: emoji)
+                                    .font(.system(size: 26))
+                                    .frame(width: 42, height: 42)
+                                    .background(Color.white.opacity(0.08), in: Circle())
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
                 }
             }
-            LazyVGrid(columns: Array(repeating: GridItem(.fixed(42), spacing: 6), count: 6), spacing: 6) {
-                ForEach(Stamp.all, id: \.self) { emoji in
-                    Button {
-                        onChoose(.stamp(emoji))
-                    } label: {
-                        Text(verbatim: emoji)
-                            .font(.system(size: 26))
-                            .frame(width: 42, height: 42)
-                            .background(Color.white.opacity(0.08), in: Circle())
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
+            .frame(maxHeight: 330)
         }
         .padding(14)
+        .frame(width: 310)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+    }
+
+    private func emoteButton(_ emote: Emote, favourite: Bool) -> some View {
+        Button {
+            onChoose(.emote(emote))
+        } label: {
+            VStack(spacing: 4) {
+                Image(systemName: emote.symbolName)
+                    .font(.title3)
+                Text(emote.displayName)
+                    .font(.caption2.weight(.semibold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
+            .frame(width: 64, height: 58)
+            .background(Color.white.opacity(favourite ? 0.2 : 0.1), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay(alignment: .topTrailing) {
+                if favourite {
+                    Image(systemName: "star.fill").font(.system(size: 9)).foregroundStyle(.yellow).padding(4)
+                }
+            }
+            .foregroundStyle(.white)
+        }
+        .buttonStyle(.plain)
+        .simultaneousGesture(LongPressGesture(minimumDuration: 0.5).onEnded { _ in
+            settings.memory.emotes.toggle(emote)
+        })
+        .accessibilityAction(named: favourite ? L("Remove from favourites") : L("Add to favourites")) {
+            settings.memory.emotes.toggle(emote)
+        }
     }
 }
 
