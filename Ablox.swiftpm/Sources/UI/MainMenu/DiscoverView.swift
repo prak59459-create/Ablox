@@ -23,6 +23,12 @@ struct DiscoverView: View {
     @State private var downloading: (done: Int, total: Int)?
     @State private var addingCatalogue = false
     @State private var newCatalogue = ""
+    // The second round (GamesExtras.swift).
+    @State private var quickFilters: Set<GameFilter> = []
+    @State private var onlyNew = false
+    @State private var creatingList: GameListing?
+    @State private var showingLists = false
+    @State private var showingHistory = false
 
     /// Everything the list may show: Settings → Family can keep scary games
     /// out, and the player can put games out of sight.
@@ -36,22 +42,36 @@ struct DiscoverView: View {
         let liked = Set(settings.memory.gameNotes.filter { $0.value.liked }.map(\.key))
         let played = settings.playtime.totalSeconds
         return CatalogueBrowsing.sorted(games, by: settings.memory.gameSort,
-                                        playedSeconds: { played[$0.title] ?? 0 }, liked: liked)
+                                        playedSeconds: { played[$0.title] ?? 0 }, liked: liked,
+                                        stars: settings.memory.ratings.stars)
     }
 
     private var isFiltering: Bool {
         !search.trimmingCharacters(in: .whitespaces).isEmpty || tagFilter != nil || players != .any
+            || !quickFilters.isEmpty || onlyNew
+    }
+
+    private var filterContext: GameFilter.Context {
+        GameFilter.Context(downloaded: library.installed,
+                           played: Set(settings.memory.lastPlayedAt.keys).union(settings.memory.recentGames),
+                           favourites: settings.memory.favoriteGames, playLater: Set(settings.memory.playLater))
+    }
+
+    /// New or updated since last looked at.
+    private func isFresh(_ listing: GameListing) -> Bool {
+        CatalogueShelf.freshness(of: listing, seen: settings.memory.seenGames) != .seen
     }
 
     private var filtered: [GameListing] {
-        let query = search.trimmingCharacters(in: .whitespaces).lowercased()
+        // Found however it is typed: either case, full or half width,
+        // hiragana or katakana (SearchText).
+        let context = filterContext
         return allowed.filter { listing in
-            (query.isEmpty
-                || listing.title.lowercased().contains(query)
-                || listing.author.lowercased().contains(query)
-                || listing.tags.contains { $0.lowercased().contains(query) })
+            SearchText.matches(search, in: [listing.title, listing.author, listing.summary] + listing.tags)
             && (tagFilter.map { listing.tags.contains($0) } ?? true)
             && players.allows(listing)
+            && quickFilters.allSatisfy { $0.allows(listing, context) }
+            && (!onlyNew || isFresh(listing))
         }
     }
 
@@ -64,13 +84,19 @@ struct DiscoverView: View {
                 if library.listings.isEmpty {
                     emptyState
                 } else {
+                    SearchHelp(search: $search, titles: allowed.map(\.title), foundNothing: filtered.isEmpty)
                     filters
-                    if !isFiltering { shelves }
+                    QuickFilterChips(selection: $quickFilters, onlyNew: $onlyNew, newCount: allowed.filter(isFresh).count)
+                    if !isFiltering {
+                        shelves
+                        GamesExtraShelves(allowed: allowed, library: library, badges: badges(for:)) { selected = $0 }
+                    }
                     HStack {
                         SectionHeader(isFiltering ? L("{} games", filtered.count) : L("All games"), systemImage: "square.grid.2x2.fill")
                         Spacer()
                         surpriseButton
                         sortMenu
+                        GamesLayoutMenu(layout: $settings.memory.gamesLayout)
                     }
                     grid(ordered(filtered))
                 }
@@ -89,10 +115,21 @@ struct DiscoverView: View {
         }
         .refreshable { await library.refresh() }
         .sheet(item: $selected) { listing in
-            GameDetailSheet(listing: listing, library: library, onEnter: onEnter)
-                .environmentObject(settings)
-                .environmentObject(session)
-                .environmentObject(cloud)
+            GameDetailSheet(listing: listing, library: library, onEnter: onEnter, allowed: allowed) { other in
+                selected = other
+            }
+            .environmentObject(settings)
+            .environmentObject(session)
+            .environmentObject(cloud)
+        }
+        .sheet(item: $creatingList) { listing in
+            NewListSheet(adding: listing.id).environmentObject(settings)
+        }
+        .sheet(isPresented: $showingLists) {
+            CollectionsSheet().environmentObject(settings)
+        }
+        .sheet(isPresented: $showingHistory) {
+            PlayHistorySheet(listings: library.listings).environmentObject(settings)
         }
         // A sheet rather than an alert: an alert's text field only types
         // with the iPad keyboard.
@@ -172,6 +209,24 @@ struct DiscoverView: View {
             }
             Section {
                 Button {
+                    showingLists = true
+                } label: {
+                    Label(L("My lists"), systemImage: "folder")
+                }
+                Button {
+                    showingHistory = true
+                } label: {
+                    Label(L("Play history"), systemImage: "clock.arrow.circlepath")
+                }
+                Button {
+                    // Every NEW and UPDATE badge goes.
+                    for listing in library.listings { settings.memory.seenGames[listing.id] = listing.revisionKey }
+                } label: {
+                    Label(L("Mark every game as seen"), systemImage: "checkmark.circle")
+                }
+            }
+            Section {
+                Button {
                     Task { await downloadEverything() }
                 } label: {
                     Label(L("Download every game for offline"), systemImage: "arrow.down.circle")
@@ -212,11 +267,13 @@ struct DiscoverView: View {
                 } label: {
                     chip(players.displayName, systemImage: "person.2.fill", selected: players != .any)
                 }
+                let counts = Dictionary(GameShelves.tagCounts(in: allowed).map { ($0.tag, $0.count) }, uniquingKeysWith: { first, _ in first })
                 ForEach(CatalogueShelf.commonTags(in: allowed), id: \.self) { tag in
                     Button {
                         tagFilter = tagFilter == tag ? nil : tag
                     } label: {
-                        chip(tag, systemImage: nil, selected: tagFilter == tag)
+                        // How many games have it, beside the tag.
+                        chip("\(tag) \(counts[tag] ?? 0)", systemImage: nil, selected: tagFilter == tag)
                     }
                     .buttonStyle(.plain)
                 }
@@ -318,6 +375,8 @@ struct DiscoverView: View {
         badges.traits = CatalogueShelf.traits(of: listing)
         badges.timesPlayed = settings.playtime.timesPlayed[listing.title] ?? 0
         badges.nearby = session.discoveredPeers.contains { $0.worldName == listing.title && $0.isCompatible }
+        badges.stars = settings.memory.ratings.stars(for: listing.id)
+        badges.playLater = settings.memory.playLater.contains(listing.id)
         return badges
     }
 
@@ -353,17 +412,25 @@ struct DiscoverView: View {
         )
     }
 
+    /// Big cards, small cards or a list, as chosen.
     private func grid(_ games: [GameListing]) -> some View {
-        LazyVGrid(
-            columns: [GridItem(.adaptive(minimum: 230, maximum: 320), spacing: 16)],
-            spacing: 16
-        ) {
+        let layout = settings.memory.gamesLayout
+        let columns = layout == .list ? [GridItem(.flexible())]
+            : [GridItem(.adaptive(minimum: layout == .smallCards ? 170 : 230, maximum: layout == .smallCards ? 220 : 320), spacing: 16)]
+        return LazyVGrid(columns: columns, spacing: layout == .list ? 8 : 16) {
             ForEach(games) { listing in
                 Button { open(listing) } label: {
-                    GameCard(listing: listing, library: library, badges: badges(for: listing))
+                    if layout == .list {
+                        GameRowView(listing: listing, library: library, badges: badges(for: listing))
+                    } else {
+                        GameCard(listing: listing, library: library, badges: badges(for: listing))
+                    }
                 }
                 .buttonStyle(.plain)
                 .contextMenu {
+                    GameOrganiseMenu(listing: listing, creatingList: Binding(
+                        get: { creatingList != nil },
+                        set: { creatingList = $0 ? listing : nil }))
                     Button {
                         settings.memory.hiddenGames.insert(listing.id)
                     } label: {
@@ -457,7 +524,7 @@ struct WorldThumbnail: View {
 // MARK: - Card
 
 /// One cover picture with its title underneath.
-private struct GameCard: View {
+struct GameCard: View {
     let listing: GameListing
     @ObservedObject var library: GameLibrary
     var badges = Badges()
@@ -469,6 +536,9 @@ private struct GameCard: View {
         var traits = CatalogueShelf.Traits()
         var timesPlayed = 0
         var nearby = false
+        /// The player's own stars, and whether it is waiting to be played.
+        var stars = 0
+        var playLater = false
     }
 
     @State private var cover: Data?
@@ -500,12 +570,19 @@ private struct GameCard: View {
                     .padding(8)
                 }
                 .overlay(alignment: .topTrailing) {
-                    if badges.favourite {
-                        Image(systemName: "star.fill")
-                            .foregroundStyle(Ablox.Palette.warning)
-                            .padding(8)
-                            .shadow(radius: 2)
+                    HStack(spacing: 6) {
+                        if badges.playLater {
+                            Image(systemName: "bookmark.fill")
+                                .foregroundStyle(Ablox.Palette.accent)
+                                .accessibilityLabel(L("Play later"))
+                        }
+                        if badges.favourite {
+                            Image(systemName: "star.fill")
+                                .foregroundStyle(Ablox.Palette.warning)
+                        }
                     }
+                    .padding(8)
+                    .shadow(radius: 2)
                 }
 
             VStack(alignment: .leading, spacing: 3) {
@@ -537,6 +614,9 @@ private struct GameCard: View {
                             .font(.caption2)
                             .foregroundStyle(Ablox.Palette.success)
                             .accessibilityLabel(L("Gentle"))
+                    }
+                    if badges.stars > 0 {
+                        StarsLabel(stars: badges.stars)
                     }
                     if badges.timesPlayed > 0 {
                         Text(L("×{}", badges.timesPlayed))
@@ -622,6 +702,10 @@ private struct GameDetailSheet: View {
     let listing: GameListing
     @ObservedObject var library: GameLibrary
     var onEnter: (ActiveSession) -> Void
+    /// Everything the list may show, for games like this one.
+    var allowed: [GameListing] = []
+    /// Opens another game's page.
+    var onOpen: (GameListing) -> Void = { _ in }
     @EnvironmentObject private var settings: AppSettings
     @EnvironmentObject private var session: SessionCoordinator
     @EnvironmentObject private var cloud: CloudService
@@ -677,6 +761,7 @@ private struct GameDetailSheet: View {
 
             facts
             playRecord
+            GameDetailExtras(listing: listing, library: library, allowed: allowed, onOpen: onOpen)
             howToPlay
             noteField
             tagsRow
@@ -758,6 +843,7 @@ private struct GameDetailSheet: View {
     private func arrive() async {
         // Seen now: its "new" or "updated" badge can go.
         settings.memory.seenGames[listing.id] = listing.revisionKey
+        settings.memory.viewedGames.viewed(listing.id)
         memo = settings.memory.gameNotes[listing.id]?.memo ?? ""
         cachedWorld = library.cachedWorld(for: listing)
         cover = await library.coverData(for: listing)

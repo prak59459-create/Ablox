@@ -273,6 +273,7 @@ public final class AppSettings: ObservableObject {
 
     /// Banks a round's score as coins. Called when a round ends.
     public func award(score: Int, completedRound: Bool, game: String = "") {
+        if !game.isEmpty, score > (memory.bestScores[game] ?? 0) { memory.bestScores[game] = score }
         let coins = CoinRate.coins(forScore: score, completedRound: completedRound)
         wallet.earn(coins)
         coinLedger.record(coins, reason: game.isEmpty ? L("A round") : game)
@@ -507,6 +508,17 @@ public struct MenuMemory: Codable, Hashable, Sendable {
     public var counters = LifetimeCounters()
     /// Chat phrases of the player's own.
     public var phrases = SavedPhrases()
+    // The Games tab (see GameShelves.swift).
+    public var ratings = GameRatings()
+    /// Games to play later, first added first.
+    public var playLater: [String] = []
+    public var collections = GameCollections()
+    public var viewedGames = RecentlyViewed()
+    /// When each game was last started, by id.
+    public var lastPlayedAt: [String: Date] = [:]
+    /// The best score in each game, by name.
+    public var bestScores: [String: Int] = [:]
+    public var gamesLayout: GamesLayout = .bigCards
     /// The highest level whose coins have been given.
     public var rewardedLevel = 1
 
@@ -536,6 +548,13 @@ public struct MenuMemory: Codable, Hashable, Sendable {
         emotes = (try? c.decodeIfPresent(EmoteFavourites.self, forKey: .emotes)) ?? EmoteFavourites()
         counters = (try? c.decodeIfPresent(LifetimeCounters.self, forKey: .counters)) ?? LifetimeCounters()
         phrases = (try? c.decodeIfPresent(SavedPhrases.self, forKey: .phrases)) ?? SavedPhrases()
+        ratings = (try? c.decodeIfPresent(GameRatings.self, forKey: .ratings)) ?? GameRatings()
+        playLater = (try? c.decodeIfPresent([String].self, forKey: .playLater)) ?? []
+        collections = (try? c.decodeIfPresent(GameCollections.self, forKey: .collections)) ?? GameCollections()
+        viewedGames = (try? c.decodeIfPresent(RecentlyViewed.self, forKey: .viewedGames)) ?? RecentlyViewed()
+        lastPlayedAt = (try? c.decodeIfPresent([String: Date].self, forKey: .lastPlayedAt)) ?? [:]
+        bestScores = (try? c.decodeIfPresent([String: Int].self, forKey: .bestScores)) ?? [:]
+        gamesLayout = (try? c.decodeIfPresent(GamesLayout.self, forKey: .gamesLayout)) ?? .bigCards
         rewardedLevel = (try? c.decodeIfPresent(Int.self, forKey: .rewardedLevel)) ?? 1
     }
 
@@ -544,6 +563,22 @@ public struct MenuMemory: Codable, Hashable, Sendable {
         recentGames.removeAll { $0 == gameID }
         recentGames.insert(gameID, at: 0)
         if recentGames.count > 20 { recentGames.removeLast(recentGames.count - 20) }
+        lastPlayedAt[gameID] = Date()
+        if lastPlayedAt.count > 300, let oldest = lastPlayedAt.min(by: { $0.value < $1.value }) {
+            lastPlayedAt[oldest.key] = nil
+        }
+        // Played: no longer waiting to be played later.
+        playLater.removeAll { $0 == gameID }
+    }
+
+    /// A game on (or off) the "play later" list.
+    public mutating func togglePlayLater(_ gameID: String) {
+        if let index = playLater.firstIndex(of: gameID) {
+            playLater.remove(at: index)
+        } else {
+            playLater.append(gameID)
+            if playLater.count > 100 { playLater.removeFirst(playLater.count - 100) }
+        }
     }
 }
 
