@@ -3,25 +3,31 @@ import AbloxCore
 
 /// A thumbstick for touch.
 ///
-/// Floating rather than fixed: the stick centres itself wherever the thumb
-/// first lands inside its zone. On a 13" iPad there is no single spot a thumb
-/// reliably reaches, and a fixed stick forces the hand to hunt for it.
+/// Floating by default: the stick centres itself wherever the thumb first
+/// lands inside its zone. On a 13" iPad there is no single spot a thumb
+/// reliably reaches, and a fixed stick forces the hand to hunt for it. Some
+/// players still prefer one that stays put (Play screen options), and its
+/// size, how solid it looks and its still zone are theirs to choose too.
 public struct VirtualJoystick: View {
     /// Normalised offset, `x` right and `z` forward, each in `-1...1`.
     @Binding var value: Vec3
     var onRunStateChange: ((Bool) -> Void)?
+    var options: HUDOptions
+    /// Which lower corner a fixed stick sits in.
+    var fixedOnLeft: Bool
 
-    private let outerRadius: CGFloat = 78
-    private let knobRadius: CGFloat = 32
-    /// Past this fraction of the travel, the player is running.
-    private let runThreshold: CGFloat = 0.85
+    private var outerRadius: CGFloat { 78 * CGFloat(options.joystickScale) }
+    private var knobRadius: CGFloat { 32 * CGFloat(options.joystickScale) }
 
     @State private var origin: CGPoint?
     @State private var knobOffset: CGSize = .zero
     @State private var isRunning = false
 
-    public init(value: Binding<Vec3>, onRunStateChange: ((Bool) -> Void)? = nil) {
+    public init(value: Binding<Vec3>, options: HUDOptions = HUDOptions(), fixedOnLeft: Bool = true,
+                onRunStateChange: ((Bool) -> Void)? = nil) {
         self._value = value
+        self.options = options
+        self.fixedOnLeft = fixedOnLeft
         self.onRunStateChange = onRunStateChange
     }
 
@@ -29,7 +35,7 @@ public struct VirtualJoystick: View {
     // checked on its own; inline this was among the slowest views to compile.
     public var body: some View {
         GeometryReader { proxy in
-            zone
+            zone(size: proxy.size)
                 .frame(width: proxy.size.width, height: proxy.size.height)
         }
         .accessibilityLabel(L("Movement stick"))
@@ -41,24 +47,42 @@ public struct VirtualJoystick: View {
         .accessibilityAction(named: L("Walk right")) { step(Vec3(1, 0, 0)) }
     }
 
-    /// The whole zone is the touch target; the ring is only drawn once a
-    /// thumb is down.
-    private var zone: some View {
-        ZStack {
+    /// Where a fixed stick sits: its lower outer corner.
+    private func fixedCentre(in size: CGSize) -> CGPoint {
+        let inset = 44 + outerRadius
+        return CGPoint(x: fixedOnLeft ? inset : size.width - inset, y: size.height - inset)
+    }
+
+    /// The whole zone is the touch target; a floating ring is only drawn
+    /// once a thumb is down, a fixed one always.
+    private func zone(size: CGSize) -> some View {
+        let fixed = options.joystickStyle == .fixed
+        return ZStack {
             Color.clear.contentShape(Rectangle())
-            if let origin {
+            if fixed {
+                ring.position(fixedCentre(in: size))
+            } else if let origin {
                 ring
                     .position(origin)
                     .transition(AnyTransition.opacity.combined(with: .scale))
             }
         }
-        .gesture(drag)
+        .gesture(drag(size: size, fixed: fixed))
     }
 
-    private var drag: some SwiftUI.Gesture {
+    private func drag(size: CGSize, fixed: Bool) -> some SwiftUI.Gesture {
         DragGesture(minimumDistance: 0)
             .onChanged { gesture in
-                touched(at: gesture.startLocation, moved: gesture.translation)
+                if fixed {
+                    // Measured from the stick's own centre. A touch that
+                    // began far from it is not meant for the stick.
+                    let centre = fixedCentre(in: size)
+                    let start = CGSize(width: gesture.startLocation.x - centre.x, height: gesture.startLocation.y - centre.y)
+                    guard (start.width * start.width + start.height * start.height).squareRoot() < outerRadius * 1.8 else { return }
+                    update(with: CGSize(width: gesture.location.x - centre.x, height: gesture.location.y - centre.y))
+                } else {
+                    touched(at: gesture.startLocation, moved: gesture.translation)
+                }
             }
             .onEnded { _ in
                 released()
@@ -105,6 +129,7 @@ public struct VirtualJoystick: View {
                 .shadow(color: .black.opacity(0.35), radius: 6, y: 3)
                 .offset(knobOffset)
         }
+        .opacity(options.joystickOpacity)
         .allowsHitTesting(false)
     }
 
@@ -129,9 +154,11 @@ public struct VirtualJoystick: View {
         // Screen-down is +y, but forward is +z in the movement input, so the
         // vertical axis is negated here rather than at every read site.
         let nz = Float(-clamped.dy / maxTravel)
-        value = Vec3(nx, 0, nz)
-
-        setRunning(distance >= maxTravel * runThreshold)
+        // The still zone and eight directions, as the player chose.
+        let shaped = TouchStick.shape(x: nx, z: nz, deadZone: Float(options.stickDeadZone),
+                                      eightWay: options.eightWay, alwaysRun: false)
+        value = shaped.stick
+        setRunning(shaped.running)
     }
 
     private func setRunning(_ running: Bool) {
@@ -157,9 +184,15 @@ public struct CameraPad: View {
     /// A tap that did not move is forwarded, so tapping a block still works
     /// through the pad.
     var onTap: ((CGPoint) -> Void)?
+    /// Left-right flipped, and up-down at its own speed (Play screen options).
+    var invertX = false
+    var verticalSpeed: Double = 1
+    /// Two quick taps: the camera goes back behind the player.
+    var onDoubleTap: (() -> Void)?
 
     @State private var lastTranslation: CGSize = .zero
     @State private var didDrag = false
+    @State private var lastTapAt: Date?
 
     public init(
         yaw: Binding<Float>,
@@ -167,14 +200,20 @@ public struct CameraPad: View {
         sensitivity: Double = 1,
         invertY: Bool = false,
         pitchRange: ClosedRange<Float> = -75...20,
-        onTap: ((CGPoint) -> Void)? = nil
+        invertX: Bool = false,
+        verticalSpeed: Double = 1,
+        onTap: ((CGPoint) -> Void)? = nil,
+        onDoubleTap: (() -> Void)? = nil
     ) {
         self._yaw = yaw
         self._pitch = pitch
         self.sensitivity = sensitivity
         self.invertY = invertY
         self.pitchRange = pitchRange
+        self.invertX = invertX
+        self.verticalSpeed = verticalSpeed
         self.onTap = onTap
+        self.onDoubleTap = onDoubleTap
     }
 
     public var body: some View {
@@ -194,12 +233,22 @@ public struct CameraPad: View {
                         }
 
                         let factor = Float(0.28 * sensitivity)
-                        yaw = normalizeDegrees(yaw - Float(dx) * factor)
-                        let tilted = pitch + Float(dy) * factor * (invertY ? -1 : 1)
+                        let look = CameraHabits.look(dx: Float(dx), dy: Float(dy), invertX: invertX, verticalSpeed: verticalSpeed)
+                        yaw = normalizeDegrees(yaw - look.dx * factor)
+                        let tilted = pitch + look.dy * factor * (invertY ? -1 : 1)
                         pitch = max(pitchRange.lowerBound, min(pitchRange.upperBound, tilted))
                     }
                     .onEnded { gesture in
-                        if !didDrag { onTap?(gesture.startLocation) }
+                        if !didDrag {
+                            onTap?(gesture.startLocation)
+                            let now = Date()
+                            if let last = lastTapAt, now.timeIntervalSince(last) < 0.35, let onDoubleTap {
+                                lastTapAt = nil
+                                onDoubleTap()
+                            } else {
+                                lastTapAt = now
+                            }
+                        }
                         lastTranslation = .zero
                         didDrag = false
                     }
@@ -220,9 +269,12 @@ public struct CameraPad: View {
 
 public struct JumpButton: View {
     @Binding var isPressed: Bool
+    /// A small tap felt on each press (Play screen options).
+    var haptics: Bool
 
-    public init(isPressed: Binding<Bool>) {
+    public init(isPressed: Binding<Bool>, haptics: Bool = false) {
         self._isPressed = isPressed
+        self.haptics = haptics
     }
 
     public var body: some View {
@@ -241,9 +293,10 @@ public struct JumpButton: View {
                 // A press-and-hold gesture rather than a Button, so holding
                 // the key down keeps `isJumping` true for the solver.
                 DragGesture(minimumDistance: 0)
-                    .onChanged { _ in isPressed = true }
+                    .onChanged { _ in if !isPressed { isPressed = true } }
                     .onEnded { _ in isPressed = false }
             )
+            .sensoryFeedback(.impact(flexibility: .soft, intensity: 0.7), trigger: isPressed) { _, pressed in haptics && pressed }
             .accessibilityLabel(L("Jump"))
             .accessibilityAddTraits(.isButton)
     }

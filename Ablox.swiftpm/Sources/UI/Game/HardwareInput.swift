@@ -11,7 +11,12 @@ import AbloxCore
 ///   Options pauses, the D-pad zooms.
 /// - Keyboard: W A S D walk, Space jumps, Shift runs, F fires, the arrow keys
 ///   look, Esc or Tab pauses, 1 to 4 play the favourite emotes (Y or △ on a
-///   controller plays them in turn).
+///   controller plays them in turn). T chats, M opens the map, P takes a
+///   picture, V switches first and third person, R puts the camera behind,
+///   H hides the buttons and K lists all of this (`PlayShortcuts`).
+/// - Controller extras: pressing the right stick puts the camera behind, the
+///   D-pad's left and right change who is being watched.
+/// - While a text box has the keyboard, keys type and nothing else.
 /// - Mouse or trackpad: hold the right button (or two fingers with a click)
 ///   and move to look; scroll to zoom. The left button is a touch, as always.
 ///
@@ -42,11 +47,16 @@ final class HardwareInput: NSObject, ObservableObject {
     /// A favourite emote: keys 1 to 4 give its slot (from 0); the
     /// controller's Y (△) gives -1, the next one in turn.
     var onEmote: ((Int) -> Void)?
+    /// A one-press action from a key or button.
+    var onAction: ((PlayKeyAction) -> Void)?
 
     private var link: CADisplayLink?
     private var lastTimestamp: CFTimeInterval = 0
     private var menuWasDown = false
     private var emoteWasDown: Int?
+    private var actionsDown: Set<PlayKeyAction> = []
+    /// Text boxes with the keyboard at the moment.
+    private var typing = 0
     private var observers: [NSObjectProtocol] = []
     private let mouse = MouseAccumulator()
 
@@ -58,6 +68,19 @@ final class HardwareInput: NSObject, ObservableObject {
         for name in names {
             observers.append(NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
                 Task { @MainActor in self?.refreshDevices() }
+            })
+        }
+        // A game's own text box, or chat: letters type rather than walk.
+        let began: [Notification.Name] = [UITextField.textDidBeginEditingNotification, UITextView.textDidBeginEditingNotification]
+        let ended: [Notification.Name] = [UITextField.textDidEndEditingNotification, UITextView.textDidEndEditingNotification]
+        for name in began {
+            observers.append(NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+                Task { @MainActor in self?.typing += 1 }
+            })
+        }
+        for name in ended {
+            observers.append(NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+                Task { @MainActor in if let self { self.typing = Swift.max(0, self.typing - 1) } }
             })
         }
         refreshDevices()
@@ -103,6 +126,7 @@ final class HardwareInput: NSObject, ObservableObject {
         var move = Vec3.zero
         var jump = false, run = false, fire = false, menu = false
         var emote: Int?
+        var actions: Set<PlayKeyAction> = []
         var yaw: Float = 0, pitch: Float = 0, zoom: Float = 0
 
         if let pad = GCController.current?.extendedGamepad ?? GCController.controllers().first?.extendedGamepad {
@@ -119,9 +143,12 @@ final class HardwareInput: NSObject, ObservableObject {
             if pad.buttonY.isPressed { emote = -1 }
             if pad.dpad.up.isPressed { zoom -= seconds * 1.5 }
             if pad.dpad.down.isPressed { zoom += seconds * 1.5 }
+            if pad.rightThumbstickButton?.isPressed ?? false { actions.insert(.cameraBehind) }
+            if pad.dpad.left.isPressed { actions.insert(.watchPrevious) }
+            if pad.dpad.right.isPressed { actions.insert(.watchNext) }
         }
 
-        if let keys = GCKeyboard.coalesced?.keyboardInput {
+        if typing == 0, KeyboardController.shared.targetID == nil, let keys = GCKeyboard.coalesced?.keyboardInput {
             func down(_ code: GCKeyCode) -> Bool { keys.button(forKeyCode: code)?.isPressed ?? false }
             let walked = KeyMovement.stick(forward: down(.keyW), back: down(.keyS), left: down(.keyA), right: down(.keyD))
             if walked != .zero { move = walked }
@@ -130,6 +157,10 @@ final class HardwareInput: NSObject, ObservableObject {
             fire = fire || down(.keyF)
             menu = menu || down(.escape) || down(.tab)
             for (slot, code) in [GCKeyCode.one, .two, .three, .four].enumerated() where down(code) { emote = slot }
+            let keyed: [(GCKeyCode, PlayKeyAction)] = [(.keyT, .chat), (.returnOrEnter, .chat), (.keyM, .map), (.keyP, .picture),
+                                                       (.keyV, .view), (.keyR, .cameraBehind), (.keyH, .hideButtons),
+                                                       (.keyK, .shortcuts), (.slash, .shortcuts)]
+            for (code, action) in keyed where down(code) { actions.insert(action) }
             let turn: Float = (down(.rightArrow) ? 1 : 0) - (down(.leftArrow) ? 1 : 0)
             let tilt: Float = (down(.upArrow) ? 1 : 0) - (down(.downArrow) ? 1 : 0)
             yaw += turn * 120 * seconds * sensitivity
@@ -151,9 +182,17 @@ final class HardwareInput: NSObject, ObservableObject {
         menuWasDown = menu
         if let emote, emote != emoteWasDown { onEmote?(emote) }
         emoteWasDown = emote
+        // Once per press, not every frame it is held.
+        for action in actions.subtracting(actionsDown) { onAction?(action) }
+        actionsDown = actions
         if yaw != 0 || pitch != 0 { onLook?(yaw, invertY ? -pitch : pitch) }
         if zoom != 0 { onZoom?(zoom) }
     }
+}
+
+/// A key or button that does one thing each time it is pressed.
+enum PlayKeyAction: Hashable {
+    case chat, map, picture, view, cameraBehind, hideButtons, shortcuts, watchNext, watchPrevious
 }
 
 /// How far the mouse moved and scrolled between frames. Written by

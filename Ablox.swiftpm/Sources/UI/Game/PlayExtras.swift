@@ -272,12 +272,19 @@ struct EmotePanel: View {
 // MARK: - Map
 
 /// The world from above: small in the corner around the player, or the
-/// whole of it. North is up; the player is the arrow.
+/// whole of it. North is up (or, if the player chose, the way the camera
+/// looks); the player is the arrow and friends have a gold ring.
 struct MiniMapView: View {
     let world: WorldDocument
     let players: [PlayerSnapshot]
     let localPeerID: PeerID
     let expanded: Bool
+    /// Metres across the small map.
+    var metresAcross: Double = 80
+    /// The camera's bearing, to turn the small map so it is up; nil keeps
+    /// north up.
+    var heading: Float?
+    var friends: Set<PeerID> = []
 
     private struct Plot {
         let rect: CGRect
@@ -324,6 +331,7 @@ struct MiniMapView: View {
     var body: some View {
         let (plots, worldBounds) = plots()
         let me = players.first { $0.peerID == localPeerID }
+        let turn = expanded ? nil : heading
         Canvas { context, size in
             // What part of the world is on the map.
             let view: CGRect
@@ -332,7 +340,8 @@ struct MiniMapView: View {
                 view = worldBounds.insetBy(dx: -pad, dy: -pad)
             } else {
                 let centre = CGPoint(x: CGFloat(me?.position.x ?? 0), y: CGFloat(me?.position.z ?? 0))
-                view = CGRect(x: centre.x - 40, y: centre.y - 40, width: 80, height: 80)
+                let across = CGFloat(metresAcross)
+                view = CGRect(x: centre.x - across / 2, y: centre.y - across / 2, width: across, height: across)
             }
             let scale = min(size.width / view.width, size.height / view.height)
             let offset = CGPoint(x: (size.width - view.width * scale) / 2, y: (size.height - view.height * scale) / 2)
@@ -340,7 +349,15 @@ struct MiniMapView: View {
                 CGPoint(x: offset.x + (x - view.minX) * scale, y: offset.y + (z - view.minY) * scale)
             }
             context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(Color.black.opacity(0.55)))
-            for plot in plots where plot.rect.intersects(view) {
+            // Turned, the corners show ground beyond the square.
+            let visible = turn == nil ? view : view.insetBy(dx: -view.width * 0.21, dy: -view.height * 0.21)
+            let original = context
+            if let turn {
+                context.translateBy(x: size.width / 2, y: size.height / 2)
+                context.rotate(by: .degrees(Double(-turn)))
+                context.translateBy(x: -size.width / 2, y: -size.height / 2)
+            }
+            for plot in plots where plot.rect.intersects(visible) {
                 let origin = point(plot.rect.minX, plot.rect.minY)
                 let rect = CGRect(x: origin.x, y: origin.y, width: max(1, plot.rect.width * scale), height: max(1, plot.rect.height * scale))
                 context.fill(Path(rect), with: .color(plot.color.opacity(0.85)))
@@ -350,7 +367,10 @@ struct MiniMapView: View {
                 let r: CGFloat = player.isNPC ? 2.5 : 4
                 context.fill(Path(ellipseIn: CGRect(x: p.x - r, y: p.y - r, width: r * 2, height: r * 2)),
                              with: .color(player.isNPC ? Color.red.opacity(0.8) : Color(player.profile.bodyColor)))
-                if !player.isNPC {
+                if friends.contains(player.peerID) {
+                    context.stroke(Path(ellipseIn: CGRect(x: p.x - r - 1.5, y: p.y - r - 1.5, width: r * 2 + 3, height: r * 2 + 3)),
+                                   with: .color(Ablox.Palette.warning), lineWidth: 2)
+                } else if !player.isNPC {
                     context.stroke(Path(ellipseIn: CGRect(x: p.x - r, y: p.y - r, width: r * 2, height: r * 2)), with: .color(.white), lineWidth: 1)
                 }
             }
@@ -367,6 +387,13 @@ struct MiniMapView: View {
                 let placed = arrow.applying(CGAffineTransform(rotationAngle: CGFloat(-angle))).applying(CGAffineTransform(translationX: p.x, y: p.y))
                 context.fill(placed, with: .color(.white))
                 context.stroke(placed, with: .color(Ablox.Palette.accent), lineWidth: 1.5)
+            }
+            if let turn {
+                // Where north is, on the turned map.
+                let angle = Angle(degrees: Double(-turn)).radians
+                let reach = min(size.width, size.height) / 2 - 10
+                let at = CGPoint(x: size.width / 2 + CGFloat(sin(angle)) * reach, y: size.height / 2 - CGFloat(cos(angle)) * reach)
+                original.draw(Text(L("N")).font(.system(size: 11, weight: .black)).foregroundStyle(Ablox.Palette.danger), at: at)
             }
         }
         .clipShape(RoundedRectangle(cornerRadius: expanded ? 18 : 14, style: .continuous))
@@ -461,6 +488,11 @@ struct PauseMenu: View {
     let onReturnToStart: () -> Void
     let onEditButtons: () -> Void
     let onLeave: () -> Void
+    /// The visit so far, and the play screen's extras (HUDExtras.swift).
+    let tracker: PlayTracker
+    let onCameraBehind: () -> Void
+    let onHideButtons: () -> Void
+    let onShortcuts: () -> Void
 
     enum Tab: String, CaseIterable, Identifiable {
         case game, room, controls, messages, help
@@ -479,6 +511,8 @@ struct PauseMenu: View {
     @State private var tab: Tab = .game
     @State private var confirmingStart = false
     @State private var choosingHowToLeave = false
+    @State private var showingOptions = false
+    @State private var copiedCode = false
 
     /// The room tab only means something with other people.
     private var tabs: [Tab] {
@@ -543,10 +577,16 @@ struct PauseMenu: View {
         } message: {
             Text(L("You'll be put back where the world begins."))
         }
+        .sheet(isPresented: $showingOptions) {
+            PlayScreenOptionsView()
+        }
     }
 
     private var gameTab: some View {
         VStack(alignment: .leading, spacing: 10) {
+            VisitStatsCard(tally: tracker.tally, seconds: playSeconds, score: session.localPlayer?.score ?? 0)
+            // Experience needs neither worlds nor pictures.
+            LevelCard(level: settings.progressStats(worldsMade: 0, pictures: 0).level)
             row(L("Take a picture"), "camera.fill", action: onScreenshot)
             row(L("Photo mode"), "camera.aperture", action: onPhotoMode)
             row(clips.isBuffering ? L("Save the last 30 seconds") : L("Start keeping clips"),
@@ -560,6 +600,15 @@ struct PauseMenu: View {
                     .foregroundStyle(Ablox.Palette.warning)
             }
             row(L("Back to the start"), "arrow.uturn.backward.circle") { confirmingStart = true }
+            row(L("Camera behind me"), "camera.rotate", action: onCameraBehind)
+            row(L("Hide the buttons"), "eye.slash", action: onHideButtons)
+            row(L("Keyboard shortcuts"), "keyboard", action: onShortcuts)
+            if session.role == .hosting, !session.roomCode.isEmpty {
+                row(copiedCode ? L("Copied!") : L("Copy the room code"), copiedCode ? "checkmark" : "doc.on.doc") {
+                    UIPasteboard.general.string = RoomCode.formatted(session.roomCode)
+                    copiedCode = true
+                }
+            }
             timerRow
         }
     }
@@ -617,6 +666,10 @@ struct PauseMenu: View {
             }
             Toggle(L("Auto-jump"), isOn: $settings.preferences.autoJump)
                 .tint(Ablox.Palette.accent)
+            Toggle(L("Stick on the right"), isOn: $settings.joystickOnRight)
+                .tint(Ablox.Palette.accent)
+            Toggle(L("Camera follows behind me"), isOn: $settings.preferences.hud.cameraFollows)
+                .tint(Ablox.Palette.accent)
             CrosshairPickers()
             Toggle(L("One-handed controls"), isOn: $settings.preferences.oneHanded)
                 .tint(Ablox.Palette.accent)
@@ -638,10 +691,18 @@ struct PauseMenu: View {
             }
             Toggle(L("Read characters' lines aloud"), isOn: $settings.preferences.readLinesAloud)
                 .tint(Ablox.Palette.accent)
-            Button(action: onEditButtons) {
-                Label(L("Move and resize the buttons"), systemImage: "hand.draw")
+            HStack {
+                Button(action: onEditButtons) {
+                    Label(L("Move and resize the buttons"), systemImage: "hand.draw")
+                }
+                .buttonStyle(NeonButtonStyle(.secondary))
+                Button {
+                    showingOptions = true
+                } label: {
+                    Label(L("More options"), systemImage: "slider.horizontal.3")
+                }
+                .buttonStyle(NeonButtonStyle(.secondary))
             }
-            .buttonStyle(NeonButtonStyle(.secondary))
         }
     }
 
@@ -660,6 +721,25 @@ struct PauseMenu: View {
                     Text(verbatim: entry.text)
                         .font(.subheadline)
                         .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            // What the app itself said at the bottom of the screen.
+            let notices = tracker.notices
+            if !notices.isEmpty {
+                Text(L("Notices this visit"))
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(Ablox.Palette.inkMuted)
+                    .padding(.top, 8)
+                ForEach(notices.indices.reversed(), id: \.self) { index in
+                    HStack(alignment: .top, spacing: 8) {
+                        Text(notices[index].date.formatted(date: .omitted, time: .shortened))
+                            .font(.caption.monospacedDigit())
+                            .foregroundStyle(Ablox.Palette.inkFaint)
+                        Text(verbatim: notices[index].text)
+                            .font(.subheadline)
+                            .foregroundStyle(Ablox.Palette.inkMuted)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
             }
         }
@@ -681,7 +761,8 @@ struct PauseMenu: View {
                 .fixedSize(horizontal: false, vertical: true)
             Divider().background(Color.white.opacity(0.1))
             Label(L("Drag on the left to walk; push all the way to run."), systemImage: "hand.draw")
-            Label(L("Drag on the right to look around. Pinch to zoom."), systemImage: "arrow.up.and.down.and.arrow.left.and.right")
+            Label(L("Drag on the right to look around. Pinch to zoom. Tap twice to put the camera behind you."),
+                  systemImage: "arrow.up.and.down.and.arrow.left.and.right")
             Label(L("The arrow button jumps."), systemImage: "arrow.up.circle")
             Label(L("Tap things in the world to use them."), systemImage: "hand.tap")
             Label(L("Buttons the game puts on the screen do what they say."), systemImage: "rectangle.and.hand.point.up.left")

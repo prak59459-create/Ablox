@@ -61,6 +61,14 @@ public struct PlayScreen: View {
     /// A game controller, keyboard or mouse, beside the touch controls.
     @StateObject private var hardware = HardwareInput()
 
+    // Play screen options (see HUDExtras.swift).
+    @State private var tracker = PlayTracker()
+    @State private var buttonsHidden = false
+    @State private var keepWalking = false
+    @State private var holdingRun = false
+    @State private var showShortcuts = false
+    @State private var unreadChat = 0
+
     public init(session: SessionCoordinator, activeSession: ActiveSession, onExit: @escaping () -> Void) {
         self.session = session
         self.activeSession = activeSession
@@ -80,10 +88,13 @@ public struct PlayScreen: View {
     }
 
     private var movementInput: MovementInput {
-        MovementInput(stick: stick == .zero ? hardware.stick : stick,
-                      isJumping: isJumping || hardware.jumping,
-                      isRunning: isRunning || hardware.running,
-                      cameraYawDegrees: cameraYaw)
+        var move = stick == .zero ? hardware.stick : stick
+        if keepWalking { move = TouchStick.keepWalking(move) }
+        let running = isRunning || hardware.running || holdingRun || (settings.preferences.hud.alwaysRun && move != .zero)
+        return MovementInput(stick: move,
+                             isJumping: isJumping || hardware.jumping,
+                             isRunning: running,
+                             cameraYawDegrees: cameraYaw)
     }
 
     // In pieces, each type-checked on its own: as one expression the play
@@ -159,12 +170,15 @@ public struct PlayScreen: View {
         PartsHUDLayer(session: session, readAloud: settings.preferences.readLinesAloud)
         hudLayer
         familyNotices
-        if !session.isSolo {
+        if !session.isSolo, !buttonsHidden {
             RoomHUD(session: session)
-                .padding(.top, 68)
+                .padding(.top, settings.preferences.hud.showCompass ? 106 : 68)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
         spectateBar
+        if showShortcuts {
+            ShortcutsCard { withAnimation { showShortcuts = false } }
+        }
         if showMenu {
             pauseMenu
         }
@@ -188,7 +202,11 @@ public struct PlayScreen: View {
             onPhotoMode: { closeMenu(); withAnimation { photoMode = true } },
             onReturnToStart: { closeMenu(); link.returnToStart() },
             onEditButtons: { closeMenu(); editingButtons = true },
-            onLeave: onExit
+            onLeave: onExit,
+            tracker: tracker,
+            onCameraBehind: { closeMenu(); cameraBehind() },
+            onHideButtons: { closeMenu(); withAnimation { buttonsHidden = true } },
+            onShortcuts: { closeMenu(); withAnimation { showShortcuts = true } }
         )
         .transition(.opacity)
     }
@@ -211,7 +229,17 @@ public struct PlayScreen: View {
                 enterSession()
                 startHardware()
             }
-            .onChange(of: showChat) { _, open in hardware.suspended = open || showMenu }
+            .onChange(of: showChat) { _, open in
+                hardware.suspended = open || showMenu
+                if open { unreadChat = 0 }
+            }
+            // Said while the chat was closed: counted on its button.
+            .onChange(of: session.visibleChatLog.last?.id) { _, newest in
+                guard newest != nil, !showChat, session.visibleChatLog.last?.senderID != session.localPeerID else { return }
+                unreadChat += 1
+            }
+            // Any touch at all means someone is there.
+            .background(TouchWatcher { tracker.idle.touched(at: Date().timeIntervalSinceReferenceDate) })
             .onChange(of: showMenu) { _, open in hardware.suspended = open || showChat }
             .sheet(item: $sharing) { file in
                 ActivityShareSheet(items: [file.url])
@@ -220,6 +248,9 @@ public struct PlayScreen: View {
                 // Whoever was being watched has gone.
                 if let watched = spectating, !roster.contains(where: { $0.peerID == watched }) { spectating = nil }
                 noticeWhoIsHere()
+                if let me = session.localPlayer {
+                    tracker.tally.record(position: me.position, grounded: me.isGrounded, time: Date().timeIntervalSinceReferenceDate)
+                }
             }
             .onReceive(playClock) { _ in countPlay(seconds: 5) }
     }
@@ -330,6 +361,8 @@ public struct PlayScreen: View {
         }
         sessionSeconds += seconds
         if sessionSeconds >= 20 { takeThumbnailIfMine() }
+        checkAway()
+        checkPower()
 
         if PlayGate.breakDue(settings.parental, sessionSeconds: sessionSeconds, lastReminder: lastRestReminder) {
             lastRestReminder = sessionSeconds
@@ -349,6 +382,30 @@ public struct PlayScreen: View {
         }
     }
 
+    /// A game played alone pauses itself when nobody has touched anything
+    /// for a while (Play screen options).
+    private func checkAway() {
+        let now = Date().timeIntervalSinceReferenceDate
+        if hardware.stick != .zero || hardware.jumping || keepWalking || showMenu || !session.isSolo {
+            tracker.idle.touched(at: now)
+        }
+        guard settings.preferences.hud.pauseWhenAway, session.isSolo, !photoMode, tracker.idle.isAway(at: now) else { return }
+        tracker.idle.touched(at: now)
+        openMenu()
+        showToast(L("Paused while you were away."))
+    }
+
+    /// Once each per visit: a low battery, a hot iPad.
+    private func checkPower() {
+        guard settings.preferences.hud.powerWarnings else { return }
+        let battery = BatteryReading.now()
+        if let notice = PowerNotice.message(batteryLevel: battery.map { Double($0.percent) / 100 }, charging: battery?.charging ?? false,
+                                            heat: DeviceHeat.now, alreadySaid: tracker.powerSaid) {
+            tracker.powerSaid.insert(notice.key)
+            showToast(notice.text)
+        }
+    }
+
     @ViewBuilder private var familyNotices: some View {
         VStack(spacing: 10) {
             if let closingIn, let message = PlayGate.message(for: settings.playVerdict) {
@@ -363,7 +420,7 @@ public struct PlayScreen: View {
             }
             Spacer()
         }
-        .padding(.top, 70)
+        .padding(.top, settings.preferences.hud.showCompass ? 108 : 70)
         .transition(.move(edge: .top).combined(with: .opacity))
     }
 
@@ -430,11 +487,45 @@ public struct PlayScreen: View {
             if showMenu { closeMenu() } else if !photoMode { openMenu() }
         }
         hardware.onEmote = { slot in playFavourite(slot) }
-        hardware.onZoom = { amount in
-            let range = PlayPreferences.cameraZoomRange
-            settings.preferences.cameraZoom = min(range.upperBound, max(range.lowerBound, settings.preferences.cameraZoom + amount))
-        }
+        hardware.onZoom = { amount in zoom(by: amount) }
+        hardware.onAction = { action in handle(action) }
         hardware.start()
+    }
+
+    /// A key or button that does one thing (see `PlayShortcuts`).
+    private func handle(_ action: PlayKeyAction) {
+        switch action {
+        case .chat:
+            if settings.parental.chat != .off { withAnimation { showChat = true } }
+        case .map:
+            withAnimation { mapExpanded.toggle() }
+        case .picture:
+            takePicture()
+        case .view:
+            if session.scripted.camera.mode == .thirdPerson { preferFirstPerson.toggle() }
+        case .cameraBehind:
+            cameraBehind()
+        case .hideButtons:
+            withAnimation { buttonsHidden.toggle() }
+        case .shortcuts:
+            withAnimation { showShortcuts.toggle() }
+        case .watchNext:
+            if spectating != nil { cycleSpectate(1) }
+        case .watchPrevious:
+            if spectating != nil { cycleSpectate(-1) }
+        }
+    }
+
+    private func zoom(by amount: Float) {
+        let range = PlayPreferences.cameraZoomRange
+        settings.preferences.cameraZoom = min(range.upperBound, max(range.lowerBound, settings.preferences.cameraZoom + amount))
+    }
+
+    /// The camera straight behind the player, level again.
+    private func cameraBehind() {
+        guard let me = session.localPlayer else { return }
+        cameraYaw = CameraHabits.behind(bodyYaw: me.yawDegrees)
+        cameraPitch = -14
     }
 
     private var controlsLayer: some View {
@@ -448,18 +539,27 @@ public struct PlayScreen: View {
                     // other. Splitting the whole screen means a thumb never
                     // misses its control.
                     if stickOnLeft {
-                        VirtualJoystick(value: $stick) { isRunning = $0 }
+                        VirtualJoystick(value: $stick, options: settings.preferences.hud, fixedOnLeft: true) { isRunning = $0 }
                             .frame(width: half)
                         cameraPad
                             .frame(width: half)
                     } else {
                         cameraPad
                             .frame(width: half)
-                        VirtualJoystick(value: $stick) { isRunning = $0 }
+                        VirtualJoystick(value: $stick, options: settings.preferences.hud, fixedOnLeft: false) { isRunning = $0 }
                             .frame(width: half)
                     }
                 }
 
+                if !buttonsHidden {
+                    buttons(stickOnLeft: stickOnLeft)
+                }
+            }
+        }
+    }
+
+    /// The jump button and friends, on the thumb's side.
+    private func buttons(stickOnLeft: Bool) -> some View {
                 VStack {
                     Spacer()
                     if session.scripted.weapon != nil {
@@ -476,13 +576,40 @@ public struct PlayScreen: View {
                     // One-handed: the jump button moves over the stick, so one
                     // thumb walks and jumps.
                     let jumpOnLeft = settings.preferences.oneHanded ? stickOnLeft : !stickOnLeft
-                    HStack {
-                        if jumpOnLeft { jumpButton }
+                    HStack(alignment: .bottom) {
+                        if jumpOnLeft { jumpCluster(onLeft: true) }
                         Spacer()
-                        if !jumpOnLeft { jumpButton }
+                        if !jumpOnLeft { jumpCluster(onLeft: false) }
                     }
                     .padding(.horizontal, settings.preferences.oneHanded ? 150 : 44)
                     .padding(.bottom, settings.preferences.oneHanded ? 150 : 44)
+                }
+                .opacity(settings.preferences.hud.opacity)
+    }
+
+    /// The jump button, with the extra buttons chosen in the options on its
+    /// inner side.
+    private func jumpCluster(onLeft: Bool) -> some View {
+        HStack(alignment: .bottom, spacing: 16) {
+            if !onLeft { extraButtons }
+            jumpButton
+            if onLeft { extraButtons }
+        }
+    }
+
+    @ViewBuilder private var extraButtons: some View {
+        let hud = settings.preferences.hud
+        if hud.showZoomButtons || hud.showWalkButton || hud.showRunButton {
+            VStack(spacing: 12) {
+                if hud.showZoomButtons {
+                    ZoomButtons { zoom(by: $0) }
+                }
+                if hud.showWalkButton {
+                    HUDRoundButton(systemImage: keepWalking ? "figure.walk.motion" : "figure.walk", label: L("Keep walking"),
+                                   active: keepWalking) { keepWalking.toggle() }
+                }
+                if hud.showRunButton {
+                    RunButton(isPressed: $holdingRun, haptics: hud.buttonHaptics)
                 }
             }
         }
@@ -490,12 +617,16 @@ public struct PlayScreen: View {
 
     /// Dragging turns the camera; pinching moves it nearer or further.
     private var cameraPad: some View {
-        CameraPad(
+        let behind: (() -> Void)? = settings.preferences.hud.doubleTapResetsCamera && !photoMode ? { cameraBehind() } : nil
+        return CameraPad(
             yaw: $cameraYaw,
             pitch: $cameraPitch,
             sensitivity: settings.cameraSensitivity,
             invertY: settings.invertCameraY,
-            pitchRange: pitchRange
+            pitchRange: pitchRange,
+            invertX: settings.preferences.hud.invertLookX,
+            verticalSpeed: settings.preferences.hud.verticalLookSpeed,
+            onDoubleTap: behind
         )
         .simultaneousGesture(zoomGesture)
     }
@@ -513,7 +644,7 @@ public struct PlayScreen: View {
 
     /// Where Settings (or the layout editor) put it, at the size chosen.
     private var jumpButton: some View {
-        JumpButton(isPressed: $isJumping)
+        JumpButton(isPressed: $isJumping, haptics: settings.preferences.hud.buttonHaptics)
             .scaleEffect(settings.preferences.buttonScale)
             .offset(x: settings.preferences.jumpButtonOffset.x, y: settings.preferences.jumpButtonOffset.y)
     }
@@ -604,6 +735,7 @@ public struct PlayScreen: View {
     }
 
     private func showToast(_ text: String) {
+        tracker.note(text)
         speak(text)
         withAnimation { toast = text }
         Task { @MainActor in
@@ -732,8 +864,25 @@ public struct PlayScreen: View {
 
     private var hudLayer: some View {
         VStack(spacing: 0) {
-            if session.scripted.showsDefaultUI {
+            if buttonsHidden {
+                // Everything put away, for a clean picture or video; this
+                // one small button brings it back.
+                HStack {
+                    HUDRoundButton(systemImage: "eye", label: L("Show the buttons"), size: 34) {
+                        withAnimation { buttonsHidden = false }
+                    }
+                    .opacity(0.7)
+                    Spacer()
+                }
+                .padding(.horizontal, 12)
+                .padding(.top, 10)
+            } else if session.scripted.showsDefaultUI {
                 topBar
+                if settings.preferences.hud.showCompass {
+                    CompassStrip(bearing: Compass.bearing(cameraYaw: cameraYaw))
+                        .padding(.top, 8)
+                        .opacity(settings.preferences.hud.opacity)
+                }
             } else {
                 // A script may hide the top bar, but never the way out.
                 HStack {
@@ -772,6 +921,29 @@ public struct PlayScreen: View {
         if session.canHandOver { choosingHowToLeave = true } else { onExit() }
     }
 
+    private var hud: HUDOptions { settings.preferences.hud }
+
+    /// This player's place by score, with others in the room.
+    private var myPlace: Int? {
+        guard !session.isSolo, let me = session.localPlayer else { return nil }
+        return Placing.place(of: me.score, among: session.people.map(\.score))
+    }
+
+    private var friendIDs: Set<PeerID> {
+        Set(session.people.map(\.peerID).filter { settings.social.isFriend($0) })
+    }
+
+    private func barButton(_ systemImage: String, _ label: String, active: Bool = false, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: systemImage)
+                .font(.headline)
+                .frame(width: 42, height: 42)
+                .background(.ultraThinMaterial, in: Circle())
+                .foregroundStyle(active ? Ablox.Palette.accent : .white)
+        }
+        .accessibilityLabel(label)
+    }
+
     private var topBar: some View {
         HStack(alignment: .top, spacing: 11) {
             Button(action: leaveTapped) {
@@ -795,7 +967,9 @@ public struct PlayScreen: View {
             }
             .accessibilityLabel(L("Menu"))
 
-            worldChip
+            if hud.shows(.worldName) {
+                worldChip
+            }
 
             if settings.preferences.showClock {
                 PlayClockChip(seconds: sessionSeconds)
@@ -810,56 +984,62 @@ public struct PlayScreen: View {
                 roomCodeChip
             }
 
-            scoreChip
-
-            Button {
-                takePicture()
-            } label: {
-                Image(systemName: "camera.fill")
-                    .font(.headline)
-                    .frame(width: 42, height: 42)
-                    .background(.ultraThinMaterial, in: Circle())
-                    .foregroundStyle(.white)
+            if hud.shows(.score) {
+                scoreChip
             }
-            .accessibilityLabel(L("Take a picture"))
-
-            Button {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { showEmotes.toggle() }
-            } label: {
-                Image(systemName: "face.smiling")
-                    .font(.headline)
-                    .frame(width: 42, height: 42)
-                    .background(.ultraThinMaterial, in: Circle())
-                    .foregroundStyle(showEmotes ? Ablox.Palette.accent : .white)
+            if hud.showRank, let place = myPlace {
+                PlaceChip(place: place, count: session.people.count)
             }
-            .accessibilityLabel(L("Emotes"))
 
-            Button {
-                withAnimation { showScoreboard.toggle() }
-            } label: {
-                Image(systemName: "list.number")
-                    .font(.headline)
-                    .frame(width: 42, height: 42)
-                    .background(.ultraThinMaterial, in: Circle())
-                    .foregroundStyle(showScoreboard ? Ablox.Palette.accent : .white)
+            if hud.showViewButton, session.scripted.camera.mode == .thirdPerson {
+                barButton(preferFirstPerson ? "person.fill.viewfinder" : "eye.fill", L("First or third person"), active: preferFirstPerson) {
+                    preferFirstPerson.toggle()
+                }
             }
-            .accessibilityLabel(L("Scoreboard"))
+
+            if hud.shows(.camera) {
+                barButton("camera.fill", L("Take a picture")) { takePicture() }
+            }
+
+            if hud.shows(.emotes) {
+                barButton("face.smiling", L("Emotes"), active: showEmotes) {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { showEmotes.toggle() }
+                }
+            }
+
+            if hud.shows(.scoreboard) {
+                barButton("list.number", L("Scoreboard"), active: showScoreboard) {
+                    withAnimation { showScoreboard.toggle() }
+                }
+            }
 
             if settings.parental.chat != .off {
-                Button {
+                barButton("bubble.left.fill", L("Chat"), active: showChat) {
                     withAnimation { showChat.toggle() }
-                } label: {
-                    Image(systemName: "bubble.left.fill")
-                        .font(.headline)
-                        .frame(width: 42, height: 42)
-                        .background(.ultraThinMaterial, in: Circle())
-                        .foregroundStyle(showChat ? Ablox.Palette.accent : .white)
                 }
-                .accessibilityLabel(L("Chat"))
+                .overlay(alignment: .topTrailing) {
+                    if unreadChat > 0 {
+                        Text(unreadChat > 9 ? "9+" : "\(unreadChat)")
+                            .font(.system(size: 10, weight: .black).monospacedDigit())
+                            .padding(.horizontal, 5)
+                            .frame(minWidth: 18, minHeight: 18)
+                            .background(Ablox.Palette.danger, in: Capsule())
+                            .foregroundStyle(.white)
+                            .offset(x: 4, y: -4)
+                            .accessibilityLabel(L("{} new messages", unreadChat))
+                    }
+                }
             }
         }
         .padding(.horizontal, 18)
         .padding(.top, 14)
+        .opacity(hud.opacity)
+        .overlay(alignment: .topLeading) {
+            FactChips(session: session)
+                .padding(.top, 66)
+                .padding(.leading, 18)
+                .opacity(hud.opacity)
+        }
         .overlay(alignment: .topTrailing) {
             VStack(alignment: .trailing, spacing: 10) {
                 if showScoreboard {
@@ -876,8 +1056,12 @@ public struct PlayScreen: View {
                     .transition(.move(edge: .top).combined(with: .opacity))
                 }
                 if settings.preferences.showMap, !showScoreboard, !showEmotes {
-                    MiniMapView(world: session.world, players: session.roster, localPeerID: session.localPeerID, expanded: false)
-                        .frame(width: 150, height: 150)
+                    MiniMapView(world: session.world, players: session.roster, localPeerID: session.localPeerID, expanded: false,
+                                metresAcross: hud.mapSize.metresAcross,
+                                heading: hud.mapTurnsWithCamera ? Compass.bearing(cameraYaw: cameraYaw) : nil,
+                                friends: friendIDs)
+                        .frame(width: hud.mapSize.points, height: hud.mapSize.points)
+                        .opacity(max(0.6, hud.opacity))
                         .onTapGesture { withAnimation { mapExpanded = true } }
                 }
             }
@@ -889,7 +1073,8 @@ public struct PlayScreen: View {
                 ZStack {
                     Color.black.opacity(0.4).ignoresSafeArea()
                         .onTapGesture { withAnimation { mapExpanded = false } }
-                    MiniMapView(world: session.world, players: session.roster, localPeerID: session.localPeerID, expanded: true)
+                    MiniMapView(world: session.world, players: session.roster, localPeerID: session.localPeerID, expanded: true,
+                                friends: friendIDs)
                         .frame(width: 520, height: 520)
                         .onTapGesture { withAnimation { mapExpanded = false } }
                 }
