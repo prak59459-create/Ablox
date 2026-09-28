@@ -1,24 +1,20 @@
 {
   "app": "Ablox",
-  "version": "1.4",
-  "build": 3,
+  "version": "1.5",
+  "build": 4,
   "protocol": 8,
   "date": "2026-09-28",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "Family: ready-made settings by age, a weekend limit, days off, extra time today, a pause button, and choosing which games can be played",
-      "Family: switch off pictures, the shop, building or whispers; chat with friends only; ask before big purchases; eye rests; a note on the Play tab; a record of changes and a report of the week",
-      "Seeing and hearing: bold text, less motion, words on screen for sounds, a tap or a flash for important ones, a gentler walking pace, asking before leaving, and which tab opens first",
-      "Settings: search every card, a tip each day, and move your settings to another iPad as a file",
-      "Play: minutes left today on screen, warnings at 10 and 5 minutes and before quiet hours, and 'What's around me' in the pause menu"
+      "Scripts: 60 new functions for creators — find the nearest player or block, players by team or score, chances and weighted picks, list and map helpers, numbers shown as 1,234 or 1.5K or 1:05, directions from yaws, and colours from numbers",
+      "Scripts: nan or huge numbers used as a list position or a count no longer stop the whole app; they read nil or give a 'too big' error",
+      "Studio's reference and the scripting guide list every new function; your own variables named like one (count, first…) still show while paused"
     ],
     "ja": [
-      "家族: 年齢に合わせたおすすめ設定、週末の時間、お休みの日、今日だけの延長、いますぐ止めるボタン、遊べるゲームの選択",
-      "家族: 写真・ショップ・ワールドづくり・ひそひそ話のオン/オフ、フレンドとだけチャット、高い買い物の前に確認、目の休けい、プレイタブのメモ、変更の記録と1週間のレポート",
-      "見る・聞く: 太字、動きをへらす、音を文字で表示、大事な音でブルッ・ピカッ、ゆっくり歩く、ゲームを出る前に確認、最初に開くタブ",
-      "設定: すべての項目を検索、毎日のヒント、設定をファイルにして別のiPadにうつす",
-      "プレイ: 今日の残り時間を表示、残り10分・5分とおやすみ時間の前にお知らせ、ポーズメニューに「まわりのようす」"
+      "スクリプト: クリエイター向けの新しい関数60個 — いちばん近いプレイヤーやブロック、チームやスコア順のプレイヤー、確率と出やすさを決めた抽選、リストとマップの便利な関数、1,234・1.5K・1:05 のような数の表示、yaw からの方向、数から色",
+      "スクリプト: リストの位置や個数に nan やとても大きな数を使っても、アプリごと止まらなくなりました（nil になるか「大きすぎる」エラー）",
+      "Studio のリファレンスとスクリプトガイドに新しい関数をすべて追加。関数と同じ名前（count や first など）の自分の変数も、一時停止中に表示されます"
     ]
   }
 }

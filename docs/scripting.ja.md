@@ -295,6 +295,25 @@ weapon("railgun", {model: "rifle", damage: 500, rate: 0.5, range: 800, ammo: 1, 
 `sort map filter range slice reverse sum insert index_of`、`replace split join upper lower` など。
 全部 Studio の **リファレンス** にあります。
 
+### もっと便利な機能（1.5〜）
+
+多くのゲームが自分で書いていた「さがす」「そろえる」を、最初から使えるようにしました。
+
+| 分類 | 関数 | 例 |
+|---|---|---|
+| プレイヤー・ブロックをさがす | `nearest_player(p)` `players_near(p, 10)` `random_player()` `alive_players()` `team_players("red")` `ranking()` `nearest_block(p, "coin")` `blocks_near(p, 5, "coin")` | `nearest_player(n)` はNPCにいちばん近いプレイヤー（ダウン中の人はのぞく）。`ranking()` はスコアの高い順 |
+| 数 | `int average median gcd smoothstep inverse_lerp remap approach wrap snap angle_diff` | `wrap(370, 0, 360)` → 10、`snap(7.3, 2)` → 8、`approach(x, 10, 2)` は10を追いこさない |
+| 確率 | `chance(25)` `random_float(1, 2)` `pick_weighted({common: 70, rare: 25, epic: 5})` | ガチャの出やすさを決めて抽選 |
+| リスト | `unique flatten zip first last chunk repeat find any all reduce count min_by max_by sort_by group_by` | `sort_by(players(), func(p) return -p.score end)` |
+| マップ | `values entries merge get` | `get(p.saved, "coins", 0)`（まだ読みこんでいなくても0） |
+| 文字 | `pad_left pad_right capitalize words lines format comma short_number time_text` | `comma(1234567)` → "1,234,567"、`short_number(1500)` → "1.5K"、`time_text(65)` → "1:05" |
+| 方向 | `forward(yaw)` `yaw_to(a, b)` `direction(a, b)` `rotate_y(v, 90)` `angle_between(a, b)` | `n.yaw = yaw_to(n, p)` でNPCをプレイヤーの方へ向ける |
+| 色 | `rgb(255, 128, 0)` `hsv(120, 1, 1)` `mix_color("red", "blue", 0.5)` `random_color()` | `hsv(time() * 60 % 360, 1, 1)` で虹色に変わる |
+
+同じ名前を自分の変数や関数に使っても大丈夫です（`let count = 0` や `func find(…)`）。自分で作ったほうが使われます。
+
+リストの位置や個数に `nan` やとても大きな数を入れても、アプリは止まりません（位置なら nil、個数なら「大きすぎる」エラー）。1.4 まではいくつかの関数でアプリごと止まることがありました。
+
 ## 制限（ほぼ無制限、でも安全装置つき）
 
 1回のイベントで200万ステップまで、リスト10万個、文字100万字、タイマー1000個、画面の項目300個、NPC100体、ブロック2万個。

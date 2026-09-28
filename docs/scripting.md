@@ -197,6 +197,45 @@ magnitude normalize dot cross len append remove insert contains index_of keys
 join shuffle range slice reverse copy sum sort map filter upper lower trim
 split replace starts_with ends_with fixed`. Angles are in degrees.
 
+**More helpers** (the searches and small tools most games wrote for
+themselves):
+
+- Finding: `nearest_player(from, max)` (not counting `from` itself),
+  `players_near(from, radius)` (nearest first), `random_player()`,
+  `alive_players()`, `team_players("red")`, `ranking()` (highest score first),
+  `nearest_block(from, tag)` and `blocks_near(from, radius, tag)`. `from` is a
+  player, NPC, block or `{x, y, z}`; knocked-out players are left out.
+- Numbers: `int average median gcd smoothstep inverse_lerp remap`,
+  `approach(x, target, step)` (never passes the target; numbers or positions),
+  `wrap(370, 0, 360)` is 10, `snap(7.3, 2)` is 8 (positions snap too),
+  `angle_diff(350, 10)` is 20.
+- Chance: `chance(25)` is true 25 times in 100; `random_float(1, 2)`;
+  `pick_weighted({common: 70, rare: 25, epic: 5})` gives a name, and a list of
+  weights gives a position. All use the world's seeded randomness.
+- Lists: `unique flatten zip first last chunk repeat`, and with a function
+  `find any all reduce count min_by max_by sort_by group_by`. `count` also
+  counts a value, or a piece of text in some text.
+- Maps: `values entries merge`, and `get(p.saved, "coins", 0)` — a value or a
+  default, even when the map is still nil.
+- Text: `pad_left(7, 3, "0")` is "007", `pad_right capitalize words lines`,
+  `format("{} has {} coins", p.name, 5)`, `comma(1234567)` is "1,234,567",
+  `short_number(1500)` is "1.5K" (K, M, B, T), `time_text(65)` is "1:05".
+- Directions: `forward(yaw)` is the way a yaw faces, `yaw_to(a, b)` the yaw
+  that faces from a to b (so `n.yaw = yaw_to(n, p)`), `direction(a, b)`,
+  `rotate_y(v, degrees)` (positive turns right, as yaw does) and
+  `angle_between(a, b)`.
+- Colours: `rgb(255, 128, 0)` and `hsv(120, 1, 1)` make "#RRGGBB" text,
+  `mix_color("red", "blue", 0.5)` is part way between, `random_color()` is a
+  bright one. `hsv(time() * 60 % 360, 1, 1)` goes round the rainbow.
+
+A script may still use any of these names for its own variables and
+functions (`let count = 0`, `func find(…)`); its own wins, as it did before
+they existed.
+
+Positions, counts and numbers of digits are safe with any number: `nan` or
+`10^300` as a list position reads nil, and as a size is a "too big" error.
+Before 1.5 a few of these stopped the whole app.
+
 ## Ready-made parts
 
 Things most games build by hand, as one line each. The screens are drawn by
