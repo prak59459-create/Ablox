@@ -420,7 +420,8 @@ public final class AppSettings: ObservableObject {
 
     /// The moderator built from current preferences.
     public var chatModerator: ChatModerator {
-        ChatModerator(isFilterEnabled: chatFilterEnabled)
+        ChatModerator(additionalTerms: parental.extraBlockedWords ?? [], isFilterEnabled: chatFilterEnabled,
+                      strict: parental.strictChatFilter ?? false)
     }
 
     public func resetToDefaults() {
@@ -504,6 +505,8 @@ public struct MenuMemory: Codable, Hashable, Sendable {
     public var emotes = EmoteFavourites()
     /// Emotes, stamps, wins… counted for badges and levels.
     public var counters = LifetimeCounters()
+    /// Chat phrases of the player's own.
+    public var phrases = SavedPhrases()
     /// The highest level whose coins have been given.
     public var rewardedLevel = 1
 
@@ -532,6 +535,7 @@ public struct MenuMemory: Codable, Hashable, Sendable {
         lastPlayed = try? c.decodeIfPresent(LastPlayed.self, forKey: .lastPlayed)
         emotes = (try? c.decodeIfPresent(EmoteFavourites.self, forKey: .emotes)) ?? EmoteFavourites()
         counters = (try? c.decodeIfPresent(LifetimeCounters.self, forKey: .counters)) ?? LifetimeCounters()
+        phrases = (try? c.decodeIfPresent(SavedPhrases.self, forKey: .phrases)) ?? SavedPhrases()
         rewardedLevel = (try? c.decodeIfPresent(Int.self, forKey: .rewardedLevel)) ?? 1
     }
 

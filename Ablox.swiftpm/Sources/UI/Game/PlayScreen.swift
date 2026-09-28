@@ -19,7 +19,6 @@ public struct PlayScreen: View {
     @State private var cameraPitch: Float = -14
     @State private var showScoreboard = false
     @State private var showChat = false
-    @State private var chatDraft = ""
     @State private var hasBankedThisRound = false
     @State private var isFiring = false
 
@@ -68,6 +67,8 @@ public struct PlayScreen: View {
     @State private var holdingRun = false
     @State private var showShortcuts = false
     @State private var unreadChat = 0
+    /// A line naming this player came while the chat was closed.
+    @State private var mentioned = false
 
     public init(session: SessionCoordinator, activeSession: ActiveSession, onExit: @escaping () -> Void) {
         self.session = session
@@ -139,7 +140,8 @@ public struct PlayScreen: View {
             spectating: spectating,
             preferFirstPerson: preferFirstPerson,
             photoMode: photoMode,
-            link: link
+            link: link,
+            friends: friendIDs
         )
         .ignoresSafeArea()
     }
@@ -231,13 +233,15 @@ public struct PlayScreen: View {
             }
             .onChange(of: showChat) { _, open in
                 hardware.suspended = open || showMenu
-                if open { unreadChat = 0 }
+                if open {
+                    unreadChat = 0
+                    mentioned = false
+                }
             }
-            // Said while the chat was closed: counted on its button.
             .onChange(of: session.visibleChatLog.last?.id) { _, newest in
-                guard newest != nil, !showChat, session.visibleChatLog.last?.senderID != session.localPeerID else { return }
-                unreadChat += 1
+                if newest != nil { noticeNewLine() }
             }
+            .onChange(of: settings.preferences.chat) { _, chat in session.chatOptions = chat }
             // Any touch at all means someone is there.
             .background(TouchWatcher { tracker.idle.touched(at: Date().timeIntervalSinceReferenceDate) })
             .onChange(of: showMenu) { _, open in hardware.suspended = open || showChat }
@@ -294,6 +298,24 @@ public struct PlayScreen: View {
                 // scheduled while the iPad was asleep.
                 if phase == .active { session.applicationDidBecomeActive() }
             }
+    }
+
+    // MARK: New lines
+
+    /// Someone said something: read aloud or felt if the player asked,
+    /// and counted on the chat button while it is closed.
+    private func noticeNewLine() {
+        guard let entry = session.visibleChatLog.last, entry.senderID != session.localPeerID else { return }
+        let chat = settings.preferences.chat
+        if chat.readAloud, settings.soundEnabled {
+            LineReader.shared.speak(entry.senderName + ": " + entry.text, volume: Float(settings.preferences.effectsVolume))
+        }
+        if chat.feelNewMessages, settings.hapticsEnabled {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        }
+        guard !showChat else { return }
+        unreadChat += 1
+        if chat.highlightMentions, ChatTidy.mentions(settings.profile.displayName, in: entry.text) { mentioned = true }
     }
 
     // MARK: Who is here
@@ -455,6 +477,7 @@ public struct PlayScreen: View {
         ProblemRecorder.shared.noteActivity("Playing \"\(session.world.name)\"")
         hasBankedThisRound = false
         session.allowsPlayerChat = settings.parental.chat != .off
+        session.chatOptions = settings.preferences.chat
         session.allowsWhispers = Whisper.isAllowed(settings.parental.chat)
         switch activeSession.mode {
         case let .solo(world):
@@ -905,7 +928,9 @@ public struct PlayScreen: View {
                     .transition(.move(edge: .top).combined(with: .opacity))
                     .padding(.bottom, 30)
             }
-            if showChat, session.scripted.showsDefaultUI, settings.parental.chat != .off { chatBar }
+            if showChat, session.scripted.showsDefaultUI, settings.parental.chat != .off {
+                ChatPanel(session: session, tracker: tracker)
+            }
             if session.role == .hosting, !session.scriptLog.isEmpty {
                 ScriptLogBanner(session: session)
                     .padding(.leading, 18)
@@ -1023,7 +1048,7 @@ public struct PlayScreen: View {
                             .font(.system(size: 10, weight: .black).monospacedDigit())
                             .padding(.horizontal, 5)
                             .frame(minWidth: 18, minHeight: 18)
-                            .background(Ablox.Palette.danger, in: Capsule())
+                            .background(mentioned ? Ablox.Palette.warning : Ablox.Palette.danger, in: Capsule())
                             .foregroundStyle(.white)
                             .offset(x: 4, y: -4)
                             .accessibilityLabel(L("{} new messages", unreadChat))
@@ -1202,91 +1227,6 @@ public struct PlayScreen: View {
             .background(.ultraThinMaterial, in: Capsule())
             .overlay(Capsule().strokeBorder(Ablox.Palette.accent.opacity(0.5), lineWidth: 1.5))
             .foregroundStyle(.white)
-    }
-
-    private var chatBar: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            ForEach(session.visibleChatLog.suffix(5)) { entry in
-                HStack(spacing: 6) {
-                    if let partner = entry.privateWith {
-                        // A whisper: only the two of them see it.
-                        Image(systemName: "lock.fill")
-                            .font(.system(size: 9))
-                            .foregroundStyle(Ablox.Palette.magenta)
-                        Text(entry.senderID == session.localPeerID ? L("You → {}", partner) : entry.senderName)
-                            .font(.caption.weight(.bold))
-                            .foregroundStyle(Ablox.Palette.magenta)
-                    } else {
-                        Text(entry.senderName)
-                            .font(.caption.weight(.bold))
-                            .foregroundStyle(Ablox.Palette.accent)
-                    }
-                    Text(entry.text)
-                        .font(.caption)
-                        .foregroundStyle(.white)
-                    if entry.wasFiltered {
-                        // Marked, so a child can see the filter acting rather
-                        // than assume the message arrived that way.
-                        Image(systemName: "shield.lefthalf.filled")
-                            .font(.system(size: 9))
-                            .foregroundStyle(Ablox.Palette.warning)
-                    }
-                }
-            }
-
-            // Ready-made phrases: one tap, for small children — and the only
-            // way to talk when Settings → Family says phrases only.
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 6) {
-                    ForEach(QuickChat.phrases, id: \.self) { phrase in
-                        Button {
-                            session.sendChat(L(phrase))
-                        } label: {
-                            Text(L(phrase))
-                                .font(.caption.weight(.semibold))
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 6)
-                                .background(Ablox.Palette.accent.opacity(0.2), in: Capsule())
-                                .foregroundStyle(.white)
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-            }
-
-            if session.isQuietedByHost {
-                Label(L("The host has turned off your chat."), systemImage: "mic.slash.fill")
-                    .font(.caption)
-                    .foregroundStyle(Ablox.Palette.warning)
-            } else if settings.parental.chat == .full {
-            HStack(spacing: 9) {
-                AbloxTextField(L("Say something…"), text: $chatDraft, limit: AbloxProtocol.maxChatLength, onSubmit: sendChat)
-                    .textFieldStyle(.plain)
-                    .padding(.horizontal, 13)
-                    .padding(.vertical, 9)
-                    .background(.ultraThinMaterial, in: Capsule())
-
-                Button(action: sendChat) {
-                    Image(systemName: "paperplane.fill")
-                        .frame(width: 38, height: 38)
-                        .background(Ablox.Palette.brand, in: Circle())
-                        .foregroundStyle(.black)
-                }
-                .disabled(chatDraft.trimmingCharacters(in: .whitespaces).isEmpty)
-            }
-            }
-        }
-        .padding(16)
-        .frame(maxWidth: 460, alignment: .leading)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .padding(.leading, 18)
-        .padding(.bottom, 130)
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private func sendChat() {
-        session.sendChat(chatDraft)
-        chatDraft = ""
     }
 
     // MARK: Overlays

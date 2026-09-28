@@ -211,6 +211,17 @@ struct FamilySettingsSheet: View {
             Picker(L("Chat"), selection: $settings.parental.chat) {
                 ForEach(ChatAllowance.allCases, id: \.self) { Text($0.displayName).tag($0) }
             }
+            Toggle(L("Word filter"), isOn: $settings.chatFilterEnabled)
+            if settings.chatFilterEnabled {
+                Toggle(L("Strict word filter (teasing too)"), isOn: Binding(
+                    get: { settings.parental.strictChatFilter ?? false },
+                    set: { settings.parental.strictChatFilter = $0 ? true : nil }))
+                NavigationLink {
+                    FamilyWordsView()
+                } label: {
+                    Label(L("Our own words to hide ({})", settings.parental.extraBlockedWords?.count ?? 0), systemImage: "text.badge.xmark")
+                }
+            }
             Toggle(L("May open public rooms"), isOn: $settings.parental.allowPublicRooms)
             Toggle(L("May join other people's rooms"), isOn: $settings.parental.allowJoiningRooms)
             Button {
@@ -418,5 +429,48 @@ extension TextSize {
         case .large: return .xxLarge
         case .huge: return .accessibility1
         }
+    }
+}
+
+// MARK: - The family's own words
+
+/// Words a grown-up adds to the chat filter, for this family only.
+struct FamilyWordsView: View {
+    @EnvironmentObject private var settings: AppSettings
+    @State private var word = ""
+
+    var body: some View {
+        List {
+            Section {
+                HStack {
+                    AbloxTextField(L("A word or phrase"), text: $word, limit: 30, onSubmit: add)
+                    Button(L("Add"), action: add)
+                        .disabled(word.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
+            } footer: {
+                Text(L("Hidden with *** in everything said on this iPad, like the built-in list. Up to {} words.",
+                       ParentalControls.maximumExtraWords))
+            }
+            Section {
+                let words = settings.parental.extraBlockedWords ?? []
+                if words.isEmpty {
+                    Text(L("No words of your own yet."))
+                        .foregroundStyle(Ablox.Palette.inkMuted)
+                }
+                ForEach(words, id: \.self) { word in
+                    Text(verbatim: word)
+                }
+                .onDelete { offsets in
+                    for index in offsets.sorted(by: >) where index < words.count {
+                        settings.parental.removeBlockedWord(words[index])
+                    }
+                }
+            }
+        }
+        .navigationTitle(L("Our own words to hide"))
+    }
+
+    private func add() {
+        if settings.parental.addBlockedWord(word) { word = "" }
     }
 }

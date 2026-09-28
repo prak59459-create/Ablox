@@ -193,6 +193,11 @@ public struct MainMenuView: View {
                 session.moderator = settings.chatModerator
                 cloud.moderator = settings.chatModerator
             }
+            // The family's filter choices: strict, and words of their own.
+            .onChange(of: settings.parental) { _, _ in
+                session.moderator = settings.chatModerator
+                cloud.moderator = settings.chatModerator
+            }
             .onDisappear {
                 session.stopBrowsing()
             }

@@ -44,6 +44,7 @@ struct SettingsView: View {
                 graphicsCard
                 controlsCard
                 PlayScreenOptionsCard()
+                ChatOptionsCard()
                 MoreSettingsCard()
                 ControllersCard()
                 movementCard

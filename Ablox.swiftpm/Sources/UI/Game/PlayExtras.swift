@@ -708,6 +708,11 @@ struct PauseMenu: View {
 
     private var messagesTab: some View {
         VStack(alignment: .leading, spacing: 8) {
+            // What people said, all of it, when there are people to say it.
+            if !session.isSolo || !session.chatLog.isEmpty {
+                ChatHistoryList(session: session)
+                Divider().background(Color.white.opacity(0.1))
+            }
             if session.messageLog.isEmpty {
                 Text(L("Nothing yet. Banners and messages from the game are kept here."))
                     .font(.subheadline)

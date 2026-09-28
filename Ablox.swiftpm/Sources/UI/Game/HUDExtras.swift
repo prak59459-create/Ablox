@@ -23,6 +23,9 @@ final class PlayTracker {
     private(set) var notices: [(date: Date, text: String)] = []
     /// The camera at the last look, to notice the player turning it.
     var lastYaw: Float = 0
+    /// What was said lately, and the guard against flooding the chat.
+    var sent = SentHistory()
+    var limiter = ChatRateLimiter()
 
     func note(_ text: String) {
         notices.append((Date(), text))

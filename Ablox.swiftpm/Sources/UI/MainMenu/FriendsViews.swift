@@ -31,6 +31,10 @@ struct FriendsSheet: View {
 
     @State private var tab: Tab = .friends
     @State private var naming: PlayerContact?
+    @State private var noting: PlayerContact?
+    @State private var search = ""
+    @State private var sort: FriendSort = .name
+    @State private var group: FriendGroup?
 
     private var tabs: [Tab] {
         cloud.allowsFriends ? Tab.allCases : Tab.allCases.filter { $0 != .internet }
@@ -66,6 +70,9 @@ struct FriendsSheet: View {
         .sheet(item: $naming) { friend in
             NicknameSheet(friend: friend).environmentObject(settings)
         }
+        .sheet(item: $noting) { friend in
+            FriendNoteSheet(friend: friend).environmentObject(settings)
+        }
     }
 
     /// The room a friend is in, from the list of rooms nearby.
@@ -73,14 +80,53 @@ struct FriendsSheet: View {
         session.discoveredPeers.first { $0.people.contains(friend.id) && $0.isCompatible && !$0.isFull }
     }
 
+    /// How many friends, how many people met, and who is played with most.
+    private var socialSummary: some View {
+        let book = settings.social
+        return HStack(spacing: 14) {
+            Label(L("{} of {} friends", book.friends.count, SocialBook.maximumFriends), systemImage: "person.2.fill")
+            Label(L("{} people met", book.recent.count), systemImage: "figure.2.arms.open")
+            if let closest = book.closestFriend, closest.timesMet > 1 {
+                Label(L("Most with {}", closest.shownName), systemImage: "heart.fill")
+            }
+        }
+        .font(.caption)
+        .foregroundStyle(Ablox.Palette.inkMuted)
+        .listRowBackground(Color.clear)
+    }
+
+    /// Search, order and group, once there are enough friends to need them.
+    @ViewBuilder private var friendTools: some View {
+        if settings.social.friends.count > 3 {
+            AbloxTextField(L("Search friends"), text: $search)
+            Picker(L("Order"), selection: $sort) {
+                ForEach(FriendSort.allCases) { Text($0.displayName).tag($0) }
+            }
+            Picker(L("Group"), selection: $group) {
+                Text(L("Everyone")).tag(FriendGroup?.none)
+                ForEach(FriendGroup.allCases) { Label($0.displayName, systemImage: $0.symbolName).tag(Optional($0)) }
+            }
+        }
+    }
+
     @ViewBuilder private var friends: some View {
+        socialSummary
         if settings.social.friends.isEmpty {
             Text(L("No friends yet. In a game, open the player list, tap … next to someone and choose Add friend."))
                 .font(.subheadline)
                 .foregroundStyle(Ablox.Palette.inkMuted)
         }
-        ForEach(settings.social.friends) { friend in
+        friendTools
+        ForEach(settings.social.friends(sortedBy: sort, group: group, search: search)) { friend in
             HStack {
+                Button {
+                    settings.social.setFavourite(!friend.isFavourite, for: friend.id)
+                } label: {
+                    Image(systemName: friend.isFavourite ? "pin.fill" : "pin")
+                        .foregroundStyle(friend.isFavourite ? Ablox.Palette.warning : Ablox.Palette.inkFaint)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(friend.isFavourite ? L("Unpin") : L("Pin to the top"))
                 contactText(friend)
                 Spacer()
                 if let room = room(of: friend) {
@@ -119,6 +165,28 @@ struct FriendsSheet: View {
                         Label(L("Remove the nickname"), systemImage: "xmark")
                     }
                 }
+                Button {
+                    noting = friend
+                } label: {
+                    Label(L("Note"), systemImage: "note.text")
+                }
+                Menu {
+                    Button(L("No group")) { settings.social.setGroup(nil, for: friend.id) }
+                    ForEach(FriendGroup.allCases) { choice in
+                        Button {
+                            settings.social.setGroup(choice, for: friend.id)
+                        } label: {
+                            Label(choice.displayName, systemImage: choice.symbolName)
+                        }
+                    }
+                } label: {
+                    Label(L("Group"), systemImage: "tag")
+                }
+                Button {
+                    settings.social.setFavourite(!friend.isFavourite, for: friend.id)
+                } label: {
+                    Label(friend.isFavourite ? L("Unpin") : L("Pin to the top"), systemImage: "pin")
+                }
             }
         }
     }
@@ -128,6 +196,13 @@ struct FriendsSheet: View {
             Text(L("People you play with appear here."))
                 .font(.subheadline)
                 .foregroundStyle(Ablox.Palette.inkMuted)
+        }
+        let today = settings.social.metToday()
+        if !today.isEmpty {
+            Label(L("{} played with today", today.count), systemImage: "sun.max.fill")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(Ablox.Palette.warning)
+                .listRowBackground(Color.clear)
         }
         ForEach(settings.social.recent) { contact in
             HStack {
@@ -187,11 +262,33 @@ struct FriendsSheet: View {
                         .font(.caption)
                         .foregroundStyle(Ablox.Palette.inkFaint)
                 }
+                if let group = contact.group {
+                    Label(group.displayName, systemImage: group.symbolName)
+                        .font(.caption2.weight(.semibold))
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Ablox.Palette.accent.opacity(0.18), in: Capsule())
+                }
             }
             Text(L("{} · {}", contact.lastGame.isEmpty ? "Ablox" : contact.lastGame,
                    contact.lastSeen.formatted(.relative(presentation: .named))))
                 .font(.caption)
                 .foregroundStyle(Ablox.Palette.inkMuted)
+            // How long and how often, for friends.
+            if let since = contact.friendSince {
+                Text(L("Friends since {} · played together {} times", since.formatted(date: .abbreviated, time: .omitted), contact.timesMet))
+                    .font(.caption2)
+                    .foregroundStyle(Ablox.Palette.inkFaint)
+            } else if contact.timesMet > 1 {
+                Text(L("Played together {} times", contact.timesMet))
+                    .font(.caption2)
+                    .foregroundStyle(Ablox.Palette.inkFaint)
+            }
+            if let note = contact.note {
+                Label(note, systemImage: "note.text")
+                    .font(.caption2)
+                    .foregroundStyle(Ablox.Palette.inkMuted)
+            }
         }
     }
 }
@@ -347,5 +444,44 @@ struct ReportsSheet: View {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("Ablox report \(report.playerName).txt")
         guard (try? report.summary.write(to: url, atomically: true, encoding: .utf8)) != nil else { return }
         sharing = SharedFile(url: url)
+    }
+}
+
+// MARK: - A note about a friend
+
+struct FriendNoteSheet: View {
+    @EnvironmentObject private var settings: AppSettings
+    @Environment(\.dismiss) private var dismiss
+    let friend: PlayerContact
+    @State private var text = ""
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Label(L("A note about {}", friend.shownName), systemImage: "note.text")
+                .font(.headline)
+            Text(L("Only on this iPad. Like: sits next to me in class, loves racing games."))
+                .font(.caption)
+                .foregroundStyle(Ablox.Palette.inkMuted)
+            AbloxTextField(L("Note"), text: $text, limit: SocialBook.maximumNoteLength, onSubmit: save)
+                .textFieldStyle(.plain)
+                .padding(12)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            HStack {
+                Button(L("Cancel")) { dismiss() }
+                    .buttonStyle(NeonButtonStyle(.secondary))
+                Spacer()
+                Button(L("Save"), action: save)
+                    .buttonStyle(NeonButtonStyle(.primary))
+            }
+        }
+        .padding(24)
+        .presentationDetents([.height(260)])
+        .abloxColorScheme()
+        .onAppear { text = friend.note ?? "" }
+    }
+
+    private func save() {
+        settings.social.setNote(text, for: friend.id)
+        dismiss()
     }
 }
