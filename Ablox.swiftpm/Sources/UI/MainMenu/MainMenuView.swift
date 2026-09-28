@@ -157,7 +157,7 @@ public struct MainMenuView: View {
                 UpdateInstallSheet(updater: updater, backup: install.backup)
             }
             .sheet(item: $summary) { card in
-                SessionSummarySheet(summary: card.summary, onPlayAgain: playAgain(card))
+                SessionSummarySheet(summary: card.summary, levelUp: card.levelUp, onPlayAgain: playAgain(card))
             }
             // The first time a new version runs: what changed.
             .sheet(isPresented: Binding(get: { updater.justUpdated != nil && activeSession == nil && summary == nil },
@@ -280,7 +280,8 @@ extension MainMenuView {
         summaryStart = nil
         let after = settings.summarySnapshot(worldsMade: store.entries.count, pictures: ScreenshotStore.all().count)
         let result = SessionSummary(game: lastGameName, before: before, after: after)
-        guard result.isWorthShowing else { return }
+        let levelUp = settings.claimLevelRewards(worldsMade: store.entries.count, pictures: ScreenshotStore.all().count)
+        guard result.isWorthShowing || levelUp != nil else { return }
         // Joining again by code or invitation may not work a second time;
         // Play again is for games started here.
         var again: ActiveSession.Mode?
@@ -288,7 +289,7 @@ extension MainMenuView {
         case .solo?, .hosting?: again = lastMode
         default: again = nil
         }
-        summary = SummaryCard(summary: result, mode: again)
+        summary = SummaryCard(summary: result, mode: again, levelUp: levelUp.map { LevelUp(level: $0.level, coins: $0.coins) })
     }
 
     private func playAgain(_ card: SummaryCard) -> (() -> Void)? {
@@ -335,6 +336,13 @@ struct SummaryCard: Identifiable {
     let summary: SessionSummary
     /// How to play again, when that makes sense.
     let mode: ActiveSession.Mode?
+    /// A level reached on the way, and its coins.
+    var levelUp: LevelUp?
+}
+
+struct LevelUp: Hashable {
+    let level: Int
+    let coins: Int
 }
 
 /// A friend seen in a room nearby.

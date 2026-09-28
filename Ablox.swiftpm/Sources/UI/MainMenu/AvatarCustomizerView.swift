@@ -60,6 +60,7 @@ struct AvatarCustomizerView: View {
                     petSection
                     trailSection
                     auraSection
+                    cardSection
                     victorySection
                     heightSection
                     randomiseButton
@@ -229,6 +230,42 @@ struct AvatarCustomizerView: View {
                     choice(aura.displayName, aura.symbolName, selected: settings.profile.aura == aura, locked: !owned) {
                         settings.profile.aura = aura
                     }
+                }
+            }
+        }
+    }
+
+    /// The card behind the name and the bubble round what is said.
+    private var cardSection: some View {
+        VStack(alignment: .leading, spacing: 11) {
+            Text(L("Name card"))
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(Ablox.Palette.inkMuted)
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 70), spacing: 9)], spacing: 9) {
+                ForEach(AvatarProfile.NamePlate.allCases, id: \.self) { plate in
+                    let owned = settings.wallet.owns("nameplate.\(plate.rawValue)")
+                    Button {
+                        if owned { settings.profile.nameplate = plate }
+                    } label: {
+                        CardSwatch(colours: plate.colours, label: plate.displayName,
+                                   selected: settings.profile.nameplate == plate, locked: !owned)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            Text(L("Chat bubble"))
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(Ablox.Palette.inkMuted)
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 70), spacing: 9)], spacing: 9) {
+                ForEach(AvatarProfile.BubbleStyle.allCases, id: \.self) { bubble in
+                    let owned = settings.wallet.owns("bubble.\(bubble.rawValue)")
+                    Button {
+                        if owned { settings.profile.bubble = bubble }
+                    } label: {
+                        CardSwatch(colours: bubble.colours, label: bubble.displayName,
+                                   selected: settings.profile.bubble == bubble, locked: !owned)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
         }

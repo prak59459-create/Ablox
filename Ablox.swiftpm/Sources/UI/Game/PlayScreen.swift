@@ -295,7 +295,10 @@ public struct PlayScreen: View {
         guard let score = session.localPlayer?.score, !hasBankedThisRound else { return }
         hasBankedThisRound = true
         settings.award(score: score, completedRound: completed, game: session.world.name)
-        if completed { advance(settings.mission(.finishRound)) }
+        if completed {
+            settings.memory.counters.roundsWon += 1
+            advance(settings.mission(.finishRound))
+        }
     }
 
     // MARK: Play time
@@ -567,6 +570,7 @@ public struct PlayScreen: View {
     private func saveClip() {
         clips.saveClip(game: session.world.name) { url in
             if let url {
+                settings.memory.counters.clipsSaved += 1
                 showToast(L("Clip saved to your album"))
                 sharing = SharedFile(url: url)
             } else {
@@ -589,6 +593,7 @@ public struct PlayScreen: View {
             nextFavourite += 1
         }
         session.send(gesture: .emote(emote))
+        settings.noteGesture(.emote(emote))
         advance(settings.mission(.useEmote))
     }
 
@@ -864,6 +869,7 @@ public struct PlayScreen: View {
                 if showEmotes {
                     EmotePanel { gesture in
                         session.send(gesture: gesture)
+                        settings.noteGesture(gesture)
                         advance(settings.mission(.useEmote))
                         withAnimation { showEmotes = false }
                     }

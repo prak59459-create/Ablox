@@ -142,6 +142,7 @@ struct ContinueCard: View {
 
 struct SessionSummarySheet: View {
     let summary: SessionSummary
+    var levelUp: LevelUp?
     var onPlayAgain: (() -> Void)?
     @Environment(\.dismiss) private var dismiss
 
@@ -155,6 +156,11 @@ struct SessionSummarySheet: View {
                 tile(L("Time"), summary.durationText, "clock.fill")
                 tile(L("Coins"), "+\(summary.coins)", "star.fill")
                 tile(L("Missions"), "\(summary.missionsDone)", "target")
+            }
+            if let levelUp {
+                Label(L("Level {}! +{} coins", levelUp.level, levelUp.coins), systemImage: "arrow.up.circle.fill")
+                    .font(.headline)
+                    .foregroundStyle(Ablox.Palette.accent)
             }
             if !summary.badges.isEmpty {
                 VStack(spacing: 6) {
@@ -182,7 +188,7 @@ struct SessionSummarySheet: View {
         }
         .padding(26)
         .frame(maxWidth: 520)
-        .presentationDetents([.height(summary.badges.isEmpty ? 300 : 380)])
+        .presentationDetents([.height((summary.badges.isEmpty ? 300 : 380) + (levelUp == nil ? 0 : 40))])
         .abloxColorScheme()
     }
 
@@ -284,5 +290,95 @@ struct FriendNearbyBanner: View {
         .overlay(Capsule().strokeBorder(Ablox.Palette.success.opacity(0.5), lineWidth: 1.5))
         .padding(.horizontal, 20)
         .padding(.top, 10)
+    }
+}
+
+// MARK: - Levels and badges
+
+/// The player's level and how far into it they are.
+struct LevelCard: View {
+    let level: PlayerLevel
+
+    var body: some View {
+        HStack(spacing: 14) {
+            ZStack {
+                Circle().fill(Ablox.Palette.accent.opacity(0.25))
+                Text("\(level.number)")
+                    .font(.title2.weight(.black).monospacedDigit())
+                    .foregroundStyle(Ablox.Palette.accent)
+            }
+            .frame(width: 52, height: 52)
+            VStack(alignment: .leading, spacing: 5) {
+                Text(L("Level {}", level.number)).font(.headline)
+                if level.number < PlayerLevel.maximum {
+                    ProgressView(value: Double(level.progress), total: Double(level.span))
+                        .tint(Ablox.Palette.accent)
+                    Text(L("{} more to level {}. Play, win and finish missions.", level.span - level.progress, level.number + 1))
+                        .font(.caption)
+                        .foregroundStyle(Ablox.Palette.inkMuted)
+                }
+            }
+        }
+        .padding(14)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .accessibilityElement(children: .combine)
+    }
+}
+
+/// A badge not yet earned, with how far along it is.
+struct BadgeProgressRow: View {
+    let badge: Achievement
+    let stats: ProgressStats
+
+    var body: some View {
+        let done = badge.progress(stats)
+        let current = done.current, target = done.target
+        HStack(spacing: 12) {
+            Image(systemName: badge.symbolName)
+                .font(.title3)
+                .foregroundStyle(Ablox.Palette.warning)
+                .frame(width: 30)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(badge.title).font(.subheadline.weight(.semibold))
+                Text(badge.detail).font(.caption).foregroundStyle(Ablox.Palette.inkMuted)
+                ProgressView(value: Double(min(current, target)), total: Double(max(1, target)))
+                    .tint(Ablox.Palette.warning)
+            }
+            Text("\(min(current, target))/\(target)")
+                .font(.caption.monospacedDigit())
+                .foregroundStyle(Ablox.Palette.inkMuted)
+        }
+        .padding(10)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+}
+
+/// A card and a bubble to choose from, drawn as they look over a head.
+struct CardSwatch: View {
+    let colours: CardColours
+    let label: String
+    let selected: Bool
+    let locked: Bool
+
+    var body: some View {
+        VStack(spacing: 5) {
+            Text(locked ? "🔒" : L("Aa"))
+                .font(.system(size: 13, weight: .bold))
+                .foregroundStyle(Color(colours.text))
+                .padding(.horizontal, 12)
+                .padding(.vertical, 5)
+                .background(Color(colours.background), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .strokeBorder(colours.border.map { Color($0) } ?? .clear, lineWidth: 1.5))
+            Text(label)
+                .font(.system(size: 10, weight: .semibold))
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+        }
+        .frame(maxWidth: .infinity, minHeight: 58)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
+            .strokeBorder(selected ? Ablox.Palette.accent : Ablox.Palette.line, lineWidth: selected ? 2 : 1))
+        .opacity(locked ? 0.55 : 1)
     }
 }

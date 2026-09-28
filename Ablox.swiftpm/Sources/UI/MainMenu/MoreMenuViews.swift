@@ -160,6 +160,7 @@ struct OutfitCodeSheet: View {
         }
         let result = OutfitCode.wear(outfit, on: settings.profile, wallet: settings.wallet)
         settings.profile = result.profile
+        settings.memory.counters.lookCodesWorn += 1
         missing = result.missing
         message = result.missing.isEmpty
             ? L("You're wearing it!")

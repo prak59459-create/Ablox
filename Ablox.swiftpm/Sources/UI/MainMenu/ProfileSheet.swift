@@ -80,8 +80,17 @@ struct ProfileSheet: View {
                 }
                 .pickerStyle(.menu)
             }
+            LevelCard(level: stats.level)
             Text(L("{} of {} badges", earned.count, Achievement.allCases.count))
                 .font(.headline)
+            // The nearest ones, to aim for.
+            let next = Achievement.nextUp(stats)
+            if !next.isEmpty {
+                Text(L("Nearly there")).font(.subheadline.weight(.semibold)).foregroundStyle(Ablox.Palette.inkMuted)
+                ForEach(next) { badge in
+                    BadgeProgressRow(badge: badge, stats: stats)
+                }
+            }
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 12)], spacing: 12) {
                 ForEach(Achievement.allCases) { badge in
                     let has = earned.contains(badge)
@@ -95,6 +104,12 @@ struct ProfileSheet: View {
                             .font(.caption2)
                             .foregroundStyle(Ablox.Palette.inkMuted)
                             .multilineTextAlignment(.center)
+                        if !has {
+                            let done = badge.progress(stats)
+                            Text("\(min(done.current, done.target)) / \(done.target)")
+                                .font(.caption2.monospacedDigit())
+                                .foregroundStyle(Ablox.Palette.inkFaint)
+                        }
                     }
                     .frame(maxWidth: .infinity, minHeight: 110)
                     .padding(8)

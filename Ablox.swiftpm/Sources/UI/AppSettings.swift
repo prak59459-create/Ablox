@@ -311,6 +311,7 @@ public final class AppSettings: ObservableObject {
     public func claim(_ mission: Mission) -> Int? {
         guard let coins = memory.missions.claim(mission, on: today) else { return nil }
         give(coins: coins, reason: L("Mission: {}", mission.title))
+        memory.counters.missionsClaimed += 1
         return coins
     }
 
@@ -364,7 +365,7 @@ public final class AppSettings: ObservableObject {
 
     /// Everything the badges look at.
     public func progressStats(worldsMade: Int, pictures: Int) -> ProgressStats {
-        ProgressStats(
+        var stats = ProgressStats(
             gamesPlayed: playtime.timesPlayed.count,
             totalMinutes: Int(playtime.totalSeconds.values.reduce(0, +) / 60),
             daysPlayed: playtime.days.filter { $0.seconds > 0 }.count,
@@ -375,6 +376,36 @@ public final class AppSettings: ObservableObject {
             hasPet: ShopCatalogue.items(of: .pet).contains { $0.pet != AvatarProfile.Pet.none && wallet.owns($0) },
             bestStreak: memory.bestStreak
         )
+        func owned(_ kind: ShopItem.Kind) -> Int { wallet.ownedItems(of: kind).filter { !$0.isFree }.count }
+        stats.counters = memory.counters
+        stats.hatsOwned = owned(.hat)
+        stats.petsOwned = owned(.pet)
+        stats.trailsOwned = owned(.trail)
+        stats.aurasOwned = owned(.aura)
+        stats.friends = social.friends.count
+        stats.gamesLiked = memory.gameNotes.values.filter(\.liked).count
+        stats.outfitsSaved = memory.outfits.compactMap { $0 }.count
+        stats.mostPlaysOfOneGame = playtime.timesPlayed.values.max() ?? 0
+        return stats
+    }
+
+    /// Coins for every level reached since the last look; the new level and
+    /// the coins, or nil when there is nothing new.
+    public func claimLevelRewards(worldsMade: Int, pictures: Int) -> (level: Int, coins: Int)? {
+        let level = progressStats(worldsMade: worldsMade, pictures: pictures).level.number
+        guard level > memory.rewardedLevel else { return nil }
+        let coins = ((memory.rewardedLevel + 1)...level).reduce(0) { $0 + PlayerLevel.reward(for: $1) }
+        memory.rewardedLevel = level
+        give(coins: coins, reason: L("Level {}", level))
+        return (level, coins)
+    }
+
+    /// An emote or stamp sent, for the badges that count them.
+    public func noteGesture(_ gesture: Gesture) {
+        switch gesture {
+        case .emote: memory.counters.emotes += 1
+        case .stamp: memory.counters.stamps += 1
+        }
     }
 
     /// Whether a game may start now, and if not, why.
@@ -471,6 +502,10 @@ public struct MenuMemory: Codable, Hashable, Sendable {
     /// Favourite emotes (first in the list, keys 1 to 4) and the one for
     /// winning.
     public var emotes = EmoteFavourites()
+    /// Emotes, stamps, wins… counted for badges and levels.
+    public var counters = LifetimeCounters()
+    /// The highest level whose coins have been given.
+    public var rewardedLevel = 1
 
     public init() {}
 
@@ -496,6 +531,8 @@ public struct MenuMemory: Codable, Hashable, Sendable {
         savingsGoal = try? c.decodeIfPresent(String.self, forKey: .savingsGoal)
         lastPlayed = try? c.decodeIfPresent(LastPlayed.self, forKey: .lastPlayed)
         emotes = (try? c.decodeIfPresent(EmoteFavourites.self, forKey: .emotes)) ?? EmoteFavourites()
+        counters = (try? c.decodeIfPresent(LifetimeCounters.self, forKey: .counters)) ?? LifetimeCounters()
+        rewardedLevel = (try? c.decodeIfPresent(Int.self, forKey: .rewardedLevel)) ?? 1
     }
 
     /// Puts a game at the front of "recently played".

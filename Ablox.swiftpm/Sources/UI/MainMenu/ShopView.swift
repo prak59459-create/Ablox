@@ -267,7 +267,20 @@ struct ShopView: View {
 
     @ViewBuilder
     private func preview(_ item: ShopItem) -> some View {
-        if let color = item.color {
+        if let colours = item.nameplate?.colours ?? item.bubble?.colours {
+            ZStack {
+                RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Ablox.Palette.wash)
+                Text(item.bubble != nil ? L("Hello!") : settings.profile.displayName)
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(Color(colours.text))
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Color(colours.background), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous)
+                        .strokeBorder(colours.border.map { Color($0) } ?? .clear, lineWidth: 1.5))
+            }
+            .frame(height: 54)
+        } else if let color = item.color {
             RoundedRectangle(cornerRadius: 10, style: .continuous)
                 .fill(Color(color))
                 .frame(height: 54)
@@ -299,6 +312,8 @@ struct ShopView: View {
         case .pet: return item.pet == settings.profile.pet
         case .trail: return item.trail == settings.profile.trail
         case .aura: return item.aura == settings.profile.aura
+        case .nameplate: return item.nameplate == settings.profile.nameplate
+        case .bubble: return item.bubble == settings.profile.bubble
         }
     }
 
@@ -332,6 +347,8 @@ extension ShopItem {
         case .pet: if let p = pet { look.pet = p }
         case .trail: if let t = trail { look.trail = t }
         case .aura: if let a = aura { look.aura = a }
+        case .nameplate: if let n = nameplate { look.nameplate = n }
+        case .bubble: if let b = bubble { look.bubble = b }
         }
         return look
     }
