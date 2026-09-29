@@ -1,20 +1,20 @@
 {
   "app": "Ablox",
-  "version": "1.5",
-  "build": 4,
+  "version": "1.6",
+  "build": 5,
   "protocol": 8,
-  "date": "2026-09-28",
+  "date": "2026-09-29",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "Scripts: 60 new functions for creators — find the nearest player or block, players by team or score, chances and weighted picks, list and map helpers, numbers shown as 1,234 or 1.5K or 1:05, directions from yaws, and colours from numbers",
-      "Scripts: nan or huge numbers used as a list position or a count no longer stop the whole app; they read nil or give a 'too big' error",
-      "Studio's reference and the scripting guide list every new function; your own variables named like one (count, first…) still show while paused"
+      "Clips work again: Ablox now keeps the last 30 seconds of a game itself, with its sounds. Before, iPadOS could not ask for recording permission in an app run from Swift Playgrounds and answered with a BSActionErrorDomain error",
+      "Messages about clips are now always plain words, never a system error code",
+      "The button for the iPad's Settings says what to do when iPadOS will not open them from here"
     ],
     "ja": [
-      "スクリプト: クリエイター向けの新しい関数60個 — いちばん近いプレイヤーやブロック、チームやスコア順のプレイヤー、確率と出やすさを決めた抽選、リストとマップの便利な関数、1,234・1.5K・1:05 のような数の表示、yaw からの方向、数から色",
-      "スクリプト: リストの位置や個数に nan やとても大きな数を使っても、アプリごと止まらなくなりました（nil になるか「大きすぎる」エラー）",
-      "Studio のリファレンスとスクリプトガイドに新しい関数をすべて追加。関数と同じ名前（count や first など）の自分の変数も、一時停止中に表示されます"
+      "クリップが使えるようになりました: Ablox がゲームの最後の30秒を音といっしょに自分で記録します。これまでは Swift Playgrounds から動かすアプリでは録画の許可を聞けず、BSActionErrorDomain というエラーになっていました",
+      "クリップのお知らせは、システムのエラーコードではなく、ふつうの言葉で出るようにしました",
+      "「iPadの設定アプリのAblox」ボタンで設定アプリを開けないときは、どうすればいいかを表示します"
     ]
   }
 }

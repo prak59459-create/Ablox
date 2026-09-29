@@ -366,6 +366,8 @@ public struct PlayScreen: View {
             .onDisappear {
                 bankCoins(completed: false)
                 hardware.stop()
+                // Clips are of this game only.
+                clips.stop()
             }
             .onChange(of: scenePhase) { _, phase in
                 // Backgrounding is what kills the TCP connection, so returning is

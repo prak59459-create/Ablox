@@ -377,7 +377,9 @@ struct PlayTimeLeftChip: View {
 /// Today's tip, the keyboard shortcuts, and the iPad's own Settings.
 struct SettingsHelpCard: View {
     @EnvironmentObject private var settings: AppSettings
+    @Environment(\.openURL) private var openURL
     @State private var showingShortcuts = false
+    @State private var settingsMessage: String?
 
     var body: some View {
         GlassCard {
@@ -393,18 +395,34 @@ struct SettingsHelpCard: View {
                         Label(L("Keyboard shortcuts"), systemImage: "keyboard")
                     }
                     .buttonStyle(NeonButtonStyle(.secondary))
-                    if let url = URL(string: UIApplication.openSettingsURLString) {
-                        Link(destination: url) {
-                            Label(L("The iPad's Settings for Ablox"), systemImage: "gear")
-                        }
-                        .buttonStyle(NeonButtonStyle(.secondary))
+                    Button {
+                        openSettings()
+                    } label: {
+                        Label(L("The iPad's Settings for Ablox"), systemImage: "gear")
                     }
+                    .buttonStyle(NeonButtonStyle(.secondary))
+                }
+                if let settingsMessage {
+                    Text(settingsMessage)
+                        .font(.caption)
+                        .foregroundStyle(Ablox.Palette.inkMuted)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
         }
         .sheet(isPresented: $showingShortcuts) {
             ShortcutsCard { showingShortcuts = false }
                 .presentationBackground(.clear)
+        }
+    }
+
+    /// An app run from Swift Playgrounds has no Settings page of its own, and
+    /// iPadOS may turn the request down; then say where to look instead.
+    private func openSettings() {
+        guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+        openURL(url) { accepted in
+            settingsMessage = accepted ? nil
+                : L("The Settings app could not be opened from here. Open Settings yourself and look under Swift Playgrounds.")
         }
     }
 }

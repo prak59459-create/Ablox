@@ -1,6 +1,5 @@
 import SwiftUI
 import UIKit
-import ReplayKit
 import CoreImage
 import AbloxCore
 
@@ -181,9 +180,11 @@ enum PhotoFilter: String, CaseIterable, Identifiable {
 
 // MARK: - Clips
 
-/// The last thirty seconds of play, on request. ReplayKit keeps a rolling
-/// buffer once it is switched on (iPadOS asks the player first), and saves
-/// the end of it when asked.
+/// The last thirty seconds of play, on request. Ablox keeps them itself
+/// (`GameClipRecorder`): ReplayKit's buffer needs a question iPadOS cannot
+/// ask an app run from Swift Playgrounds, and there it only ever failed with
+/// a BSActionErrorDomain error. A message here is always one of ours, never
+/// the system's.
 @MainActor
 final class ClipRecorder: ObservableObject {
     @Published private(set) var isBuffering = false
@@ -195,46 +196,35 @@ final class ClipRecorder: ObservableObject {
     }
 
     func start() {
-        let recorder = RPScreenRecorder.shared()
-        guard recorder.isAvailable, !recorder.isRecording else {
-            lastError = L("Recording is not available right now.")
-            return
-        }
-        recorder.startClipBuffering { [weak self] error in
-            Task { @MainActor in
-                if let error {
-                    self?.lastError = error.localizedDescription
-                    self?.isBuffering = false
-                } else {
-                    self?.isBuffering = true
-                }
-            }
-        }
+        lastError = nil
+        GameClipRecorder.shared.start()
+        isBuffering = true
     }
 
     func stop() {
-        RPScreenRecorder.shared().stopClipBuffering { [weak self] _ in
-            Task { @MainActor in self?.isBuffering = false }
-        }
+        guard isBuffering else { return }
+        GameClipRecorder.shared.stop()
+        isBuffering = false
     }
 
     /// Saves the last `seconds` into the album and hands back where.
     func saveClip(seconds: TimeInterval = 30, game: String, completion: @escaping (URL?) -> Void) {
-        guard isBuffering else { return completion(nil) }
+        guard isBuffering, !isSaving else { return completion(nil) }
         isSaving = true
+        lastError = nil
         try? FileManager.default.createDirectory(at: ScreenshotStore.folder, withIntermediateDirectories: true)
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.dateFormat = "yyyy-MM-dd HH.mm.ss"
         let url = ScreenshotStore.folder.appendingPathComponent("\(game.prefix(40)) \(formatter.string(from: Date())).mp4")
-        RPScreenRecorder.shared().exportClip(to: url, duration: seconds) { [weak self] error in
+        GameClipRecorder.shared.save(seconds: seconds, to: url) { [weak self] worked in
             Task { @MainActor in
                 self?.isSaving = false
-                if let error {
-                    self?.lastError = error.localizedDescription
-                    completion(nil)
-                } else {
+                if worked {
                     completion(url)
+                } else {
+                    self?.lastError = L("Nothing to save yet. Play a few more seconds, then try again.")
+                    completion(nil)
                 }
             }
         }
