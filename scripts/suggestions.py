@@ -13,6 +13,8 @@ each child what became of their idea. A reply holds the suggestion's key
 and the answer, never the child's words: the repository is public.
 
   python3 scripts/suggestions.py list            # not answered yet, oldest first
+  python3 suggestions.py list --remote           # the same without a checkout: the
+                                                 # config and answers come from GitHub
   python3 scripts/suggestions.py list --all      # everything in the box
   python3 scripts/suggestions.py reply <id> done --en "Added a boat race!" --ja "ボートレースを追加したよ！" --version 1.9
   python3 scripts/suggestions.py reply <id> planned|thanks|notNow --en ... --ja ...
@@ -36,10 +38,21 @@ ROOT = Path(__file__).resolve().parent.parent
 REPLIES = ROOT / "suggestions" / "replies.json"
 CLOUD = ROOT / "Ablox.swiftpm" / "Sources" / "AbloxCore" / "Cloud.swift"
 STATUSES = ["done", "planned", "thanks", "notNow"]
+RAW = "https://raw.githubusercontent.com/prak59459-create/Ablox/HEAD/"
+REMOTE = False
+
+
+def read_text(local, remote_name):
+    """A file from this checkout, or with --remote from GitHub."""
+    if REMOTE:
+        request = urllib.request.Request(RAW + remote_name, headers={"Cache-Control": "no-cache"})
+        with urllib.request.urlopen(request, timeout=20) as response:
+            return response.read().decode()
+    return local.read_text() if local.exists() else None
 
 
 def built_in_config():
-    text = CLOUD.read_text()
+    text = read_text(CLOUD, "Ablox.swiftpm/Sources/AbloxCore/Cloud.swift") or ""
     match = re.search(r'builtIn = CloudConfig\(databaseURL: "([^"]+)",\s*apiKey: "([^"]+)"\)', text)
     if not match:
         sys.exit("Could not find CloudConfig.builtIn in Cloud.swift")
@@ -84,9 +97,8 @@ def database(method, path, token, base, body=None):
 
 
 def load_replies():
-    if not REPLIES.exists():
-        return {"replies": []}
-    return json.loads(REPLIES.read_text())
+    text = read_text(REPLIES, "suggestions/replies.json")
+    return json.loads(text) if text else {"replies": []}
 
 
 def save_replies(replies):
@@ -164,6 +176,7 @@ def main():
     sub = parser.add_subparsers(dest="command", required=True)
     listing = sub.add_parser("list")
     listing.add_argument("--all", action="store_true")
+    listing.add_argument("--remote", action="store_true")
     answering = sub.add_parser("reply")
     answering.add_argument("id")
     answering.add_argument("status")
@@ -173,6 +186,8 @@ def main():
     pruning = sub.add_parser("prune")
     pruning.add_argument("--days", type=int, default=60)
     args = parser.parse_args()
+    global REMOTE
+    REMOTE = getattr(args, "remote", False)
     {"list": command_list, "reply": command_reply, "prune": command_prune}[args.command](args)
 
 
