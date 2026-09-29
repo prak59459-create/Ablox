@@ -166,11 +166,7 @@ struct GameRowView: View {
                     .foregroundStyle(Ablox.Palette.accent)
                     .accessibilityLabel(L("Play later"))
             }
-            if library.isInstalled(listing) {
-                Image(systemName: "arrow.down.circle.fill")
-                    .foregroundStyle(Ablox.Palette.success)
-                    .accessibilityLabel(L("Downloaded"))
-            }
+            DownloadSizeBadge(listing: listing, library: library)
         }
         .padding(10)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))

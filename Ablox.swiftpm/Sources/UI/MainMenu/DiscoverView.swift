@@ -20,7 +20,6 @@ struct DiscoverView: View {
     @State private var search = ""
     @State private var tagFilter: String?
     @State private var players: CatalogueShelf.PlayerCount = .any
-    @State private var downloading: (done: Int, total: Int)?
     @State private var addingCatalogue = false
     @State private var newCatalogue = ""
     // The second round (GamesExtras.swift).
@@ -86,6 +85,7 @@ struct DiscoverView: View {
                 if library.listings.isEmpty {
                     emptyState
                 } else {
+                    DownloadAllCard(library: library)
                     SearchHelp(search: $search, titles: allowed.map(\.title), foundNothing: filtered.isEmpty)
                     filters
                     QuickFilterChips(selection: $quickFilters, onlyNew: $onlyNew, newCount: allowed.filter(isFresh).count)
@@ -229,33 +229,20 @@ struct DiscoverView: View {
             }
             Section {
                 Button {
-                    Task { await downloadEverything() }
+                    GameDownloads.shared.downloadAll(with: library)
                 } label: {
                     Label(L("Download every game for offline"), systemImage: "arrow.down.circle")
                 }
             }
         } label: {
-            if let downloading {
-                Label(L("{} of {}", downloading.done, downloading.total), systemImage: "arrow.down.circle")
-                    .font(.subheadline.weight(.semibold))
-            } else {
-                Label(L("Lists"), systemImage: "ellipsis.circle")
-                    .font(.subheadline.weight(.semibold))
-            }
+            Label(L("Lists"), systemImage: "ellipsis.circle")
+                .font(.subheadline.weight(.semibold))
         }
     }
 
     private func reloadCatalogue() {
         library.source = settings.catalogueSource
         Task { await library.refresh() }
-    }
-
-    private func downloadEverything() async {
-        downloading = (0, 0)
-        await library.downloadAll { done, total in
-            Task { @MainActor in downloading = (done, total) }
-        }
-        downloading = nil
     }
 
     /// Kinds of game, and how many people.
@@ -625,12 +612,7 @@ struct GameCard: View {
                             .font(.caption2.monospacedDigit())
                             .foregroundStyle(Ablox.Palette.inkFaint)
                     }
-                    if library.isInstalled(listing) {
-                        Image(systemName: "arrow.down.circle.fill")
-                            .font(.caption2)
-                            .foregroundStyle(Ablox.Palette.success)
-                            .accessibilityLabel(L("Downloaded"))
-                    }
+                    DownloadSizeBadge(listing: listing, library: library)
                 }
             }
             .padding(11)
@@ -963,6 +945,9 @@ private struct GameDetailSheet: View {
             fact(L("Parts"), "\(listing.blockCount)")
             fact(L("Players"), "\(listing.maxPlayers)")
             fact(L("Updated"), listing.updatedAt.formatted(date: .abbreviated, time: .omitted))
+            if let size = library.installedSizes[listing.id] ?? listing.downloadSize {
+                fact(library.isInstalled(listing) ? L("On this iPad") : L("Size"), Megabytes.text(size))
+            }
         }
     }
 
@@ -1011,6 +996,8 @@ private struct GameDetailSheet: View {
             }
             .buttonStyle(NeonButtonStyle(.primary, fullWidth: true))
             .disabled(isWorking || !listing.isSupported)
+
+            GameDownloadMeterView(listing: listing)
 
             Button {
                 askingVisibility = true

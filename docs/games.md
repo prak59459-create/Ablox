@@ -58,6 +58,17 @@ files before each game — so a fix pushed to that folder reaches players
 without publishing the world again. See
 [`scripting.md`](scripting.md#getting-files-from-github).
 
+## Downloading, and how much
+
+The Games tab's first card downloads every game on the list for offline play,
+one after another (`GameDownloads`, shared by every Games tab so leaving the
+tab does not lose it). It says how many megabytes have come down and, when
+the listings carry `bytes` (the world file and its scripts, as the catalogue
+generator writes it), how many are left. Each game's card shows its size
+while it downloads, once it is on the iPad, or before. A world is read a
+piece at a time off the main actor and its byte count reported every 64 KB;
+a listing's `bytes` is only shown when it is believable (`downloadSize`).
+
 ## Everything downloaded is untrusted
 
 This is the first part of Ablox that reads bytes written by someone who is not

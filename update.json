@@ -1,20 +1,20 @@
 {
   "app": "Ablox",
-  "version": "1.8",
-  "build": 7,
+  "version": "1.9",
+  "build": 8,
   "protocol": 8,
   "date": "2026-09-29",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "New: the suggestion box (Settings → Suggestion box). Send an idea for a game, something to add, or a problem; ideas are read, the ones that can be made are made, and the box shows what became of each one",
-      "Only the kind, the words (phone numbers, emails and links hidden), the app's version and language are sent — no name. One a minute. A grown-up switches sending on in Settings → Family → Internet",
-      "Grown-ups: copy the database rules again (Settings → Family → Internet) and publish them in the Firebase console, so the box has somewhere to go"
+      "New: \"Download every game\" at the top of the Games tab, with how many megabytes have come down so far and how many are left. Stop it any time; what came down stays",
+      "Each game shows its size: while it downloads (0.4 / 1.2 MB, with a bar on its page), once it is on this iPad (✓ 1.2 MB), or how big it will be",
+      "Downloading carries on when you leave the Games tab and come back"
     ],
     "ja": [
-      "新機能: 意見箱（設定 → 意見箱）。やってみたいゲーム・ほしい機能・こまったことを送れます。意見はぜんぶ読んで、作れるものは作り、どうなったかが意見箱に出ます",
-      "送るのは種類と文（電話番号・メール・リンクは隠します）とアプリの版と言語だけで、名前は送りません。1分に1回まで。送るのをオンにするのは、おうちの人が 設定 → 家族 → インターネット で",
-      "おうちの方へ: 設定 → 家族 → インターネット でデータベースのルールをもう一度コピーして、Firebase コンソールで公開してください（意見箱の場所が入っています）"
+      "新機能: ゲームタブのいちばん上に「ぜんぶダウンロード」。いま何MBまでダウンロードしたか、のこりが何本・何MBかが見えます。とちゅうで止めても、できた分はそのまま",
+      "ゲームごとに大きさが出ます: ダウンロード中は「0.4 / 1.2 MB」（ゲームのページにはバーも）、入っているゲームは「✓ 1.2 MB」、まだのゲームはダウンロードの大きさ",
+      "ゲームタブからほかの画面に行っても、ダウンロードはつづきます"
     ]
   }
 }

@@ -69,6 +69,7 @@ publish delay — the app reads the file directly.
 | `tags` | at most 8, each ≤ 24 characters |
 | `blockCount` | the real number — the app compares it and says so if it is wrong |
 | `schemaVersion` | the world file's own version. An app too old to read it shows the game greyed out rather than failing. |
+| `bytes` | optional: how big the download is (the world file and its scripts, in bytes). The Games tab uses it to show "0.4 / 1.2 MB" while a game downloads, and how much "download every game" has left. |
 
 The app **refuses** a listing whose path leaves this repository, names another
 host, or points at a hidden file. Those rules are enforced on the iPad, not
