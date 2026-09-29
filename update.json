@@ -1,20 +1,20 @@
 {
   "app": "Ablox",
-  "version": "1.6",
-  "build": 5,
+  "version": "1.7",
+  "build": 6,
   "protocol": 8,
   "date": "2026-09-29",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "Clips work again: Ablox now keeps the last 30 seconds of a game itself, with its sounds. Before, iPadOS could not ask for recording permission in an app run from Swift Playgrounds and answered with a BSActionErrorDomain error",
-      "Messages about clips are now always plain words, never a system error code",
-      "The button for the iPad's Settings says what to do when iPadOS will not open them from here"
+      "Fixed: Ablox stopped as soon as it opened (Swift Playgrounds said it may have crashed, with a BSActionErrorDomain or XPC error). The coin jar on the Play tab made a slider whose two ends were the same number when you had 10 to 19 coins, and SwiftUI stops the app for that",
+      "Each change is now also started on an iPad simulator by the automatic checks, with every tab opened in turn, so a crash like this shows up there",
+      "Clips are kept by Ablox itself, without ReplayKit"
     ],
     "ja": [
-      "クリップが使えるようになりました: Ablox がゲームの最後の30秒を音といっしょに自分で記録します。これまでは Swift Playgrounds から動かすアプリでは録画の許可を聞けず、BSActionErrorDomain というエラーになっていました",
-      "クリップのお知らせは、システムのエラーコードではなく、ふつうの言葉で出るようにしました",
-      "「iPadの設定アプリのAblox」ボタンで設定アプリを開けないときは、どうすればいいかを表示します"
+      "修正: Ablox が開いたとたんに止まっていました（Swift Playgrounds に「クラッシュしました」と BSActionErrorDomain や XPC のエラーが出ていました）。コインが10〜19枚のとき、プレイタブの貯金ビンのスライダーの両はしが同じ数になり、SwiftUI がアプリを止めていました",
+      "これからは変更のたびに、自動チェックで iPad のシミュレータでも起動して、すべてのタブを1つずつ開いて確かめます",
+      "クリップは ReplayKit を使わず Ablox が自分で記録します"
     ]
   }
 }

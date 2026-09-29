@@ -221,6 +221,10 @@ public struct MainMenuView: View {
         if !openedStartTab {
             openedStartTab = true
             if let tab = MenuTab(rawValue: settings.preferences.access.startTab ?? "") { selectedTab = tab }
+            // The launch check on a simulator opens each tab in turn with a
+            // launch argument (scripts/ios-launch-check.sh). An iPad never
+            // passes one.
+            if let tab = MenuTab(rawValue: UserDefaults.standard.string(forKey: "AbloxOpenTab") ?? "") { selectedTab = tab }
         }
         updater.start()
         let remembered = settings

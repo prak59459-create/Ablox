@@ -142,8 +142,47 @@ done
 echo
 if [ "$running" = 1 ]; then
   echo "== The app is still running after $watch seconds."
-  exit 0
 else
   echo "== The app is NOT running after $watch seconds: it crashed or quit at launch."
   exit 1
 fi
+
+# Each tab opened straight away (launch argument AbloxOpenTab), so a crash
+# in any tab's first screen shows here too, not only the Play tab's.
+failed=""
+for tab in ${TABS-Games Worlds Avatar Shop Settings}; do
+  touch "$out/started-$tab"
+  xcrun simctl terminate "$udid" "$bundle" > /dev/null 2>&1 || true
+  xcrun simctl launch --console-pty "$udid" "$bundle" -AbloxOpenTab "$tab" > "$out/console-$tab.log" 2>&1 &
+  launcher=$!
+  sleep "${TAB_WATCH:-12}"
+  xcrun simctl io "$udid" screenshot "$out/screen-$tab.png" > /dev/null 2>&1 || true
+  if xcrun simctl spawn "$udid" launchctl list 2>/dev/null | grep -F "UIKitApplication:$bundle" | awk '{ print $1 }' | grep -qE '^[0-9]+$'; then
+    echo "== $tab: still running"
+  else
+    echo "== $tab: NOT running"
+    failed="$failed $tab"
+    sed -e 's/\r$//' "$out/console-$tab.log" | grep -iE "fatal|error|crash|precondition" | tail -20
+    for report in $(find "$HOME/Library/Logs/DiagnosticReports" -newer "$out/started-$tab" -type f -name "*.ips" 2>/dev/null); do
+      grep -q "$executable" "$report" || continue
+      python3 - "$report" <<'PY'
+import json, sys
+text = open(sys.argv[1]).read()
+body = json.loads(text.split("\n", 1)[1])
+images = body.get("usedImages", [])
+for t in body.get("threads", []):
+    if t.get("triggered"):
+        for f in t.get("frames", [])[:25]:
+            i = f.get("imageIndex", 0)
+            print("   ", images[i].get("name", "?") if i < len(images) else "?", f.get("symbol", ""))
+PY
+    done
+  fi
+  kill "$launcher" 2>/dev/null || true
+done
+
+if [ -n "$failed" ]; then
+  echo "== Tabs that stopped the app:$failed"
+  exit 1
+fi
+[ -n "${TABS-x}" ] && echo "== Every tab opened without stopping the app."

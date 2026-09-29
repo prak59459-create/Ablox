@@ -320,20 +320,28 @@ struct CoinJarCard: View {
                     .font(.caption)
                     .foregroundStyle(Ablox.Palette.inkMuted)
                     .fixedSize(horizontal: false, vertical: true)
-                let most = max(10, min(settings.wallet.coins, CoinJar.capacity - jar.balance))
                 if settings.wallet.coins >= 10 || jar.balance > 0 {
+                    let top = CoinJar.sliderTop(coins: settings.wallet.coins, saved: jar.balance)
+                    let chosen = CoinJar.chosen(amount, top: top)
                     HStack {
-                        Slider(value: $amount, in: 10...Double(max(10, max(most, jar.balance))), step: 10)
-                            .tint(Ablox.Palette.accent)
-                        Text("\(Int(amount))")
+                        // Only when there is a choice to make: a slider whose
+                        // two ends are the same number stops the whole app
+                        // (SwiftUI: "max stride must be positive").
+                        if top > CoinJar.step {
+                            Slider(value: $amount, in: Double(CoinJar.step)...Double(top), step: Double(CoinJar.step))
+                                .tint(Ablox.Palette.accent)
+                        } else {
+                            Spacer()
+                        }
+                        Text("\(chosen)")
                             .font(.caption.monospacedDigit())
                             .frame(width: 44)
                     }
                     HStack {
-                        Button(L("Put in")) { settings.putInJar(Int(amount)) }
+                        Button(L("Put in")) { settings.putInJar(chosen) }
                             .buttonStyle(NeonButtonStyle(.primary))
-                            .disabled(settings.wallet.coins < Int(amount))
-                        Button(L("Take out")) { settings.takeFromJar(Int(amount)) }
+                            .disabled(settings.wallet.coins < chosen)
+                        Button(L("Take out")) { settings.takeFromJar(chosen) }
                             .buttonStyle(NeonButtonStyle(.secondary))
                             .disabled(jar.balance == 0)
                     }
