@@ -185,4 +185,4 @@ if [ -n "$failed" ]; then
   echo "== Tabs that stopped the app:$failed"
   exit 1
 fi
-[ -n "${TABS-x}" ] && echo "== Every tab opened without stopping the app."
+if [ -n "${TABS-x}" ]; then echo "== Every tab opened without stopping the app."; fi
