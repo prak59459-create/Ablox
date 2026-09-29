@@ -1,20 +1,20 @@
 {
   "app": "Ablox",
-  "version": "1.7",
-  "build": 6,
+  "version": "1.8",
+  "build": 7,
   "protocol": 8,
   "date": "2026-09-29",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "Fixed: Ablox stopped as soon as it opened (Swift Playgrounds said it may have crashed, with a BSActionErrorDomain or XPC error). The coin jar on the Play tab made a slider whose two ends were the same number when you had 10 to 19 coins, and SwiftUI stops the app for that",
-      "Each change is now also started on an iPad simulator by the automatic checks, with every tab opened in turn, so a crash like this shows up there",
-      "Clips are kept by Ablox itself, without ReplayKit"
+      "New: the suggestion box (Settings → Suggestion box). Send an idea for a game, something to add, or a problem; ideas are read, the ones that can be made are made, and the box shows what became of each one",
+      "Only the kind, the words (phone numbers, emails and links hidden), the app's version and language are sent — no name. One a minute. A grown-up switches sending on in Settings → Family → Internet",
+      "Grown-ups: copy the database rules again (Settings → Family → Internet) and publish them in the Firebase console, so the box has somewhere to go"
     ],
     "ja": [
-      "修正: Ablox が開いたとたんに止まっていました（Swift Playgrounds に「クラッシュしました」と BSActionErrorDomain や XPC のエラーが出ていました）。コインが10〜19枚のとき、プレイタブの貯金ビンのスライダーの両はしが同じ数になり、SwiftUI がアプリを止めていました",
-      "これからは変更のたびに、自動チェックで iPad のシミュレータでも起動して、すべてのタブを1つずつ開いて確かめます",
-      "クリップは ReplayKit を使わず Ablox が自分で記録します"
+      "新機能: 意見箱（設定 → 意見箱）。やってみたいゲーム・ほしい機能・こまったことを送れます。意見はぜんぶ読んで、作れるものは作り、どうなったかが意見箱に出ます",
+      "送るのは種類と文（電話番号・メール・リンクは隠します）とアプリの版と言語だけで、名前は送りません。1分に1回まで。送るのをオンにするのは、おうちの人が 設定 → 家族 → インターネット で",
+      "おうちの方へ: 設定 → 家族 → インターネット でデータベースのルールをもう一度コピーして、Firebase コンソールで公開してください（意見箱の場所が入っています）"
     ]
   }
 }

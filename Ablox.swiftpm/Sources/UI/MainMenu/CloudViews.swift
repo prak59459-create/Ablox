@@ -439,6 +439,7 @@ struct InternetFamilySection: View {
                 .disabled(!settings.cloud.allowFriends)
             Toggle(L("Friends can see what I'm playing"), isOn: $settings.cloud.shareWhatIPlay)
                 .disabled(!settings.cloud.allowFriends)
+            Toggle(L("Send ideas from the suggestion box"), isOn: $settings.cloud.allowSuggestions)
 
             if CloudConfig.builtIn.isUsable {
                 Label(L("Uses Ablox's own database."), systemImage: "checkmark.seal.fill")

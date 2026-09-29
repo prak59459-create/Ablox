@@ -64,6 +64,7 @@ struct SettingsView: View {
                 if shows("movement walk run jump", L("Movement")) { movementCard }
                 if shows("network wifi internet", L("Network")) { networkCard }
                 if shows("problem report error crash", L("Problem reports")) { ProblemReportsCard() }
+                if shows("suggestion box idea opinion feedback request bug", L("Suggestion box")) { SuggestionBoxCard() }
                 if shows("tips shortcuts keyboard help", L("Tips")) { SettingsHelpCard() }
                 if shows("move settings file export import another ipad", L("Move my settings")) { SettingsTransferCard() }
                 if shows("about version", L("About")) { aboutCard }

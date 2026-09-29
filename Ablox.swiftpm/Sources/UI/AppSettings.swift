@@ -699,6 +699,8 @@ public struct MenuMemory: Codable, Hashable, Sendable {
     public var coinJar = CoinJar()
     public var firstTimes = FirstTimes()
     public var birthday: Birthday?
+    /// Suggestions sent from this iPad, to show what became of them.
+    public var sentSuggestions = SentSuggestions()
     /// Badges whose coins have been given.
     public var rewardedBadges: Set<String> = []
     /// The day an event's extra mission was claimed.
@@ -760,6 +762,7 @@ public struct MenuMemory: Codable, Hashable, Sendable {
         eventsJoined = (try? c.decodeIfPresent(Set<String>.self, forKey: .eventsJoined)) ?? []
         seenShopItems = try? c.decodeIfPresent(Set<String>.self, forKey: .seenShopItems)
         familyLog = (try? c.decodeIfPresent(FamilyLog.self, forKey: .familyLog)) ?? FamilyLog()
+        sentSuggestions = (try? c.decodeIfPresent(SentSuggestions.self, forKey: .sentSuggestions)) ?? SentSuggestions()
         rewardedLevel = (try? c.decodeIfPresent(Int.self, forKey: .rewardedLevel)) ?? 1
     }
 
