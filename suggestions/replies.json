@@ -1,3 +1,20 @@
 {
-  "replies": []
+  "replies": [
+    {
+      "id": "s1790733428511-A45EJV",
+      "status": "planned",
+      "message": {
+        "en": "We're reading your idea — back soon!",
+        "ja": "読んでいます。少し待っててね！"
+      }
+    },
+    {
+      "id": "s1790749653943-4BT2DX",
+      "status": "planned",
+      "message": {
+        "en": "We're reading your idea — back soon!",
+        "ja": "読んでいます。少し待っててね！"
+      }
+    }
+  ]
 }
