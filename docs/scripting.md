@@ -171,13 +171,33 @@ chat under the NPC's name.
 off) — in `p.ride_color`. It is only the look: set `p.speed` as well.
 
 **Blocks**: `name id position x y z size rotation color material shape visible
-solid tags opacity behavior`, and `move move_to rotate clone destroy`. Only a
+solid tags opacity behavior label label_height label_size label_range animation
+animation_speed parent`, and `move move_to rotate clone destroy`. Only a
 block with a behavior (`trigger`, `hazard`, `checkpoint`, `bounce`,
 `collectible`, …) is reported by the iPad when touched, so a script-made coin
 needs `create_block({…, behavior: "trigger"})` for `on touch` to see it.
 A trigger is also something you walk *through*, never stand on: a floor tile
 that has to hold people up and still know who is on it stays an ordinary
 block, and `on tick` works out the tile under each player from `p.x` and `p.z`.
+
+**Words over a block**: `b.label = "Shop"` floats words over the block,
+always facing the camera (`\n` starts a new line). A list gives up to four
+lines, each text or `{text, color}`:
+`b.label = [{text: "Rare", color: "#3B82F6"}, "Pizza Cat", {text: "$15/s", color: "#22C55E"}]`.
+`b.label_height` is how far above the block (studs), `b.label_size` how big
+(1 is usual) and `b.label_range` how far away it still shows; `b.label = nil`
+takes the words away. `create_block({…, label: "…"})` works too. The nearest
+48 are drawn; an iPad that has not updated shows the block without them (2.2).
+
+**Blocks that hang from others and move by themselves**:
+`create_block({parent: body, position: {x: 0, y: 1, z: 0}, …})` hangs a block
+from another: `position` is measured from it, and the block moves, turns and
+goes away with it (one `move_to` on the body carries a whole model). `b.parent`
+reads it. `b.animation = "dance"` makes a block move by itself on every iPad,
+with nothing sent over the network — `spin`, `sway`, `dance`, `bounce`, `pulse`
+or `wobble`, at `b.animation_speed` (1 is usual); it turns and stretches the
+block (and what hangs from it) without moving it, so `move_to` still carries it
+along. `nil` stops it. An iPad that has not updated shows it still (2.2).
 
 **World**: `gravity sky sky_top sky_bottom light sun sun_yaw ground
 ground_color fall_height weather time day_length sky_style effect shadows
