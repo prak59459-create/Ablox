@@ -10,10 +10,37 @@ for you:
 | Download | the app | On Wi-Fi (not in Low Data Mode), downloads the repository as a zip |
 | Check | the app | Unzips `Ablox.swiftpm`, checking every file's CRC and refusing any path that would land outside it |
 | Back up | the app | Writes a backup of avatar, coins, saved games and worlds — one to share, one kept inside the app |
-| Install | **you** | Tap **Install**, then **Send to Swift Playgrounds**, open the new Ablox, press ▶︎ |
-| Afterwards | the app | Says once what changed, and clears the download |
+| Install | the app, once the project is chosen | Writes only the files that changed into the project already on this iPad — by itself, or with one tap on **Update** |
+| Reopen | **you** | Stop with ■, close the project and open it again, press ▶︎ (Swift Playgrounds keeps an open project as it was when it was opened) |
+| Afterwards | the app | Says once what changed, and clears the download. If the old version starts again instead, it says so and shows the steps again |
 
 Ablox Studio does the same from its own repository.
+
+## Updating with one tap (2.1)
+
+The first time, the app asks for its own project once: **Settings › Updates ›
+Choose the project in Files** (or the same step on the install sheet), then
+the Playgrounds folder (On My iPad or iCloud Drive) and **Ablox**. From then on:
+
+- A new version is downloaded by itself (on Wi-Fi), and goes straight into the
+  project, only the files that changed (`ProjectSync`). The banner's **Update**
+  button does the same with one tap, downloading first if it has to.
+- Swift Playgrounds builds a project as it was when it was opened, so the new
+  files count once the project is closed and opened again: stop with ■, go back
+  to the list of projects, open Ablox, press ▶︎. Closing Swift Playgrounds
+  completely also works, but is not needed.
+- The app remembers the version it wrote. If the next launch is still the old
+  version, the banner says so and shows the steps again.
+- Downloads try three times, waiting 2 and 5 seconds, when the connection drops
+  or GitHub is busy, and fall back to GitHub's archive server
+  (`codeload.github.com`) if the usual address fails (`UpdateRetry`). What
+  still fails goes into **Settings › Problem reports** with the step and error
+  code ("download: NSURLErrorDomain -1001"), so a report says exactly why.
+- Every written file is read back; a folder that only looked writable is
+  reported at once, not at the next build.
+- If choosing the project does not work, the install sheet still offers the
+  whole project: **Save to Files** (into the Playgrounds folder) or **Send to
+  Swift Playgrounds**. That one is built whole, so its first build is slower.
 
 ## Where it looks
 
@@ -68,7 +95,7 @@ sets the version in `Package.swift`, `Sources/AppRelease.swift` and
 `update.json` together (next build number, today's date, the current
 protocol). Write what changed in `update.json`'s `notes`, in English and
 Japanese, then commit and push to the default branch. Every iPad with
-automatic updates on finds it within a few hours.
+automatic updates on finds it within the hour.
 
 `scripts/check-release.sh` — run by CI through
 `scripts/check-playgrounds-project.sh` — fails the build if the three places

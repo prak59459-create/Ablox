@@ -1,18 +1,24 @@
 {
   "app": "Ablox",
-  "version": "2.0",
-  "build": 9,
+  "version": "2.1",
+  "build": 10,
   "protocol": 8,
   "date": "2026-10-01",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "55 new games in the Games tab (numbers 81–135): obbies, driving and flying, simulators and tycoons — among them Build a Zoo Park, Sword Forge Factory, Fish Farm Tycoon and Egg Heist",
-      "\"Download every game\" at the top of the Games tab brings them all onto this iPad at once"
+      "Updating is one tap: choose the Ablox project in Files once, and every new version goes straight into it by itself (only the files that changed). The Update button does it at once",
+      "After an update, stop with ■, close the project and open it again — no need to close Swift Playgrounds completely. If the old version starts again, the app says so and shows the steps",
+      "Downloads try again by themselves when the Wi-Fi drops or GitHub is busy, and what still goes wrong is saved in Problem reports with its error code",
+      "Characters move like they should: arms and legs swing from the shoulders and hips, arms go up when you jump and out when you fall, running leans forward, and each ride has its pose",
+      "Classic blocky proportions: thicker arms, legs as wide as the body"
     ],
     "ja": [
-      "ゲームタブに 新しいゲームが55本（81〜135番）: オビー・乗り物・シミュレーター・タイクーン。Build a Zoo Park・Sword Forge Factory・Fish Farm Tycoon・Egg Heist など",
-      "ゲームタブのいちばん上の「ぜんぶダウンロード」で、まとめて この iPad に入れられます"
+      "アップデートが1タップに: ファイル App で Ablox のプロジェクトを1回えらべば、新しいバージョンは自動でそこに入ります（変わったファイルだけ）。「アップデート」ボタンなら すぐに",
+      "アップデートのあとは ■ で止めて、プロジェクトを閉じて開き直すだけ。Swift Playgrounds を全部閉じなくてOK。古いままなら アプリが教えて、やり方を出します",
+      "Wi-Fi が切れたときや GitHub が混んでいるときは 自動でやり直します。それでもだめなときは、問題のレポートにエラーの番号つきで残ります",
+      "キャラクターの動きが自然に: 手足が肩と腰から動き、ジャンプでは腕を上げ、落ちるときは広げ、走ると前かがみ。乗り物ごとのポーズも",
+      "ブロックらしい体型に: 腕を太く、脚は体の幅いっぱいに"
     ]
   }
 }

@@ -187,9 +187,7 @@ public struct MainMenuView: View {
             .onChange(of: cloud.state) { _, state in
                 if case let .failed(message) = state { ProblemRecorder.shared.record(.cloud, message) }
             }
-            .onChange(of: updater.phase) { _, phase in
-                if case let .failed(message) = phase { ProblemRecorder.shared.record(.update, message) }
-            }
+            // Update problems are written by the updater itself, with their codes.
             .task { await notices.refreshIfDue() }
             .onChange(of: activeSession == nil) { _, inMenus in
                 if inMenus { ProblemRecorder.shared.noteActivity("In the menus") }

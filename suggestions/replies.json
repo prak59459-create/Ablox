@@ -2,19 +2,21 @@
   "replies": [
     {
       "id": "s1790733428511-A45EJV",
-      "status": "thanks",
+      "status": "done",
       "message": {
-        "en": "Thank you! We read your idea and will think about it carefully.",
-        "ja": "ありがとう！ 読ませてもらったよ。ていねいに考えるね。"
-      }
+        "en": "Thank you! Characters now have blocky proportions, and their arms and legs move from the shoulders and hips — with jump, fall, run and ride poses.",
+        "ja": "ありがとう！ キャラクターをブロックらしい体型にして、手足が肩と腰から動くようにしたよ。ジャンプ・落ちる・走る・乗り物のポーズもあるよ。"
+      },
+      "version": "2.1"
     },
     {
       "id": "s1790749653943-4BT2DX",
-      "status": "thanks",
+      "status": "done",
       "message": {
-        "en": "Thank you! We read your idea and will think about it carefully.",
-        "ja": "ありがとう！ 読ませてもらったよ。ていねいに考えるね。"
-      }
+        "en": "Thank you! Updating is now one tap. After an update, close the project and open it again — and if the old version is still running, the app tells you what to do.",
+        "ja": "ありがとう！ アップデートを1タップにしたよ。アップデートのあとは プロジェクトを閉じて開き直してね。まだ古いままなら アプリがやり方を教えてくれるよ。"
+      },
+      "version": "2.1"
     }
   ]
 }
