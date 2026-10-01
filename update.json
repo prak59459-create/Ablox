@@ -1,20 +1,18 @@
 {
   "app": "Ablox",
-  "version": "1.9",
-  "build": 8,
+  "version": "2.0",
+  "build": 9,
   "protocol": 8,
-  "date": "2026-09-29",
+  "date": "2026-10-01",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "New: \"Download every game\" at the top of the Games tab, with how many megabytes have come down so far and how many are left. Stop it any time; what came down stays",
-      "Each game shows its size: while it downloads (0.4 / 1.2 MB, with a bar on its page), once it is on this iPad (✓ 1.2 MB), or how big it will be",
-      "Downloading carries on when you leave the Games tab and come back"
+      "55 new games in the Games tab (numbers 81–135): obbies, driving and flying, simulators and tycoons — among them Build a Zoo Park, Sword Forge Factory, Fish Farm Tycoon and Egg Heist",
+      "\"Download every game\" at the top of the Games tab brings them all onto this iPad at once"
     ],
     "ja": [
-      "新機能: ゲームタブのいちばん上に「ぜんぶダウンロード」。いま何MBまでダウンロードしたか、のこりが何本・何MBかが見えます。とちゅうで止めても、できた分はそのまま",
-      "ゲームごとに大きさが出ます: ダウンロード中は「0.4 / 1.2 MB」（ゲームのページにはバーも）、入っているゲームは「✓ 1.2 MB」、まだのゲームはダウンロードの大きさ",
-      "ゲームタブからほかの画面に行っても、ダウンロードはつづきます"
+      "ゲームタブに 新しいゲームが55本（81〜135番）: オビー・乗り物・シミュレーター・タイクーン。Build a Zoo Park・Sword Forge Factory・Fish Farm Tycoon・Egg Heist など",
+      "ゲームタブのいちばん上の「ぜんぶダウンロード」で、まとめて この iPad に入れられます"
     ]
   }
 }
