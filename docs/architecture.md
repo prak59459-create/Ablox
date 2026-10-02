@@ -119,8 +119,21 @@ block once (a dictionary makes parent lookups constant) and keeps a 4 m grid on
 the ground plane, so a question like "what does this box touch" only looks at
 the nearby cells. Answers come back in document order, so "the first solid the
 player sinks into" is the same block it always was — `WorldIndexTests` checks
-the collider step against the full-list version. `WorldIndexCache` rebuilds only
-when the blocks change, which an array comparison tells instantly.
+the collider step against the full-list version.
+
+`WorldIndexCache` keeps the index up to date as the round changes the world.
+`WorldDocument.blockRevision` is new after every change to `blocks` (copies of a
+world share it until one changes; it is never saved and never part of
+equality), so "nothing changed" costs one comparison. When something has, each
+block is compared with the few fields its entry is made from — not whole
+blocks, so a recoloured or relabelled block costs nothing — and blocks added on
+the end, blocks moved where they stand and everything hanging from a moved
+block (a character model's parts) are folded in; anything else is a rebuild.
+The cache never holds the block list itself: when it did, every change to the
+world copied every block. For the same reason `blocks` is changed through a
+`_modify` accessor rather than `didSet`, which across modules copies the whole
+array on every change. (2.4: a 300-character game builds its models about four
+times faster.)
 
 ## Rendering
 

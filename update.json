@@ -1,18 +1,20 @@
 {
   "app": "Ablox",
-  "version": "2.3",
-  "build": 12,
+  "version": "2.4",
+  "build": 13,
   "protocol": 8,
-  "date": "2026-10-01",
+  "date": "2026-10-02",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "Games can tell the date: weekly events and seasons (Halloween, Christmas, New Year…) come on the right days",
-      "Everything from 2.2: words over blocks, linked blocks, blocks that move by themselves"
+      "Faster games with lots of parts: building, moving and changing blocks no longer slows the host down (Meme Heist's 300 characters build about 4 times faster)",
+      "Every iPad in the game, not just the host, keeps up with moving blocks more smoothly",
+      "Everything from 2.3: weekly and seasonal events on the right days"
     ],
     "ja": [
-      "ゲームが今日の日付を使えるように: 曜日ごとのイベントや季節のイベント（ハロウィン・クリスマス・お正月…）が その日に来ます",
-      "2.2 の内容もそのまま: ブロックの上の文字・つながるブロック・自分で動くブロック"
+      "パーツの多いゲームが 速くなりました: ブロックを作る・動かす・かえるときに ホストのiPadが 重くならない（Meme Heist の 300体のミームが 約4倍 はやく 作れる）",
+      "ホストだけでなく ゲームに入っている どのiPadも、動くブロックに なめらかに ついていけます",
+      "2.3 の内容もそのまま: 曜日や季節のイベントが その日に来る"
     ]
   }
 }
