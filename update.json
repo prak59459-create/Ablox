@@ -1,20 +1,22 @@
 {
   "app": "Ablox",
-  "version": "2.4",
-  "build": 13,
+  "version": "2.5",
+  "build": 14,
   "protocol": 8,
   "date": "2026-10-02",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "Faster games with lots of parts: building, moving and changing blocks no longer slows the host down (Meme Heist's 300 characters build about 4 times faster)",
-      "Every iPad in the game, not just the host, keeps up with moving blocks more smoothly",
-      "Everything from 2.3: weekly and seasonal events on the right days"
+      "New \"Lightest\" graphics (Settings → Graphics): fewer pixels, no shadows and a nearer horizon, for Low Power Mode and older iPads — every part, rule and script plays just the same",
+      "On Auto, Low Power Mode and a hot iPad now start from their lower level straight away, and Auto can go all the way down to Lightest to stay above 30 fps",
+      "Characters keep looking ahead while running and riding, instead of tipping their head toward the ground",
+      "Everything from 2.4: faster games with lots of parts"
     ],
     "ja": [
-      "パーツの多いゲームが 速くなりました: ブロックを作る・動かす・かえるときに ホストのiPadが 重くならない（Meme Heist の 300体のミームが 約4倍 はやく 作れる）",
-      "ホストだけでなく ゲームに入っている どのiPadも、動くブロックに なめらかに ついていけます",
-      "2.3 の内容もそのまま: 曜日や季節のイベントが その日に来る"
+      "新しい画質「最軽量」（設定 → グラフィック）: 解像度を下げ・影なし・遠くは表示しない。低電力モードや古いiPad向けで、パーツ・ルール・スクリプトの動きはそのまま",
+      "「自動」のとき、低電力モードや iPad が熱いときは すぐに低い画質から始め、30fps 以上をたもつために「最軽量」まで下げられます",
+      "走るときや乗り物に乗るとき、キャラクターが 下を向かずに 前を見るようになりました",
+      "2.4 の内容もそのまま: パーツの多いゲームが速い"
     ]
   }
 }

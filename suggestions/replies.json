@@ -20,11 +20,12 @@
     },
     {
       "id": "s1790908240794-6SC3UU",
-      "status": "planned",
+      "status": "done",
       "message": {
-        "en": "We're reading your idea — back soon!",
-        "ja": "読んでいます。少し待っててね！"
-      }
+        "en": "Thank you! There's a new Lightest graphics setting for Low Power Mode, and characters now look ahead when they run.",
+        "ja": "ありがとう！ 低電力モード向けの「最軽量」の画質を作ったよ。走るときも キャラクターが 前を見るようにしたよ。"
+      },
+      "version": "2.5"
     }
   ]
 }
