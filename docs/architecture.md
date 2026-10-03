@@ -176,7 +176,14 @@ says which parts qualify (seen, solid-looking, anchored, no picture, light,
 label or animation, and nothing the renderer moves or makes vanish itself).
 The vertices are the very meshes a part on its own is drawn with, read back
 from RealityKit (`UnitShapes`), with each part's pattern repeats baked into its
-texture coordinates, so a baked part looks exactly as it did.
+texture coordinates, so a baked part looks exactly as it did. Parts of a plain
+material (no pattern drawn on it) take their colour from a palette instead:
+one row of spots on a texture (`ColorPalette`), each part's vertices pointing
+at its colour's spot, sampled exactly. Their mesh is then one per kind of
+material rather than one per colour, with the same kind of material a part has
+on its own — so a character of six colours is one mesh, not six. The launch
+check photographs the same view merged and part by part and prints how far
+apart the two pictures are.
 
 A baked part keeps its entity, switched off. A change that shows (`looksTheSame`
 ignores names, tags and scores), an effect that tints, slides or hides it, or a

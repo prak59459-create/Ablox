@@ -225,7 +225,14 @@ if [ "${BENCHMARK:-1}" = 1 ]; then
     sleep "${BENCHMARK_REST:-60}"
     xcrun simctl io "$udid" screenshot "$out/screen-benchmark.png" > /dev/null 2>&1 || true
     echo "== Frame rate in the benchmark world"
-    grep -hE "AbloxFPS|AbloxShapes" "$out/benchmark.stderr.log" "$out/benchmark.stdout.log" 2>/dev/null | tail -100
+    lines="$(grep -hE "AbloxFPS|AbloxShapes" "$out/benchmark.stderr.log" "$out/benchmark.stdout.log" 2>/dev/null)"
+    # The first 80 seconds (merged, part by part, Auto settling), then the end.
+    head -84 <<< "$lines"
+    echo "   ..."
+    tail -12 <<< "$lines"
+    echo "== The same view merged and part by part"
+    grep -h "AbloxLook" "$out/benchmark.stderr.log" "$out/benchmark.stdout.log" 2>/dev/null \
+      || echo "   (no comparison was made)"
     grep -q "AbloxFPS" "$out/benchmark.stderr.log" "$out/benchmark.stdout.log" 2>/dev/null \
       || echo "   (no frame-rate lines: the game did not start drawing)"
     if [ ! -s "$out/benchmark-sample.txt" ]; then

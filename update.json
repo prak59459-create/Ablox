@@ -1,20 +1,18 @@
 {
   "app": "Ablox",
-  "version": "3.1",
-  "build": 20,
+  "version": "3.2",
+  "build": 21,
   "protocol": 8,
   "date": "2026-10-03",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "Characters and blocks that move are drawn in their new place without everything else about them being looked at again",
-      "Worlds whose blocks change many times a second no longer read through every block to find the moving platforms",
-      "Everything from 2.6 to 3.0: big games draw much faster, look the same, and touches no longer redraw the whole play screen"
+      "Characters and buildings of many colours are drawn as far fewer pieces: parts of plain materials share one piece whatever their colour, and look the same",
+      "Everything from 2.6 to 3.1: big games draw much faster, touches no longer redraw the whole play screen, and moving blocks only move"
     ],
     "ja": [
-      "動くキャラクターやブロックは、新しい場所に描くだけにして、ほかの所を 毎回 見なおさなくなりました",
-      "ブロックが 1秒に何度も変わるワールドで、動く床を探すために 全部のブロックを 読みなおさなくなりました",
-      "2.6〜3.0 の内容もそのまま: 大きなゲームの描画が速く、見た目は同じ。さわるたびに プレイ画面ぜんたいを 作りなおしません"
+      "色の多いキャラクターや建物を、ずっと少ない かたまりで 描くようになりました（ふつうの素材のパーツは 色がちがっても 1つにまとめます。見た目は そのまま）",
+      "2.6〜3.1 の内容もそのまま: 大きなゲームの描画が速く、さわるたびの作りなおしなし、動くブロックは 場所を変えるだけ"
     ]
   }
 }
