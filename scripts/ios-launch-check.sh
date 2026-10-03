@@ -213,12 +213,54 @@ done
 if [ "${BENCHMARK:-1}" = 1 ]; then
   touch "$out/started-benchmark"
   if launch benchmark -AbloxPlayBenchmark YES; then
-    sleep "${BENCHMARK_WATCH:-85}"
+    # Where the time goes, from the inside: macOS's sampler on the app while
+    # it draws merged meshes on High (seconds 26 to 34 of the run).
+    sleep "${BENCHMARK_SAMPLE_AT:-26}"
+    pid="$(xcrun simctl spawn "$udid" launchctl list 2>/dev/null | grep -F "UIKitApplication:$bundle" | awk '{ print $1 }' | head -1)"
+    if [[ "$pid" =~ ^[0-9]+$ ]]; then
+      sample "$pid" 8 -mayDie -file "$out/benchmark-sample.txt" > /dev/null 2>&1 || true
+    fi
+    sleep "${BENCHMARK_REST:-60}"
     xcrun simctl io "$udid" screenshot "$out/screen-benchmark.png" > /dev/null 2>&1 || true
     echo "== Frame rate in the benchmark world"
     grep -hE "AbloxFPS|AbloxShapes" "$out/benchmark.stderr.log" "$out/benchmark.stdout.log" 2>/dev/null | tail -100
     grep -q "AbloxFPS" "$out/benchmark.stderr.log" "$out/benchmark.stdout.log" 2>/dev/null \
       || echo "   (no frame-rate lines: the game did not start drawing)"
+    if [ -s "$out/benchmark-sample.txt" ]; then
+      echo "== Where the time went (8 s sampled while drawing merged meshes)"
+      python3 - "$out/benchmark-sample.txt" <<'PY'
+import re, sys
+text = open(sys.argv[1], errors="replace").read()
+# The functions most often on top of a stack, all threads.
+top = text.split("Sort by top of stack, same collapsed (when >= 5):")
+if len(top) > 1:
+    print("-- On top of the stack (self time), all threads:")
+    for line in top[1].strip().splitlines()[:45]:
+        print("  ", line.strip()[:170])
+# The main thread's call tree, a few levels down, heaviest first.
+graph = text.split("Call graph:")
+if len(graph) > 1:
+    lines = graph[1].splitlines()
+    start = next((i for i, l in enumerate(lines) if "com.apple.main-thread" in l), None)
+    if start is not None:
+        print("-- Main thread, by the frames it spends time in:")
+        base = len(lines[start]) - len(lines[start].lstrip())
+        shown = 0
+        for line in lines[start:]:
+            if shown and re.match(r"^\s{0,%d}\d+ Thread_" % (base + 1), line):
+                break
+            depth = (len(line) - len(line.lstrip())) - base
+            m = re.match(r"\s*[+!:|\s]*(\d+)\s+(.*)", line)
+            if not m:
+                continue
+            count = int(m.group(1))
+            if count >= 25 and depth <= 90:
+                print("  ", line.rstrip()[base:][:190])
+                shown += 1
+            if shown >= 140:
+                break
+PY
+    fi
     if is_running; then
       echo "== Benchmark: still running"
     else

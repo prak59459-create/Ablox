@@ -1,22 +1,18 @@
 {
   "app": "Ablox",
-  "version": "2.8",
-  "build": 17,
+  "version": "2.9",
+  "build": 18,
   "protocol": 8,
   "date": "2026-10-03",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "Smoother while you play: moving the stick or turning the camera no longer redraws the whole play screen many times a second, and neither does holding a controller's stick",
-      "The map draws the world as one picture, made again every couple of seconds, instead of measuring every part and drawing thousands of shapes whenever anything moved",
-      "The compass and a map that turns with the camera follow it smoothly without slowing the game",
-      "Everything from 2.6 and 2.7: big games draw much faster and look the same"
+      "The frame-rate test the developers run on a Mac now records where the time goes inside the game, to find the next things to make faster",
+      "Everything from 2.8: moving the stick or the camera no longer redraws the whole play screen, and the map is one picture"
     ],
     "ja": [
-      "遊んでいるときが なめらかに: スティックを動かしたり カメラを回したりするたびに プレイ画面ぜんたいを 1秒に何十回も 作りなおしていたのを やめました（コントローラーのスティックも）",
-      "マップは ワールドを1枚の絵として描き、数秒ごとに 作りなおすようにしました（何かが動くたびに 全部のパーツを測って 何千もの形を 描いていました）",
-      "コンパスと カメラといっしょに回るマップは、ゲームを重くせずに カメラについていきます",
-      "2.6・2.7 の内容もそのまま: 大きなゲームの描画が速く、見た目は同じ"
+      "開発用の Mac で動かす速さのテストが、ゲームの中で どこに時間がかかっているかを 記録するようになりました（次に速くする所を見つけるため）",
+      "2.8 の内容もそのまま: スティックやカメラを動かしても プレイ画面ぜんたいを 作りなおさず、マップは1枚の絵"
     ]
   }
 }
