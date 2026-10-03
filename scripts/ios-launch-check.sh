@@ -206,8 +206,50 @@ PY
   fi
 done
 
+# The frame-rate run: straight into a busy world (RenderBenchmark: about
+# 3,000 parts and 60 walking characters), which prints a line a second of
+# how fast it draws, at what level, and how many parts merged meshes draw.
+# A simulator's numbers are not an iPad's; a crash here is a crash anywhere.
+if [ "${BENCHMARK:-1}" = 1 ]; then
+  touch "$out/started-benchmark"
+  if launch benchmark -AbloxPlayBenchmark YES; then
+    sleep "${BENCHMARK_WATCH:-50}"
+    xcrun simctl io "$udid" screenshot "$out/screen-benchmark.png" > /dev/null 2>&1 || true
+    echo "== Frame rate in the benchmark world"
+    grep -hE "AbloxFPS|AbloxShapes" "$out/benchmark.stderr.log" "$out/benchmark.stdout.log" 2>/dev/null | tail -45
+    grep -q "AbloxFPS" "$out/benchmark.stderr.log" "$out/benchmark.stdout.log" 2>/dev/null \
+      || echo "   (no frame-rate lines: the game did not start drawing)"
+    if is_running; then
+      echo "== Benchmark: still running"
+    else
+      echo "== Benchmark: NOT running"
+      failed="$failed benchmark"
+      cat "$out/benchmark.stdout.log" "$out/benchmark.stderr.log" 2>/dev/null | grep -iE "fatal|error|crash|precondition" | tail -20
+      for report in $(find "$HOME/Library/Logs/DiagnosticReports" -newer "$out/started-benchmark" -type f -name "*.ips" 2>/dev/null); do
+        grep -q "$executable" "$report" || continue
+        cp "$report" "$out/"
+        python3 - "$report" <<'PY'
+import json, sys
+text = open(sys.argv[1]).read()
+body = json.loads(text.split("\n", 1)[1])
+print("exception:", body.get("exception", {}))
+images = body.get("usedImages", [])
+for t in body.get("threads", []):
+    if t.get("triggered"):
+        for f in t.get("frames", [])[:40]:
+            i = f.get("imageIndex", 0)
+            loc = f" ({f['sourceFile']}:{f.get('sourceLine', '?')})" if "sourceFile" in f else ""
+            print("   ", images[i].get("name", "?") if i < len(images) else "?", f.get("symbol", ""), loc)
+PY
+      done
+    fi
+  else
+    echo "== Benchmark: the simulator would not start the app (not a crash of the app)"
+  fi
+fi
+
 if [ -n "$failed" ]; then
-  echo "== Tabs that stopped the app:$failed"
+  echo "== Runs that stopped the app:$failed"
   exit 1
 fi
 if [ -n "${TABS-x}" ]; then echo "== Every tab opened without stopping the app."; fi

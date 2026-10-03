@@ -1,22 +1,24 @@
 {
   "app": "Ablox",
-  "version": "2.5",
-  "build": 14,
+  "version": "2.6",
+  "build": 15,
   "protocol": 8,
-  "date": "2026-10-02",
+  "date": "2026-10-03",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "New \"Lightest\" graphics (Settings → Graphics): fewer pixels, no shadows and a nearer horizon, for Low Power Mode and older iPads — every part, rule and script plays just the same",
-      "On Auto, Low Power Mode and a hot iPad now start from their lower level straight away, and Auto can go all the way down to Lightest to stay above 30 fps",
-      "Characters keep looking ahead while running and riding, instead of tipping their head toward the ground",
-      "Everything from 2.4: faster games with lots of parts"
+      "Big games draw much faster: parts that stay put are drawn together as a few pieces — each looks exactly as before — so worlds with thousands of parts and hundreds of characters stay smooth",
+      "On Auto, the game first draws a few fewer pixels to stay at a smooth 60 fps, and only then gives up shadows or smooth shapes",
+      "Games whose world changes many times a second (characters walking, signs counting up) no longer rebuild the whole play screen each time",
+      "Scripts that move many blocks run up to 30 times faster on the host's iPad",
+      "Words over blocks and blocks that move by themselves only take time when they are near"
     ],
     "ja": [
-      "新しい画質「最軽量」（設定 → グラフィック）: 解像度を下げ・影なし・遠くは表示しない。低電力モードや古いiPad向けで、パーツ・ルール・スクリプトの動きはそのまま",
-      "「自動」のとき、低電力モードや iPad が熱いときは すぐに低い画質から始め、30fps 以上をたもつために「最軽量」まで下げられます",
-      "走るときや乗り物に乗るとき、キャラクターが 下を向かずに 前を見るようになりました",
-      "2.4 の内容もそのまま: パーツの多いゲームが速い"
+      "大きなゲームの描画が ぐっと速くなりました: 動かないパーツを まとめて描くので（見た目は そのまま）、パーツが数千・キャラクターが数百いても なめらかです",
+      "「自動」のときは、まず 解像度を ほんの少し下げて 60fps をたもち、それでも足りないときだけ 影や形を簡単にします",
+      "ワールドが 1秒に何度も変わるゲーム（歩くキャラクター、数字が増える看板）でも、プレイ画面ぜんたいを 毎回作りなおさなくなりました",
+      "たくさんのブロックを動かすスクリプトが、ホストの iPad で 最大30倍 速く動きます",
+      "ブロックの上の文字や 自分で動くブロックは、近くにあるものだけ 時間を使うようにしました"
     ]
   }
 }

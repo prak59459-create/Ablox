@@ -135,6 +135,18 @@ world copied every block. For the same reason `blocks` is changed through a
 array on every change. (2.4: a 300-character game builds its models about four
 times faster.)
 
+Even comparing a few fields of every block was too much when a script changes
+blocks one at a time: sixty characters walked by a script made the host check
+every block sixty times a tick. So the world keeps a short `BlockJournal` of
+the blocks changed one at a time since a revision (`insert`, `update` and
+`mutate` write to it; anything else clears it), and the cache looks only at
+those when the journal goes back to its own revision. Revisions are never
+reused, so a journal from another copy of the world is never taken for this
+one. `block(id:)` and `index(of:)` go through `BlockOrders`, an id → position
+map shared by copies and checked on every answer, caught up from the same
+journal. (2.6: the host's ticks in a 3,000-part world with sixty walking
+characters went from about 230 ms to 7 ms in a debug build.)
+
 ## Rendering
 
 `WorldScene` **reconciles** rather than rebuilds. The Studio calls `sync` on
@@ -152,16 +164,55 @@ Materials are shared too, one per colour and material kind, so a world
 painted from a dozen colours hands RealityKit a dozen materials rather than
 one per part.
 
+### Drawing a big game in few pieces
+
+RealityKit draws each entity on its own, twice with the sun's shadows, and on
+an iPad the number of entities cost more than their size. In a game (not the
+Studio) `StillPartBaker` bakes the parts that stay put into merged meshes:
+parts at the top of the map into one mesh per 48 m patch and per colour and
+material, parts hung from a block — a character's eighteen — into one mesh per
+colour under that block, so they still move with it. `RenderMerging.canMerge`
+says which parts qualify (seen, solid-looking, anchored, no picture, light,
+label or animation, and nothing the renderer moves or makes vanish itself).
+The vertices are the very meshes a part on its own is drawn with, read back
+from RealityKit (`UnitShapes`), with each part's pattern repeats baked into its
+texture coordinates, so a baked part looks exactly as it did.
+
+A baked part keeps its entity, switched off. A change that shows (`looksTheSame`
+ignores names, tags and scores), an effect that tints, slides or hides it, or a
+child hung from it takes it out: its mesh is rebuilt without it, and until then
+it is drawn by the old mesh, so it is never drawn twice or missing for a frame.
+It may go back in once it has stayed the same for a while — 3 s on the map, 0.6 s
+on a character, and longer each time it is taken out again, so a part a script
+keeps changing settles as a part of its own. Meshes are rebuilt between
+frames within a few milliseconds a frame. Blocks see-through to the end (a
+character's root) are not handed to the GPU at all. When the world has a part
+that can fall, RealityKit physics needs every part's own entity, and nothing is
+baked.
+
+The game no longer rebuilds its screen for every change either.
+`SessionCoordinator` applies the world's changes in place as they arrive
+(`WorldDeltaInbox`, one hop to the main thread per burst), writes down which
+blocks changed (`WorldChangeLog`), and tells SwiftUI at most ten times a
+second (`PublishThrottle`). The 3D view takes the changes every frame and
+`WorldScene.sync(to:changes:index:physicsEnabled:)` looks at only those
+blocks. Words over blocks and blocks that move by themselves are looked for
+four times a second, and only the nearest few dozen (`labelLimit`,
+`animationRange`) are followed every frame.
+
 ### Graphics settings
 
-Settings → Graphics picks **Auto**, **High**, **Medium** or **Low**
-(`GraphicsQuality`, `GraphicsProfile`). Lower levels shorten or drop the sun's
+Settings → Graphics picks **Auto**, **High**, **Medium**, **Low** or
+**Lightest** (`GraphicsQuality`, `GraphicsProfile`). Lower levels shorten or drop the sun's
 shadows, draw at a lower resolution, use plain boxes and fewer-sided spheres
 and cylinders, turn off HDR and depth of field, and stop drawing parts (and
 characters) beyond a view distance — measured to each part's nearest edge, so
 the ground under you never disappears. **Auto** starts at High;
-`FrameRateGovernor` steps down after two slow seconds and only steps back up
-after a long fast run, never to a level that was too slow in the last minute.
+`FrameRateGovernor` steps down after two slow seconds (one under 16 fps) and
+only steps back up after a long fast run, never to a level that was too slow
+in the last minute. Before giving up a level it gives up pixels: a second
+under 50 fps draws 5 % fewer, down to 80 %, and fast seconds give them back, so
+a game sits at a smooth 60 with its shadows and shapes where it can.
 **Show frame rate** puts a small counter at the top of the play screen.
 
 In a game the parts get no RealityKit colliders at all: taps are picked with
@@ -190,6 +241,10 @@ touches a `DispatchQueue`.
 | Character collision | `AbloxCore/WorldCollider.swift` |
 | Bounds and a grid for big worlds | `AbloxCore/WorldIndex.swift` |
 | Graphics levels and auto quality | `AbloxCore/Graphics.swift` |
+| Which parts merge, and the merged vertices | `AbloxCore/MeshMerging.swift` |
+| World changes waiting for the main thread | `AbloxCore/LiveWorld.swift` |
+| The frame-rate test world | `AbloxCore/RenderBenchmark.swift` |
+| Merged meshes in a game | `Engine/MergedMeshes.swift` |
 | Packet vocabulary | `AbloxCore/Packets.swift` |
 | Codec and reassembly | `AbloxCore/WireFormat.swift` |
 | TLS and room codes | `Net/TLSPeerSecurity.swift` |
