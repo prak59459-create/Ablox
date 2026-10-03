@@ -213,10 +213,10 @@ done
 if [ "${BENCHMARK:-1}" = 1 ]; then
   touch "$out/started-benchmark"
   if launch benchmark -AbloxPlayBenchmark YES; then
-    sleep "${BENCHMARK_WATCH:-50}"
+    sleep "${BENCHMARK_WATCH:-85}"
     xcrun simctl io "$udid" screenshot "$out/screen-benchmark.png" > /dev/null 2>&1 || true
     echo "== Frame rate in the benchmark world"
-    grep -hE "AbloxFPS|AbloxShapes" "$out/benchmark.stderr.log" "$out/benchmark.stdout.log" 2>/dev/null | tail -45
+    grep -hE "AbloxFPS|AbloxShapes" "$out/benchmark.stderr.log" "$out/benchmark.stdout.log" 2>/dev/null | tail -100
     grep -q "AbloxFPS" "$out/benchmark.stderr.log" "$out/benchmark.stdout.log" 2>/dev/null \
       || echo "   (no frame-rate lines: the game did not start drawing)"
     if is_running; then

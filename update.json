@@ -1,24 +1,20 @@
 {
   "app": "Ablox",
-  "version": "2.6",
-  "build": 15,
+  "version": "2.7",
+  "build": 16,
   "protocol": 8,
   "date": "2026-10-03",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "Big games draw much faster: parts that stay put are drawn together as a few pieces — each looks exactly as before — so worlds with thousands of parts and hundreds of characters stay smooth",
-      "On Auto, the game first draws a few fewer pixels to stay at a smooth 60 fps, and only then gives up shadows or smooth shapes",
-      "Games whose world changes many times a second (characters walking, signs counting up) no longer rebuild the whole play screen each time",
-      "Scripts that move many blocks run up to 30 times faster on the host's iPad",
-      "Words over blocks and blocks that move by themselves only take time when they are near"
+      "Worlds with moving platforms no longer make a fresh copy of the whole world each time the game changes something",
+      "The frame-rate test the developers run on a Mac now compares drawing parts together and one by one, to find the next things to speed up",
+      "Everything from 2.6: big games draw much faster, look the same, and Auto keeps a smooth 60 fps where it can"
     ],
     "ja": [
-      "大きなゲームの描画が ぐっと速くなりました: 動かないパーツを まとめて描くので（見た目は そのまま）、パーツが数千・キャラクターが数百いても なめらかです",
-      "「自動」のときは、まず 解像度を ほんの少し下げて 60fps をたもち、それでも足りないときだけ 影や形を簡単にします",
-      "ワールドが 1秒に何度も変わるゲーム（歩くキャラクター、数字が増える看板）でも、プレイ画面ぜんたいを 毎回作りなおさなくなりました",
-      "たくさんのブロックを動かすスクリプトが、ホストの iPad で 最大30倍 速く動きます",
-      "ブロックの上の文字や 自分で動くブロックは、近くにあるものだけ 時間を使うようにしました"
+      "動く床のあるワールドで、ゲームが何かを変えるたびに ワールドぜんぶを コピーしなおさなくなりました",
+      "開発用の Mac で動かす速さのテストが、まとめて描くとき と 1つずつ描くとき を くらべるようになりました（次に速くする所を見つけるため）",
+      "2.6 の内容もそのまま: 大きなゲームの描画が速く、見た目は同じ。「自動」は できるだけ 60fps をたもちます"
     ]
   }
 }
