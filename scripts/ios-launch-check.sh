@@ -231,34 +231,63 @@ if [ "${BENCHMARK:-1}" = 1 ]; then
       python3 - "$out/benchmark-sample.txt" <<'PY'
 import re, sys
 text = open(sys.argv[1], errors="replace").read()
-# The functions most often on top of a stack, all threads.
 top = text.split("Sort by top of stack, same collapsed (when >= 5):")
 if len(top) > 1:
     print("-- On top of the stack (self time), all threads:")
-    for line in top[1].strip().splitlines()[:45]:
+    for line in top[1].strip().splitlines()[:30]:
         print("  ", line.strip()[:170])
-# The main thread's call tree, a few levels down, heaviest first.
+# The main thread (the first in the call graph): its own time by library
+# and by function (each frame's samples less its children's), then the
+# heaviest frames a few levels down.
 graph = text.split("Call graph:")
 if len(graph) > 1:
-    lines = graph[1].splitlines()
-    start = next((i for i, l in enumerate(lines) if "com.apple.main-thread" in l), None)
-    if start is not None:
-        print("-- Main thread, by the frames it spends time in:")
-        base = len(lines[start]) - len(lines[start].lstrip())
-        shown = 0
-        for line in lines[start:]:
-            if shown and re.match(r"^\s{0,%d}\d+ Thread_" % (base + 1), line):
+    rows = []
+    for line in graph[1].split("\n"):
+        m = re.match(r"^([\s+!:|]*)(\d+)\s+(.*)$", line)
+        if m:
+            rows.append((len(m.group(1)), int(m.group(2)), m.group(3)))
+        elif rows and not line.strip():
+            break
+    if rows:
+        top_depth = rows[0][0]
+        main = [rows[0]]
+        for row in rows[1:]:
+            if row[0] <= top_depth:
                 break
-            depth = (len(line) - len(line.lstrip())) - base
-            m = re.match(r"\s*[+!:|\s]*(\d+)\s+(.*)", line)
-            if not m:
+            main.append(row)
+        total = max(main[0][1], 1)
+        own, by_library = {}, {}
+        for i, (depth, count, name) in enumerate(main):
+            children, next_depth = 0, None
+            for depth2, count2, _ in main[i + 1:]:
+                if depth2 <= depth:
+                    break
+                if next_depth is None:
+                    next_depth = depth2
+                if depth2 == next_depth:
+                    children += count2
+            mine = max(0, count - children)
+            if not mine:
                 continue
-            count = int(m.group(1))
-            if count >= 25 and depth <= 90:
-                print("  ", line.rstrip()[base:][:190])
+            fn = re.sub(r"\s+\+ \d+.*$", "", name).strip()
+            found = re.search(r"\(in ([^)]+)\)", name)
+            lib = found.group(1) if found else "?"
+            own[fn] = own.get(fn, 0) + mine
+            by_library[lib] = by_library.get(lib, 0) + mine
+        print("-- Main thread: %d samples. Its own time by library:" % total)
+        for lib, count in sorted(by_library.items(), key=lambda kv: -kv[1])[:14]:
+            print("   %5.1f%%  %s" % (100.0 * count / total, lib))
+        print("-- Main thread: functions by their own time:")
+        for fn, count in sorted(own.items(), key=lambda kv: -kv[1])[:40]:
+            print("   %5.1f%%  %s" % (100.0 * count / total, fn[:150]))
+        print("-- Main thread: heaviest frames (3% or more), a few levels down:")
+        shown = 0
+        for depth, count, name in main:
+            if count * 100 >= 3 * total and depth - top_depth <= 80:
+                print("   %5.1f%% %s%s" % (100.0 * count / total, " " * ((depth - top_depth) // 2), name[:140]))
                 shown += 1
-            if shown >= 140:
-                break
+                if shown >= 120:
+                    break
 PY
     fi
     if is_running; then

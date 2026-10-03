@@ -1,18 +1,18 @@
 {
   "app": "Ablox",
-  "version": "2.9",
-  "build": 18,
+  "version": "3.0",
+  "build": 19,
   "protocol": 8,
   "date": "2026-10-03",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "The frame-rate test the developers run on a Mac now records where the time goes inside the game, to find the next things to make faster",
-      "Everything from 2.8: moving the stick or the camera no longer redraws the whole play screen, and the map is one picture"
+      "The developers' frame-rate test now shows how long each part of a frame takes and tries one more way of drawing parts together, to find the next speed-ups",
+      "Everything from 2.8: moving the stick or the camera no longer redraws the whole play screen, the map is one picture, and big games draw much faster"
     ],
     "ja": [
-      "開発用の Mac で動かす速さのテストが、ゲームの中で どこに時間がかかっているかを 記録するようになりました（次に速くする所を見つけるため）",
-      "2.8 の内容もそのまま: スティックやカメラを動かしても プレイ画面ぜんたいを 作りなおさず、マップは1枚の絵"
+      "開発用の速さのテストが、1フレームの中で それぞれの処理に かかる時間を出し、パーツをまとめて描く 別のやり方も ためすようになりました（次に速くする所を見つけるため）",
+      "2.8 の内容もそのまま: スティックやカメラを動かしても プレイ画面ぜんたいを作りなおさず、マップは1枚の絵、大きなゲームの描画が速い"
     ]
   }
 }
