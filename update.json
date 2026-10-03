@@ -1,18 +1,20 @@
 {
   "app": "Ablox",
-  "version": "3.0",
-  "build": 19,
+  "version": "3.1",
+  "build": 20,
   "protocol": 8,
   "date": "2026-10-03",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "The developers' frame-rate test now shows how long each part of a frame takes and tries one more way of drawing parts together, to find the next speed-ups",
-      "Everything from 2.8: moving the stick or the camera no longer redraws the whole play screen, the map is one picture, and big games draw much faster"
+      "Characters and blocks that move are drawn in their new place without everything else about them being looked at again",
+      "Worlds whose blocks change many times a second no longer read through every block to find the moving platforms",
+      "Everything from 2.6 to 3.0: big games draw much faster, look the same, and touches no longer redraw the whole play screen"
     ],
     "ja": [
-      "開発用の速さのテストが、1フレームの中で それぞれの処理に かかる時間を出し、パーツをまとめて描く 別のやり方も ためすようになりました（次に速くする所を見つけるため）",
-      "2.8 の内容もそのまま: スティックやカメラを動かしても プレイ画面ぜんたいを作りなおさず、マップは1枚の絵、大きなゲームの描画が速い"
+      "動くキャラクターやブロックは、新しい場所に描くだけにして、ほかの所を 毎回 見なおさなくなりました",
+      "ブロックが 1秒に何度も変わるワールドで、動く床を探すために 全部のブロックを 読みなおさなくなりました",
+      "2.6〜3.0 の内容もそのまま: 大きなゲームの描画が速く、見た目は同じ。さわるたびに プレイ画面ぜんたいを 作りなおしません"
     ]
   }
 }

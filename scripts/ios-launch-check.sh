@@ -218,7 +218,9 @@ if [ "${BENCHMARK:-1}" = 1 ]; then
     sleep "${BENCHMARK_SAMPLE_AT:-26}"
     pid="$(xcrun simctl spawn "$udid" launchctl list 2>/dev/null | grep -F "UIKitApplication:$bundle" | awk '{ print $1 }' | head -1)"
     if [[ "$pid" =~ ^[0-9]+$ ]]; then
-      sample "$pid" 8 -mayDie -file "$out/benchmark-sample.txt" > /dev/null 2>&1 || true
+      sample "$pid" 8 -mayDie -file "$out/benchmark-sample.txt" > "$out/benchmark-sample.log" 2>&1 || true
+    else
+      echo "   (no process to sample: \"$pid\")" > "$out/benchmark-sample.log"
     fi
     sleep "${BENCHMARK_REST:-60}"
     xcrun simctl io "$udid" screenshot "$out/screen-benchmark.png" > /dev/null 2>&1 || true
@@ -226,6 +228,10 @@ if [ "${BENCHMARK:-1}" = 1 ]; then
     grep -hE "AbloxFPS|AbloxShapes" "$out/benchmark.stderr.log" "$out/benchmark.stdout.log" 2>/dev/null | tail -100
     grep -q "AbloxFPS" "$out/benchmark.stderr.log" "$out/benchmark.stdout.log" 2>/dev/null \
       || echo "   (no frame-rate lines: the game did not start drawing)"
+    if [ ! -s "$out/benchmark-sample.txt" ]; then
+      echo "== The sampler wrote nothing:"
+      tail -5 "$out/benchmark-sample.log" 2>/dev/null
+    fi
     if [ -s "$out/benchmark-sample.txt" ]; then
       echo "== Where the time went (8 s sampled while drawing merged meshes)"
       python3 - "$out/benchmark-sample.txt" <<'PY'
