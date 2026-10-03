@@ -20,16 +20,18 @@ import AbloxCore
 /// - Mouse or trackpad: hold the right button (or two fingers with a click)
 ///   and move to look; scroll to zoom. The left button is a touch, as always.
 ///
-/// Read once a frame from `GCController`, `GCKeyboard` and `GCMouse`. Only
-/// changes are published, so SwiftUI is not asked to redraw sixty times a
-/// second while nobody is pressing anything.
+/// Read once a frame from `GCController`, `GCKeyboard` and `GCMouse`, and
+/// written straight into `controls`, which the 3D view reads every frame:
+/// published, a held stick redrew the whole play screen every frame.
 @MainActor
 final class HardwareInput: NSObject, ObservableObject {
 
-    @Published private(set) var stick: Vec3 = .zero
-    @Published private(set) var jumping = false
-    @Published private(set) var running = false
-    @Published private(set) var firing = false
+    private(set) var stick: Vec3 = .zero { didSet { controls?.padStick = stick } }
+    private(set) var jumping = false { didSet { controls?.padJumping = jumping } }
+    private(set) var running = false { didSet { controls?.padRunning = running } }
+    private(set) var firing = false { didSet { controls?.padFiring = firing } }
+    /// Where the stick and buttons go.
+    weak var controls: PlayControls?
     /// What is plugged in or paired, for Settings and the first-time hint.
     @Published private(set) var devices: [String] = []
 

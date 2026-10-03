@@ -12,11 +12,11 @@ public struct PlayScreen: View {
     let activeSession: ActiveSession
     let onExit: () -> Void
 
-    @State private var stick: Vec3 = .zero
+    /// The stick, the camera and what is held, read by the 3D view every
+    /// frame. Not view state: a touch must not rebuild this whole screen.
+    @State private var controls = PlayControls()
+    // Buttons that show they are pressed; copied into `controls`.
     @State private var isJumping = false
-    @State private var isRunning = false
-    @State private var cameraYaw: Float = 0
-    @State private var cameraPitch: Float = -14
     @State private var showScoreboard = false
     @State private var showChat = false
     @State private var hasBankedThisRound = false
@@ -97,20 +97,10 @@ public struct PlayScreen: View {
             || (session.scripted.camera.mode == .thirdPerson && preferFirstPerson && spectating == nil)
     }
 
-    private var movementInput: MovementInput {
-        var move = stick == .zero ? hardware.stick : stick
-        if keepWalking { move = TouchStick.keepWalking(move) }
-        let running = isRunning || hardware.running || holdingRun || (settings.preferences.hud.alwaysRun && move != .zero)
-        return MovementInput(stick: move,
-                             isJumping: isJumping || hardware.jumping,
-                             isRunning: running,
-                             cameraYawDegrees: cameraYaw)
-    }
-
     // In pieces, each type-checked on its own: as one expression the play
     // screen was among the slowest things in the app to compile.
     public var body: some View {
-        reactions(lifecycle(screen))
+        reactions(lifecycle(mirrorControls(screen)))
             .abloxAccess(settings.preferences.access)
             // With VoiceOver: who is near, and which way.
             .accessibilityAction(named: L("What's around me")) { describeSurroundings() }
@@ -201,12 +191,9 @@ public struct PlayScreen: View {
     private var viewport: some View {
         GameViewport(
             session: session,
-            input: .constant(movementInput),
-            cameraYaw: $cameraYaw,
-            cameraPitch: $cameraPitch,
+            controls: controls,
             soundEnabled: settings.soundEnabled,
             hapticsEnabled: settings.hapticsEnabled,
-            isFiring: (isFiring || hardware.firing) && session.scripted.weapon != nil,
             graphicsQuality: settings.graphicsQuality,
             showFrameRate: settings.showFrameRate,
             preferences: viewportPreferences,
@@ -297,6 +284,17 @@ public struct PlayScreen: View {
         if case let .error(message) = session.status {
             errorOverlay(message)
         }
+    }
+
+    /// The buttons that redraw when pressed are view state; the 3D view
+    /// reads them, with the stick and the camera, from `controls`.
+    private func mirrorControls<Content: View>(_ content: Content) -> some View {
+        content
+            .onChange(of: isJumping) { _, held in controls.isJumping = held }
+            .onChange(of: holdingRun) { _, held in controls.holdingRun = held }
+            .onChange(of: keepWalking) { _, on in controls.keepWalking = on }
+            .onChange(of: isFiring) { _, held in controls.isFiring = held }
+            .onChange(of: settings.preferences.hud.alwaysRun, initial: true) { _, on in controls.alwaysRun = on }
     }
 
     private func lifecycle<Content: View>(_ content: Content) -> some View {
@@ -627,10 +625,12 @@ public struct PlayScreen: View {
     private func startHardware() {
         hardware.sensitivity = Float(settings.cameraSensitivity)
         hardware.invertY = settings.invertCameraY
+        hardware.controls = controls
+        let held = controls
         hardware.onLook = { yaw, pitch in
-            cameraYaw = normalizeDegrees(cameraYaw - yaw)
+            held.cameraYaw = normalizeDegrees(held.cameraYaw - yaw)
             let range = pitchRange
-            cameraPitch = max(range.lowerBound, min(range.upperBound, cameraPitch + pitch))
+            held.cameraPitch = max(range.lowerBound, min(range.upperBound, held.cameraPitch + pitch))
         }
         hardware.onMenu = {
             if showMenu { closeMenu() } else if !photoMode { openMenu() }
@@ -673,8 +673,8 @@ public struct PlayScreen: View {
     /// The camera straight behind the player, level again.
     private func cameraBehind() {
         guard let me = session.localPlayer else { return }
-        cameraYaw = CameraHabits.behind(bodyYaw: me.yawDegrees)
-        cameraPitch = -14
+        controls.cameraYaw = CameraHabits.behind(bodyYaw: me.yawDegrees)
+        controls.cameraPitch = -14
     }
 
     private var controlsLayer: some View {
@@ -688,14 +688,14 @@ public struct PlayScreen: View {
                     // other. Splitting the whole screen means a thumb never
                     // misses its control.
                     if stickOnLeft {
-                        VirtualJoystick(value: $stick, options: settings.preferences.hud, fixedOnLeft: true) { isRunning = $0 }
+                        VirtualJoystick(value: stickBinding, options: settings.preferences.hud, fixedOnLeft: true) { controls.stickRunning = $0 }
                             .frame(width: half)
                         cameraPad
                             .frame(width: half)
                     } else {
                         cameraPad
                             .frame(width: half)
-                        VirtualJoystick(value: $stick, options: settings.preferences.hud, fixedOnLeft: false) { isRunning = $0 }
+                        VirtualJoystick(value: stickBinding, options: settings.preferences.hud, fixedOnLeft: false) { controls.stickRunning = $0 }
                             .frame(width: half)
                     }
                 }
@@ -705,6 +705,23 @@ public struct PlayScreen: View {
                 }
             }
         }
+    }
+
+    /// The stick and the camera write straight into `controls`, which this
+    /// screen does not watch: moving a thumb redraws the stick, not the screen.
+    private var stickBinding: Binding<Vec3> {
+        let held = controls
+        return Binding(get: { held.stick }, set: { held.stick = $0 })
+    }
+
+    private var yawBinding: Binding<Float> {
+        let held = controls
+        return Binding(get: { held.cameraYaw }, set: { held.cameraYaw = $0 })
+    }
+
+    private var pitchBinding: Binding<Float> {
+        let held = controls
+        return Binding(get: { held.cameraPitch }, set: { held.cameraPitch = $0 })
     }
 
     /// The jump button and friends, on the thumb's side.
@@ -768,8 +785,8 @@ public struct PlayScreen: View {
     private var cameraPad: some View {
         let behind: (() -> Void)? = settings.preferences.hud.doubleTapResetsCamera && !photoMode ? { cameraBehind() } : nil
         return CameraPad(
-            yaw: $cameraYaw,
-            pitch: $cameraPitch,
+            yaw: yawBinding,
+            pitch: pitchBinding,
             sensitivity: settings.cameraSensitivity,
             invertY: settings.invertCameraY,
             pitchRange: pitchRange,
@@ -1093,7 +1110,7 @@ public struct PlayScreen: View {
             } else if session.scripted.showsDefaultUI {
                 topBar
                 if settings.preferences.hud.showCompass {
-                    CompassStrip(bearing: Compass.bearing(cameraYaw: cameraYaw))
+                    CameraCompass(controls: controls)
                         .padding(.top, 8)
                         .opacity(settings.preferences.hud.opacity)
                 }
@@ -1278,13 +1295,21 @@ public struct PlayScreen: View {
                     .transition(.move(edge: .top).combined(with: .opacity))
                 }
                 if settings.preferences.showMap, !showScoreboard, !showEmotes {
-                    MiniMapView(world: session.world, players: session.roster, localPeerID: session.localPeerID, expanded: false,
-                                metresAcross: hud.mapSize.metresAcross,
-                                heading: hud.mapTurnsWithCamera ? Compass.bearing(cameraYaw: cameraYaw) : nil,
-                                friends: friendIDs)
-                        .frame(width: hud.mapSize.points, height: hud.mapSize.points)
-                        .opacity(max(0.6, hud.opacity))
-                        .onTapGesture { withAnimation { mapExpanded = true } }
+                    let metres = hud.mapSize.metresAcross
+                    let friends = friendIDs
+                    let playing = session
+                    Group {
+                        if hud.mapTurnsWithCamera {
+                            FollowingBearing(controls: controls) { bearing in
+                                Self.smallMap(playing, metresAcross: metres, heading: bearing, friends: friends)
+                            }
+                        } else {
+                            Self.smallMap(playing, metresAcross: metres, heading: nil, friends: friends)
+                        }
+                    }
+                    .frame(width: hud.mapSize.points, height: hud.mapSize.points)
+                    .opacity(max(0.6, hud.opacity))
+                    .onTapGesture { withAnimation { mapExpanded = true } }
                 }
             }
             .padding(.top, 64)
@@ -1295,14 +1320,22 @@ public struct PlayScreen: View {
                 ZStack {
                     Color.black.opacity(0.4).ignoresSafeArea()
                         .onTapGesture { withAnimation { mapExpanded = false } }
-                    MiniMapView(world: session.world, players: session.roster, localPeerID: session.localPeerID, expanded: true,
-                                friends: friendIDs)
+                    MiniMapView(footprint: MapFootprint.of(session.world), players: session.roster, localPeerID: session.localPeerID,
+                                expanded: true, friends: friendIDs)
                         .frame(width: 520, height: 520)
                         .onTapGesture { withAnimation { mapExpanded = false } }
                 }
                 .transition(.opacity)
             }
         }
+    }
+
+    /// The map in the corner, around the player. Plain values only: the
+    /// camera's bearing redraws it without this screen.
+    private static func smallMap(_ session: SessionCoordinator, metresAcross: Double, heading: Float?,
+                                 friends: Set<PeerID>) -> some View {
+        MiniMapView(footprint: MapFootprint.of(session.world), players: session.roster, localPeerID: session.localPeerID,
+                    expanded: false, metresAcross: metresAcross, heading: heading, friends: friends)
     }
 
     private var worldChip: some View {

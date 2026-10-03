@@ -320,7 +320,8 @@ struct EmotePanel: View {
 /// whole of it. North is up (or, if the player chose, the way the camera
 /// looks); the player is the arrow and friends have a gold ring.
 struct MiniMapView: View {
-    let world: WorldDocument
+    /// The world from above, made at most every two seconds.
+    let footprint: MapFootprint
     let players: [PlayerSnapshot]
     let localPeerID: PeerID
     let expanded: Bool
@@ -331,50 +332,8 @@ struct MiniMapView: View {
     var heading: Float?
     var friends: Set<PeerID> = []
 
-    private struct Plot {
-        let rect: CGRect
-        let color: Color
-    }
-
-    /// The world's footprint, worked out once per revision of the world.
-    private final class Cache {
-        static let shared = Cache()
-        var key: String = ""
-        var plots: [Plot] = []
-        var bounds = CGRect(x: -50, y: -50, width: 100, height: 100)
-    }
-
-    private func plots() -> (plots: [Plot], bounds: CGRect) {
-        let cache = Cache.shared
-        let key = world.id.uuidString + "\(world.modifiedAt.timeIntervalSince1970)-\(world.blocks.count)"
-        if cache.key == key { return (cache.plots, cache.bounds) }
-        let index = WorldIndex(world: world)
-        var made: [(Plot, Float)] = []
-        var minX = Float.infinity, minZ = Float.infinity, maxX = -Float.infinity, maxZ = -Float.infinity
-        for (entry, block) in zip(index.entries, world.blocks) where entry.isVisible && block.color.a > 0.15 {
-            let b = entry.bounds
-            let width = b.max.x - b.min.x, depth = b.max.z - b.min.z
-            guard width.isFinite, depth.isFinite, width > 0.05 || depth > 0.05, width < 2000, depth < 2000 else { continue }
-            let rect = CGRect(x: CGFloat(b.min.x), y: CGFloat(b.min.z), width: CGFloat(max(width, 0.3)), height: CGFloat(max(depth, 0.3)))
-            made.append((Plot(rect: rect, color: Color(block.color)), b.max.y))
-            if width < 400 && depth < 400 {
-                minX = min(minX, b.min.x); maxX = max(maxX, b.max.x)
-                minZ = min(minZ, b.min.z); maxZ = max(maxZ, b.max.z)
-            }
-        }
-        // Low things first, so a roof is drawn over the floor under it.
-        made.sort { $0.1 < $1.1 }
-        let kept = made.count > 6000 ? Array(made.suffix(6000)) : made
-        cache.key = key
-        cache.plots = kept.map(\.0)
-        cache.bounds = minX.isFinite
-            ? CGRect(x: CGFloat(minX), y: CGFloat(minZ), width: CGFloat(max(20, maxX - minX)), height: CGFloat(max(20, maxZ - minZ)))
-            : CGRect(x: -50, y: -50, width: 100, height: 100)
-        return (cache.plots, cache.bounds)
-    }
-
     var body: some View {
-        let (plots, worldBounds) = plots()
+        let worldBounds = footprint.worldBounds
         let me = players.first { $0.peerID == localPeerID }
         let turn = expanded ? nil : heading
         Canvas { context, size in
@@ -402,10 +361,12 @@ struct MiniMapView: View {
                 context.rotate(by: .degrees(Double(-turn)))
                 context.translateBy(x: -size.width / 2, y: -size.height / 2)
             }
-            for plot in plots where plot.rect.intersects(visible) {
-                let origin = point(plot.rect.minX, plot.rect.minY)
-                let rect = CGRect(x: origin.x, y: origin.y, width: max(1, plot.rect.width * scale), height: max(1, plot.rect.height * scale))
-                context.fill(Path(rect), with: .color(plot.color.opacity(0.85)))
+            // Everything built, as one picture.
+            if let image = footprint.image, footprint.covers.intersects(visible) {
+                let covers = footprint.covers
+                let origin = point(covers.minX, covers.minY)
+                context.draw(Image(decorative: image, scale: 1),
+                             in: CGRect(x: origin.x, y: origin.y, width: covers.width * scale, height: covers.height * scale))
             }
             for player in players where !player.isHidden && player.peerID != localPeerID {
                 let p = point(CGFloat(player.position.x), CGFloat(player.position.z))

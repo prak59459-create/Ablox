@@ -190,6 +190,16 @@ character's root) are not handed to the GPU at all. When the world has a part
 that can fall, RealityKit physics needs every part's own entity, and nothing is
 baked.
 
+The play screen is not rebuilt for every touch. The stick, the buttons, the
+camera drag and a game controller write into `PlayControls`, a class the 3D
+view reads every frame; as SwiftUI state, every movement of a thumb (and every
+frame a controller's stick was held) rebuilt the whole play screen. The
+compass and a map that turns with the camera follow `shownYaw`, at most
+fifteen times a second, in small views of their own. The map draws the world
+as one picture (`MapFootprint`), made at most every two seconds from an index
+kept up to date change by change; it used to measure every block from scratch
+and draw thousands of rectangles whenever anything moved.
+
 The game no longer rebuilds its screen for every change either.
 `SessionCoordinator` applies the world's changes in place as they arrive
 (`WorldDeltaInbox`, one hop to the main thread per burst), writes down which
@@ -245,6 +255,8 @@ touches a `DispatchQueue`.
 | World changes waiting for the main thread | `AbloxCore/LiveWorld.swift` |
 | The frame-rate test world | `AbloxCore/RenderBenchmark.swift` |
 | Merged meshes in a game | `Engine/MergedMeshes.swift` |
+| The stick, buttons and camera, read every frame | `Engine/PlayControls.swift` |
+| The map's picture of the world | `UI/Game/MapFootprint.swift` |
 | Packet vocabulary | `AbloxCore/Packets.swift` |
 | Codec and reassembly | `AbloxCore/WireFormat.swift` |
 | TLS and room codes | `Net/TLSPeerSecurity.swift` |
