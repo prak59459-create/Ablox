@@ -278,6 +278,24 @@ the core or more went from 18 to 6, and those six seldom change
 `BlockData.swift` went from 80 files to 23, `BlockAnimation.swift` from 80
 to 19, `ScriptAST.swift` from 80 to 9, `EventMachine.swift` from 81 to 8.
 
+And the rebuilds themselves, on CI after Ablox 4.7, each a new private
+function in one file (whole build time, which includes a few seconds that
+any rebuild pays: the module's summary, linking):
+
+| A new private function in… | Files compiled again | Rebuild |
+|---|---|---|
+| `BlockAnimation.swift` (161 files and 27 s in 4.6) | 29 | 14 s |
+| the same, a public one (161 files and 26 s in 4.6) | 29 | 10 s |
+| `PlayScreen.swift`, `GameViewport.swift`, `MainMenuView.swift` | 2, 5, 9 | 9–11 s |
+| `ShopView.swift`, `GameRuntimeAPI.swift` | 10, 10 | 9–11 s |
+| `SessionCoordinator.swift`, `AppSettings.swift` | 20, 30 | 17–18 s |
+| `BlockData.swift` | 57 | 19 s |
+| `Player.swift` (then holding `PeerID` and `AvatarProfile`) | 85 | 33 s |
+
+`Player.swift` was split in 4.9: `PeerID.swift` and `AvatarProfile.swift`
+hold the two types most of the app uses, and `Player.swift` keeps the
+movement rules.
+
 ---
 
 ## Updates without a full build

@@ -1,18 +1,18 @@
 {
   "app": "Ablox",
-  "version": "4.8",
-  "build": 37,
+  "version": "4.9",
+  "build": 38,
   "protocol": 8,
   "date": "2026-10-04",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "The app is the same as 4.7: the rebuild timing now also tries the files updates touch most (the main menu, the settings, the play screen, blocks, players and others)",
-      "From 4.7: builds after an update touch fewer files, now that comparisons and additions to everyday types live in a few files that seldom change"
+      "Builds after an update touch fewer files again: a player's identity and looks have files of their own, so a change to movement no longer rebuilds most of the app (85 files down to the few that use movement)",
+      "From 4.7: a change to blocks' animation rebuilds 29 files in 14 s on the test Mac, where 4.6 rebuilt 161 files in 27 s"
     ],
     "ja": [
-      "アプリの 中身は 4.7 と 同じです。再ビルドの 計測で、アップデートで よく 変わる ファイル（メインメニュー・設定・プレイ画面・ブロック・プレイヤー など）も ためす ように しました",
-      "4.7 の内容: くらべ方と、みんなが 使う 型への 追加を 少しの ファイルに まとめ、アップデートの あとの ビルドで 作りなおす ファイルを へらしました"
+      "アップデートの あとの ビルドで 作りなおす ファイルが さらに 少なく なります。プレイヤーの ID と 見た目を それぞれ 自分の ファイルに 分けたので、動きの しくみを 変えても アプリの 大部分を 作りなおさなく なりました（85ファイル → 動きを 使う 少しの ファイルだけ）",
+      "4.7 の内容: ブロックの 動きを 変えたときの 再ビルドが テスト用の Mac で 161ファイル・27秒 → 29ファイル・14秒"
     ]
   }
 }

@@ -74,7 +74,13 @@ build() {
   # With `-driver-show-incremental` in the patch, the driver says why it
   # compiled each file again; the first few reasons, with paths shortened.
   grep -E 'remark: Incremental compilation' "$log" | sed -E 's|/[^ ]*/Sources/|Sources/|g; s|.*remark: Incremental compilation: ||' \
-    | grep -vE '^(Skipping|Enabling|Incremental compilation has been)' | sort | uniq -c | sort -rn | head -12 | sed 's/^/      /'
+    | grep -vE '^(Skipping|Enabling|Incremental compilation has been)' | sort | uniq -c | sort -rn | head -12 | sed 's/^/      /' || true
+  # Where the rest of the time went: what a rebuild of a few files costs
+  # whatever they are (writing the module's summary, linking, the icons).
+  if [ "$label" != first ]; then
+    sed -n '/Build Timing Summary/,/^\*\* BUILD/p' "$log" | grep -E '\| [0-9.]+ seconds' | grep -v '^SwiftCompile ' \
+      | sort -t'|' -k2 -rn | head -4 | sed -E 's/ \(([0-9]+) tasks?\) \| ([0-9.]+) seconds/ \2 s/' | paste -sd ',' - | sed 's/^/      also: /;s/,/, /g' || true
+  fi
 }
 
 # Appends a line to a file, builds, and puts the file back.
