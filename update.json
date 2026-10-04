@@ -1,17 +1,17 @@
 {
   "app": "Ablox",
-  "version": "4.2",
-  "build": 31,
+  "version": "4.3",
+  "build": 32,
   "protocol": 8,
   "date": "2026-10-04",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "The app is the same as 4.1: this version measures more exactly which kinds of change make the iPad build everything again",
+      "The app is the same as 4.1: the build measurements can now try a setting before it is used, to find what makes rebuilds after an update quick",
       "From 4.1: quicker to build, the menu screens no longer copy a whole world field by field"
     ],
     "ja": [
-      "アプリの中身は 4.1 と同じです。どんな変更で iPad が ぜんぶ ビルドしなおしに なるかを、もっと くわしく はかるように しました",
+      "アプリの中身は 4.1 と同じです。アップデートのあとの 再ビルドを 速くする 設定を、使う前に ためせるように しました",
       "4.1 の内容: ビルドが 速く（メニューの画面が ワールドまるごとを コピーしない）"
     ]
   }

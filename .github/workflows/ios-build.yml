@@ -55,6 +55,8 @@ jobs:
       - name: Rebuilds after small changes
         if: ${{ inputs.incremental }}
         run: scripts/ios-build-incremental.sh
+        env:
+          PATCH: ${{ inputs.patch }}
       - name: Compare a build setting or a change
         if: ${{ inputs.compare || inputs.patch_compare }}
         run: scripts/ios-build-compare.sh

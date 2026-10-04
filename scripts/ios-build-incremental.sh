@@ -24,6 +24,14 @@ set -uo pipefail
 cd "$(dirname "$0")/.."
 root="$PWD"
 
+# A change to try first, as in ios-build-times.sh: a build flag in
+# Package.swift, say, to see what it does to rebuilds.
+if [ -n "${PATCH:-}" ]; then
+  echo "$PATCH" | base64 --decode | gunzip > /tmp/try.patch
+  git apply --stat /tmp/try.patch
+  git apply /tmp/try.patch || { echo "The patch does not apply."; exit 1; }
+fi
+
 app_dir="$(ls -d *.swiftpm | head -1)"
 scheme="${SCHEME:-${app_dir%.swiftpm}}"
 derived="/tmp/ablox-incremental"
