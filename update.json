@@ -1,18 +1,20 @@
 {
   "app": "Ablox",
-  "version": "3.2",
-  "build": 21,
+  "version": "3.3",
+  "build": 22,
   "protocol": 8,
-  "date": "2026-10-03",
+  "date": "2026-10-04",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "Characters and buildings of many colours are drawn as far fewer pieces: parts of plain materials share one piece whatever their colour, and look the same",
-      "Everything from 2.6 to 3.1: big games draw much faster, touches no longer redraw the whole play screen, and moving blocks only move"
+      "Parts that only change colour (a dance floor on every beat, a light turning red) stay drawn together with the rest: only their colour is painted again",
+      "Parts with words over them (prices, names on plates) are drawn together with the rest too; the words stay exactly as they were",
+      "Everything from 2.6 to 3.2: big games draw much faster, parts of many colours are drawn as one, touches no longer redraw the whole play screen"
     ],
     "ja": [
-      "色の多いキャラクターや建物を、ずっと少ない かたまりで 描くようになりました（ふつうの素材のパーツは 色がちがっても 1つにまとめます。見た目は そのまま）",
-      "2.6〜3.1 の内容もそのまま: 大きなゲームの描画が速く、さわるたびの作りなおしなし、動くブロックは 場所を変えるだけ"
+      "色だけ変わるパーツ（リズムで光るダンスフロア、赤に変わるライトなど）も、ほかのパーツと いっしょに描いたまま 色だけ ぬりかえるようになりました",
+      "文字がのったパーツ（ねだんや名前のプレート）も まとめて描くようになりました。文字は いままでどおり 表示されます",
+      "2.6〜3.2 の内容もそのまま: 大きなゲームの描画が速く、色の多いパーツも まとめて描き、さわるたびの作りなおしなし"
     ]
   }
 }

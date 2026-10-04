@@ -172,8 +172,10 @@ Studio) `StillPartBaker` bakes the parts that stay put into merged meshes:
 parts at the top of the map into one mesh per 48 m patch and per colour and
 material, parts hung from a block — a character's eighteen — into one mesh per
 colour under that block, so they still move with it. `RenderMerging.canMerge`
-says which parts qualify (seen, solid-looking, anchored, no picture, light,
-label or animation, and nothing the renderer moves or makes vanish itself).
+says which parts qualify (seen, solid-looking, anchored, no picture, light
+or animation, and nothing the renderer moves or makes vanish itself). Words
+over a part (`label`) are drawn over the view from where its entity is, baked
+or not, so they do not keep it out.
 The vertices are the very meshes a part on its own is drawn with, read back
 from RealityKit (`UnitShapes`), with each part's pattern repeats baked into its
 texture coordinates, so a baked part looks exactly as it did. Parts of a plain
@@ -181,12 +183,18 @@ material (no pattern drawn on it) take their colour from a palette instead:
 one row of spots on a texture (`ColorPalette`), each part's vertices pointing
 at its colour's spot, sampled exactly. Their mesh is then one per kind of
 material rather than one per colour, with the same kind of material a part has
-on its own — so a character of six colours is one mesh, not six. The launch
-check photographs the same view merged and part by part and prints how far
-apart the two pictures are.
+on its own — so a character of six colours is one mesh, not six. A part in a
+palette mesh whose colour alone changes (`RenderMerging.onlyRecoloured`) stays
+in it: it is given a spot of its own, and each later change paints that spot
+again in the texture in place (`TextureResource.replace`), so a dance floor
+changing colour on every beat stays one mesh. The launch check holds the whole
+scene still, photographs the view merged, merged again (the noise floor) and
+part by part, and prints how far apart the pictures are, the mean shift of
+each colour and where on the screen they differ; at the end it draws the sky
+alone, the most that simulator draws at all.
 
 A baked part keeps its entity, switched off. A change that shows (`looksTheSame`
-ignores names, tags and scores), an effect that tints, slides or hides it, or a
+ignores names, tags, scores and words), an effect that tints, slides or hides it, or a
 child hung from it takes it out: its mesh is rebuilt without it, and until then
 it is drawn by the old mesh, so it is never drawn twice or missing for a frame.
 It may go back in once it has stayed the same for a while — 3 s on the map, 0.6 s

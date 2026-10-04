@@ -222,15 +222,16 @@ if [ "${BENCHMARK:-1}" = 1 ]; then
     else
       echo "   (no process to sample: \"$pid\")" > "$out/benchmark-sample.log"
     fi
-    sleep "${BENCHMARK_REST:-60}"
+    sleep "${BENCHMARK_REST:-66}"
     xcrun simctl io "$udid" screenshot "$out/screen-benchmark.png" > /dev/null 2>&1 || true
     echo "== Frame rate in the benchmark world"
     lines="$(grep -hE "AbloxFPS|AbloxShapes" "$out/benchmark.stderr.log" "$out/benchmark.stdout.log" 2>/dev/null)"
-    # The first 80 seconds (merged, part by part, Auto settling), then the end.
+    # The first 80 seconds (merged, part by part, Auto settling), then the
+    # end: the sky alone, the most this simulator draws at all.
     head -84 <<< "$lines"
     echo "   ..."
     tail -12 <<< "$lines"
-    echo "== The same view merged and part by part"
+    echo "== The same view merged, merged again and part by part (nothing moving)"
     grep -h "AbloxLook" "$out/benchmark.stderr.log" "$out/benchmark.stdout.log" 2>/dev/null \
       || echo "   (no comparison was made)"
     grep -q "AbloxFPS" "$out/benchmark.stderr.log" "$out/benchmark.stdout.log" 2>/dev/null \
