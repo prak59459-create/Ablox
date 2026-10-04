@@ -186,8 +186,10 @@ material rather than one per colour, with the same kind of material a part has
 on its own — so a character of six colours is one mesh, not six. A part in a
 palette mesh whose colour alone changes (`RenderMerging.onlyRecoloured`) stays
 in it: it is given a spot of its own, and each later change paints that spot
-again in the texture in place (`TextureResource.replace`), so a dance floor
-changing colour on every beat stays one mesh. The launch check holds the whole
+again — in a new palette texture given only to the meshes whose parts changed
+colour (at most 30 times a second), never into the texture being drawn with,
+which would wait for the frame in flight — so a dance floor changing colour on
+every beat stays one mesh. The launch check holds the whole
 scene still, photographs the view merged, merged again (the noise floor) and
 part by part, and prints how far apart the pictures are, the mean shift of
 each colour and where on the screen they differ; at the end it draws the sky

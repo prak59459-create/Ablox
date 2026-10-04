@@ -297,6 +297,18 @@ if len(graph) > 1:
         print("-- Main thread: functions by their own time:")
         for fn, count in sorted(own.items(), key=lambda kv: -kv[1])[:40]:
             print("   %5.1f%%  %s" % (100.0 * count / total, fn[:150]))
+        print("-- Inside the game's own frame (tick), 1% of the main thread or more:")
+        shown = 0
+        for i, (depth, count, name) in enumerate(main):
+            if "Coordinator.tick(deltaTime:)" not in name:
+                continue
+            print("   %5.1f%% %s" % (100.0 * count / total, name[:140]))
+            for depth2, count2, name2 in main[i + 1:]:
+                if depth2 <= depth:
+                    break
+                if count2 * 100 >= total and depth2 - depth <= 30 and shown < 90:
+                    print("   %5.1f%% %s%s" % (100.0 * count2 / total, " " * ((depth2 - depth) // 2), name2[:140]))
+                    shown += 1
         print("-- Main thread: heaviest frames (3% or more), a few levels down:")
         shown = 0
         for depth, count, name in main:
