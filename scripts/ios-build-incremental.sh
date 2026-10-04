@@ -14,6 +14,9 @@
 #   engine-body      the inside of one function in the 3D engine
 #   core-new-private a new private function in AbloxCore
 #   core-leaf-private the same in an AbloxCore file few others use
+#   menu … script-api the same in each of the files updates touch most
+#                    (the main menu, the settings, the play screen, the 3D
+#                    view, the session, blocks, players, the script API)
 #   core-interface   a new public function in AbloxCore (its interface changes)
 #   core-body-edit   a number inside an existing AbloxCore function, nothing else
 #   core-string      one more translation in Strings.swift, as features add them
@@ -77,6 +80,9 @@ build() {
 # Appends a line to a file, builds, and puts the file back.
 try() {
   local label="$1" file="$2" line="$3"
+  # A name of its own for each probe, so one probe's leftovers in the
+  # compiler's records are not mistaken for a use by the next.
+  line="${line//incrementalProbe/incrementalProbe_${label//-/_}}"
   cp "$file" /tmp/incremental-backup
   printf '%s\n' "$line" >> "$file"
   build "$label"
@@ -107,6 +113,17 @@ try engine-body Sources/Engine/RigidParts.swift 'private func incrementalProbe()
 try core-new-private Sources/AbloxCore/BlockAnimation.swift 'private func incrementalProbe() -> Int { 1 }'
 try core-leaf-private Sources/AbloxCore/ZipArchive.swift 'private func incrementalProbe() -> Int { 1 }'
 try core-interface Sources/AbloxCore/BlockAnimation.swift 'public func incrementalProbe() -> Int { 1 }'
+
+# The files updates touch most often, each with a new private function: how
+# many files a typical update rebuilds through them.
+try menu Sources/UI/MainMenu/MainMenuView.swift 'private func incrementalProbe() -> Int { 1 }'
+try settings Sources/UI/AppSettings.swift 'private func incrementalProbe() -> Int { 1 }'
+try play-screen Sources/UI/Game/PlayScreen.swift 'private func incrementalProbe() -> Int { 1 }'
+try viewport Sources/Engine/GameViewport.swift 'private func incrementalProbe() -> Int { 1 }'
+try session Sources/Net/SessionCoordinator.swift 'private func incrementalProbe() -> Int { 1 }'
+try blocks Sources/AbloxCore/BlockData.swift 'private func incrementalProbe() -> Int { 1 }'
+try player Sources/AbloxCore/Player.swift 'private func incrementalProbe() -> Int { 1 }'
+try script-api Sources/AbloxCore/GameRuntimeAPI.swift 'private func incrementalProbe() -> Int { 1 }'
 
 # Changes inside what is already there, done with sed and undone by copying
 # the file back.

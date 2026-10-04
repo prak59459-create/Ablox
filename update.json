@@ -1,18 +1,18 @@
 {
   "app": "Ablox",
-  "version": "4.7",
-  "build": 36,
+  "version": "4.8",
+  "build": 37,
   "protocol": 8,
   "date": "2026-10-04",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "Builds after an update touch fewer files: comparisons written by hand (==, <) and additions to everyday types (arrays, numbers, views) now live in a few files that seldom change, so changing a block, a script rule or a screen no longer rebuilds nearly the whole app",
-      "From 4.6: the app is one module again, so the build after an update compiles only the files that changed and those that use them"
+      "The app is the same as 4.7: the rebuild timing now also tries the files updates touch most (the main menu, the settings, the play screen, blocks, players and others)",
+      "From 4.7: builds after an update touch fewer files, now that comparisons and additions to everyday types live in a few files that seldom change"
     ],
     "ja": [
-      "アップデートの あとの ビルドで 作りなおす ファイルが 少なく なります。自分で 書いていた くらべ方（==、<）と、みんなが 使う 型（配列・数・画面）への 追加を、ほとんど 変わらない 少しの ファイルに まとめたので、ブロックや スクリプトや 画面を 変えても アプリの ほぼ ぜんぶを 作りなおさなく なりました",
-      "4.6 の内容: アプリを 1つの モジュールに もどし、アップデートの あとは 変わった ファイルと それを 使う ファイルだけを 作りなおします"
+      "アプリの 中身は 4.7 と 同じです。再ビルドの 計測で、アップデートで よく 変わる ファイル（メインメニュー・設定・プレイ画面・ブロック・プレイヤー など）も ためす ように しました",
+      "4.7 の内容: くらべ方と、みんなが 使う 型への 追加を 少しの ファイルに まとめ、アップデートの あとの ビルドで 作りなおす ファイルを へらしました"
     ]
   }
 }
