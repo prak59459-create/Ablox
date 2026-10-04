@@ -294,7 +294,17 @@ any rebuild pays: the module's summary, linking):
 
 `Player.swift` was split in 4.9: `PeerID.swift` and `AvatarProfile.swift`
 hold the two types most of the app uses, and `Player.swift` keeps the
-movement rules.
+movement rules — after which its row is 53 files and 17–19 s. In 5.0
+`BlockData.swift` and `WorldFeatures.swift` were split by section (a block's
+shape, material, behaviour, tuning and light; a world's particles, music,
+sounds, panels, moving platforms, swimming and leaderboards). The block
+itself is still used by 54 files, because every file that uses a block
+uses the types of its fields; what the split saves is a new shape, material
+or particle, which now touches only the files that use that.
+
+Any rebuild, even of one file, pays about 5 seconds on CI besides compiling:
+the module's summary is written again (`SwiftEmitModule`, 3.5–7 s, run
+beside the compiling) and the app is linked (about 1 s).
 
 ---
 

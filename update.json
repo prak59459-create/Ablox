@@ -1,18 +1,18 @@
 {
   "app": "Ablox",
-  "version": "5.0",
-  "build": 39,
+  "version": "5.1",
+  "build": 40,
   "protocol": 8,
   "date": "2026-10-04",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "Builds after an update touch fewer files again: blocks' shapes, materials, behaviours and lights, and a world's particles, music, sounds and panels each have a file of their own, so a new kind of block or a new particle rebuilds only what uses it",
-      "From 4.9: a change to how players move rebuilds 54 files in 17 s on the test Mac, where it rebuilt 85 files in 33 s"
+      "The app is the same as 5.0; the notes on building faster are brought up to date. To build quickly, update from Settings → Updates: only the files that changed are written into the project, and only they and the files that use them are compiled again",
+      "From 4.6 to 5.0: the app is one module again, and the files most of it uses seldom change, so a typical update rebuilds a few to about fifty files"
     ],
     "ja": [
-      "アップデートの あとの ビルドで 作りなおす ファイルが さらに 少なく なります。ブロックの 形・素材・動き・明かり、ワールドの パーティクル・音楽・音・パネルを それぞれ 自分の ファイルに 分けたので、新しい ブロックや パーティクルを 足しても それを 使う ファイルだけを 作りなおします",
-      "4.9 の内容: プレイヤーの 動きを 変えたときの 再ビルドが テスト用の Mac で 85ファイル・33秒 → 54ファイル・17秒"
+      "アプリの 中身は 5.0 と 同じです（ビルドを 速く する ための 記録を 新しく しました）。速く ビルド するには、アプリの 設定 → アップデート から 更新して ください。変わった ファイルだけが プロジェクトに 書きこまれ、それと それを 使う ファイルだけを 作りなおします",
+      "4.6〜5.0 の内容: アプリを 1つの モジュールに もどし、みんなが 使う ファイルを ほとんど 変わらない 形に したので、ふつうの アップデートで 作りなおすのは 数ファイル〜50ファイル ほどです"
     ]
   }
 }
