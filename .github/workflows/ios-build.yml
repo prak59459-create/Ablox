@@ -21,6 +21,18 @@ on:
         description: "Build settings to compare against a plain build, e.g. GCC_GENERATE_DEBUGGING_SYMBOLS=NO"
         type: string
         default: ""
+      patch:
+        description: "A change to try without pushing it: a unified diff from the repository root, gzipped, base64"
+        type: string
+        default: ""
+      patch_compare:
+        description: "Compare builds with and without the patch (otherwise the patch is applied and reported)"
+        type: boolean
+        default: false
+      repeats:
+        description: "Pairs of builds to compare"
+        type: string
+        default: "2"
 
 jobs:
   ios:
@@ -30,12 +42,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build and report
-        if: ${{ !inputs.compare }}
+        if: ${{ !inputs.compare && !inputs.patch_compare }}
         run: scripts/ios-build-times.sh
         env:
           PER_FILE: ${{ inputs.per_file && '1' || '' }}
-      - name: Compare a build setting
-        if: ${{ inputs.compare }}
+          PATCH: ${{ inputs.patch }}
+      - name: Compare a build setting or a change
+        if: ${{ inputs.compare || inputs.patch_compare }}
         run: scripts/ios-build-compare.sh
         env:
           COMPARE: ${{ inputs.compare }}
+          PATCH: ${{ inputs.patch }}
+          REPEATS: ${{ inputs.repeats }}

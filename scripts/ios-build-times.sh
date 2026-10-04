@@ -12,9 +12,18 @@
 #   KEEP_LOG=/path scripts/ios-build-times.sh   also keep the raw log
 #   PER_FILE=1 scripts/ios-build-times.sh       one file per compile job, so
 #                                               each file's own cost is listed
+#   PATCH=<diff, gzipped, base64> ...           with a change applied first
 
 set -uo pipefail
 cd "$(dirname "$0")/.."
+
+# A change to try without pushing it (the workflow's "patch" input): a
+# unified diff from the repository root, gzipped and base64-encoded.
+if [ -n "${PATCH:-}" ]; then
+  echo "$PATCH" | base64 --decode | gunzip > /tmp/try.patch
+  git apply --stat /tmp/try.patch
+  git apply /tmp/try.patch || { echo "The patch does not apply."; exit 1; }
+fi
 
 app_dir="$(ls -d *.swiftpm | head -1)"
 scheme="${SCHEME:-${app_dir%.swiftpm}}"

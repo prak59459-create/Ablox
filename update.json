@@ -1,18 +1,18 @@
 {
   "app": "Ablox",
-  "version": "3.9",
-  "build": 28,
+  "version": "4.0",
+  "build": 29,
   "protocol": 8,
   "date": "2026-10-04",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "A little quicker to build: a few of the slowest lines for the compiler are written in simpler steps (the work on build time continues)",
-      "From 3.8: the Ablox keyboard works again"
+      "The app is the same as 3.9: this version only sharpens how build time is measured, so ways to build faster can be tried before they reach the iPad",
+      "From 3.9 and 3.8: a few of the compiler's slowest lines written more simply; the Ablox keyboard works again"
     ],
     "ja": [
-      "ビルドが すこし速く: コンパイラが いちばん時間をかけていた 数か所を、かんたんな 手順に 書きなおしました（ビルド時間の 改善は つづけています）",
-      "3.8 の内容: Ablox キーボードが また使えます"
+      "アプリの中身は 3.9 と同じです。ビルド時間を はかる しくみだけ 強くしました（速くする方法を iPad に届ける前に ためせるように）",
+      "3.9・3.8 の内容: コンパイラが 時間をかけていた 数か所を かんたんに。Ablox キーボードが また使えます"
     ]
   }
 }

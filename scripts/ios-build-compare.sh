@@ -6,8 +6,15 @@
 # to job, so only builds in the same job are compared.
 #
 #   COMPARE="GCC_GENERATE_DEBUGGING_SYMBOLS=NO" scripts/ios-build-compare.sh
+#   PATCH=<unified diff, gzipped, base64> scripts/ios-build-compare.sh
 #
-# CI runs it from Actions with the "compare" input filled in.
+# With PATCH, the changed builds have that change applied to the source (a
+# different way of writing something, a flag in Package.swift), so a change
+# can be measured before it is pushed. REPEATS sets how many pairs of
+# builds; the runner's speed wanders by a fifth from build to build, so the
+# means over several pairs are what to read.
+#
+# CI runs it from Actions with the "compare" or "patch" input filled in.
 
 set -uo pipefail
 cd "$(dirname "$0")/.."
@@ -15,7 +22,20 @@ cd "$(dirname "$0")/.."
 app_dir="$(ls -d *.swiftpm | head -1)"
 scheme="${SCHEME:-${app_dir%.swiftpm}}"
 derived="/tmp/ablox-compare"
-read -r -a changed <<< "${COMPARE:?set COMPARE to the build settings to try}"
+read -r -a changed <<< "${COMPARE:-}"
+if [ ${#changed[@]} -eq 0 ] && [ -z "${PATCH:-}" ]; then
+  echo "set COMPARE to build settings to try, or PATCH to a change" >&2
+  exit 2
+fi
+repeats="${REPEATS:-2}"
+patch=""
+if [ -n "${PATCH:-}" ]; then
+  patch="/tmp/try.patch"
+  echo "$PATCH" | base64 --decode | gunzip > "$patch"
+  git apply --stat "$patch"
+  git apply --check "$patch" || { echo "The patch does not apply."; exit 1; }
+fi
+root="$PWD"
 rm -rf "$derived"
 
 xcodebuild -version
@@ -26,6 +46,9 @@ if ! grep -qxF "$scheme" <<< "$schemes"; then
   app_target="$(grep -A1 -E '\.executableTarget\(' Package.swift | grep -oE 'name: "[^"]+"' | head -1 | cut -d'"' -f2)"
   if grep -qxF "$app_target" <<< "$schemes"; then scheme="$app_target"; else scheme="$(head -1 <<< "$schemes")"; fi
 fi
+
+results="/tmp/compare-results.txt"
+: > "$results"
 
 build() {
   local label="$1"; shift
@@ -52,13 +75,25 @@ build() {
     | awk '{ total += $1 } END { printf "%d", total / 1024 }')"
   printf "%-14s status %s  %4d s   Swift compiling %s   interfaces %s   objects %s KB\n" \
     "$label" "$status" $((end - start)) "${swift:-?}" "${emit:-?}" "${objects:-?}"
+  echo "$label $((end - start)) ${swift%% *}" >> "$results"
   [ "$status" -eq 0 ] || grep -E "error:" "$log" | sort -u | head -20
 }
 
+with_patch() { [ -z "$patch" ] || (cd "$root" && git apply "$patch"); }
+without_patch() { [ -z "$patch" ] || (cd "$root" && git apply -R "$patch"); }
+
 echo
-echo "== Comparing: ${changed[*]}"
+echo "== Comparing: ${changed[*]:-}${patch:+ (with the patch)}, $repeats pairs"
 build warm-up
-build plain
-build changed "${changed[@]}"
-build plain-again
-build changed-again "${changed[@]}"
+for i in $(seq 1 "$repeats"); do
+  build plain
+  with_patch
+  # (Written so bash 3.2, macOS's, accepts an empty list under set -u.)
+  build changed ${changed[@]+"${changed[@]}"}
+  without_patch
+done
+
+echo
+echo "== Means over $repeats pairs (seconds of wall time, seconds of Swift compiling)"
+awk '$1 != "warm-up" { n[$1]++; wall[$1] += $2; cpu[$1] += $3 }
+     END { for (k in n) printf "%-8s wall %6.1f   compiling %6.1f\n", k, wall[k] / n[k], cpu[k] / n[k] }' "$results"
