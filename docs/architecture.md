@@ -183,14 +183,11 @@ material (no pattern drawn on it) take their colour from a palette instead:
 one row of spots on a texture (`ColorPalette`), each part's vertices pointing
 at its colour's spot, sampled exactly. Their mesh is then one per kind of
 material rather than one per colour, with the same kind of material a part has
-on its own — so a character of six colours is one mesh, not six. A part in a
-palette mesh whose colour alone changes (`RenderMerging.onlyRecoloured`) stays
-in it: it is given a spot of its own, and each later change paints that spot
-again — in a new palette texture given only to the meshes whose parts changed
-colour (at most 30 times a second), never into the texture being drawn with,
-which would wait for the frame in flight — so a dance floor changing colour on
-every beat stays one mesh. The launch check holds the whole
-scene still, photographs the view merged, merged again (the noise floor) and
+on its own — so a character of six colours is one mesh, not six. A part
+whose colour changes is taken out of its mesh like any other change: making
+or repainting a texture waits for the GPU to finish what it is doing (measured
+in 3.3 to 3.6: up to a frame each time), which costs more than drawing that
+one part on its own. The launch check holds the whole scene still, photographs the view merged, merged again (the noise floor) and
 part by part, and prints how far apart the pictures are, the mean shift of
 each colour and where on the screen they differ; at the end it draws the sky
 alone, the most that simulator draws at all.

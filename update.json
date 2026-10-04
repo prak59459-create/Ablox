@@ -1,20 +1,20 @@
 {
   "app": "Ablox",
-  "version": "3.6",
-  "build": 25,
+  "version": "3.7",
+  "build": 26,
   "protocol": 8,
   "date": "2026-10-04",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "A part changing colour no longer makes the game wait for the frame being drawn: its new colour comes with a new palette, given only to the pieces that changed",
+      "No more brief hitches when a part changes colour: such a part is drawn on its own again, as before 3.3, instead of waiting for the GPU to repaint a colour palette",
       "From 3.4: players' faces, hats, pets, rides and weapons are drawn as fewer pieces and look exactly the same (a car of eleven parts is five)",
-      "From 3.3: parts that only change colour and parts with words over them stay drawn together with the rest; everything from 2.6 is still here"
+      "From 3.3: parts with words over them stay drawn together with the rest; everything from 2.6 is still here"
     ],
     "ja": [
-      "パーツの色が変わるとき、いま描いている途中のフレームを 待たなくなりました（新しい色見本を作って、色が変わった かたまりにだけ わたします）",
+      "パーツの色が変わるときの 小さな カクつきが なくなりました（色が変わるパーツは 3.3 より前と同じく 1つで描きます。色見本の ぬりかえで GPU を待たない）",
       "3.4 の内容: プレイヤーの顔・帽子・ペット・乗り物・武器を 少ない かたまりで描く（見た目は同じ。11パーツの車は 5つに）",
-      "3.3 の内容: 色だけ変わるパーツや 文字がのったパーツも まとめたまま。2.6 からの内容もそのまま"
+      "3.3 の内容: 文字がのったパーツも まとめたまま。2.6 からの内容もそのまま"
     ]
   }
 }
