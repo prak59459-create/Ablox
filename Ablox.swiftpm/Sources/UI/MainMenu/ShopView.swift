@@ -386,6 +386,17 @@ struct ShopView: View {
         .accessibilityLabel(owned ? L("{}, owned", item.displayName) : L("{}, {} coins", item.displayName, cost))
     }
 
+    /// The picture for an item drawn as a symbol. A chain of `??` in one
+    /// expression is slow for the compiler; these are separate steps.
+    private static func symbol(of item: ShopItem) -> String {
+        if let name = item.hat?.symbolName { return name }
+        if let name = item.face?.symbolName { return name }
+        if let name = item.pet?.symbolName { return name }
+        if let name = item.trail?.symbolName { return name }
+        if let name = item.aura?.symbolName { return name }
+        return "questionmark"
+    }
+
     @ViewBuilder
     private func preview(_ item: ShopItem) -> some View {
         if let colours = item.nameplate?.colours ?? item.bubble?.colours {
@@ -410,8 +421,7 @@ struct ShopView: View {
                         .strokeBorder(Ablox.Palette.lineStrong, lineWidth: 1)
                 )
         } else {
-            let symbol = item.hat?.symbolName ?? item.face?.symbolName ?? item.pet?.symbolName
-                ?? item.trail?.symbolName ?? item.aura?.symbolName ?? "questionmark"
+            let symbol: String = Self.symbol(of: item)
             ZStack {
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
                     .fill(Ablox.Palette.wash)

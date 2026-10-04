@@ -159,6 +159,73 @@ find "$derived" -name '*.o' -path '*arm64*' -print0 2>/dev/null \
     done
 
 echo
+echo "== What the code is: machine code by kind, over every object file of the app"
+# Each function's size is the distance to the next symbol in __text, and its
+# name, demangled, says what made it: a closure, a type's metadata, copying a
+# value, a key path... SwiftUI turns a little source into a lot of these.
+objects="$(find "$derived" -name '*.o' -path '*arm64*' 2>/dev/null)"
+if [ -n "$objects" ]; then
+  python3 - $objects <<'PY'
+import subprocess, sys, re, collections
+kinds = collections.Counter(); counts = collections.Counter(); biggest = []
+per_file = collections.defaultdict(collections.Counter)
+def kind(name):
+    rules = [
+        ("closure", r"^closure #|^implicit closure #|in closure #"),
+        ("metadata", r"type metadata|metadata completion|metadata instantiation|metadata pattern|nominal type descriptor"),
+        ("outlined value ops", r"^outlined "),
+        ("value witnesses", r"value witness|^initializeWithCopy|^initializeWithTake|^assignWithCopy|^assignWithTake|^destroy for|^getEnumTag|^storeEnumTag|^destructiveProjectEnumData|^destructiveInjectEnumTag|^initializeBufferWithCopyOfBuffer"),
+        ("key paths", r"key path"),
+        ("witness tables", r"witness table accessor|associated conformance|associated type"),
+        ("protocol witnesses", r"^protocol witness for"),
+        ("thunks", r"thunk"),
+        ("view bodies", r"\.body\.getter"),
+        ("accessors", r"\.getter|\.setter|\.modify|\.read|\.unsafeMutableAddressor|\.didset|\.willset"),
+        ("initializers", r"variable initialization expression|\.init\(|default argument"),
+        ("Codable", r"CodingKeys|Encodable|Decodable|encode\(to:|init\(from:"),
+    ]
+    for label, pattern in rules:
+        if re.search(pattern, name):
+            return label
+    return "other functions"
+for path in sys.argv[1:]:
+    try:
+        out = subprocess.run(["xcrun", "nm", "-n", "-m", "--defined-only", path], capture_output=True, text=True).stdout
+    except Exception:
+        continue
+    syms = []
+    for line in out.splitlines():
+        m = re.match(r"^([0-9a-f]+) \(__TEXT,__text\) (?:non-)?external (?:\[[^\]]*\] )?(\S+)", line)
+        if m:
+            syms.append((int(m.group(1), 16), m.group(2)))
+    if len(syms) < 2:
+        continue
+    names = [n for _, n in syms]
+    demangled = subprocess.run(["xcrun", "swift-demangle", "--simplified", "--compact"], input="\n".join(names),
+                               capture_output=True, text=True).stdout.splitlines()
+    if len(demangled) != len(names):
+        demangled = names
+    file = path.rsplit("/", 1)[-1][:-2]
+    for i in range(len(syms) - 1):
+        size = syms[i + 1][0] - syms[i][0]
+        k = kind(demangled[i])
+        kinds[k] += size; counts[k] += 1; per_file[file][k] += size
+        biggest.append((size, file, demangled[i][:150]))
+total = sum(kinds.values()) or 1
+print(f"{total // 1024} KB of functions in {sum(counts.values())} functions")
+print(f"{'KB':>8} {'share':>6} {'count':>7}  kind")
+for k, size in kinds.most_common():
+    print(f"{size // 1024:8d} {100.0 * size / total:5.1f}% {counts[k]:7d}  {k}")
+print("-- Largest functions")
+for size, file, name in sorted(biggest, reverse=True)[:40]:
+    print(f"{size // 1024:6d} KB  {file}: {name}")
+print("-- The biggest files by kind (KB)")
+for file, c in sorted(per_file.items(), key=lambda kv: -sum(kv[1].values()))[:12]:
+    print(f"{sum(c.values()) // 1024:6d}  {file}: " + ", ".join(f"{k} {v // 1024}" for k, v in c.most_common(5)))
+PY
+fi
+
+echo
 echo "== Build timing summary"
 sed -n '/Build Timing Summary/,/^\*\* BUILD/p' "$log" | head -60
 

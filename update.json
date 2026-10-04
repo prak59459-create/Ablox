@@ -1,18 +1,18 @@
 {
   "app": "Ablox",
-  "version": "3.8",
-  "build": 27,
+  "version": "3.9",
+  "build": 28,
   "protocol": 8,
   "date": "2026-10-04",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "The Ablox keyboard works again: its keys answered no touches on newer iPads, every tap falling through to the screen behind it",
-      "From 3.7: no brief hitches when a part changes colour; players' gear is drawn as fewer pieces and looks exactly the same"
+      "A little quicker to build: a few of the slowest lines for the compiler are written in simpler steps (the work on build time continues)",
+      "From 3.8: the Ablox keyboard works again"
     ],
     "ja": [
-      "Ablox キーボードが また使えるようになりました（新しい iPad では キーを押しても 反応せず、うしろの画面に タッチが通りぬけていました）",
-      "3.7 の内容: パーツの色が変わるときの カクつきなし。プレイヤーの持ち物も 少ない かたまりで描く（見た目は同じ）"
+      "ビルドが すこし速く: コンパイラが いちばん時間をかけていた 数か所を、かんたんな 手順に 書きなおしました（ビルド時間の 改善は つづけています）",
+      "3.8 の内容: Ablox キーボードが また使えます"
     ]
   }
 }
