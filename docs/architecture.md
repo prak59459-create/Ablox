@@ -266,7 +266,9 @@ touches a `DispatchQueue`.
 | Concern | File |
 |---|---|
 | Vectors, rotations, bounds, rays | `AbloxCore/Math.swift` |
-| A part | `AbloxCore/BlockData.swift` |
+| A part | `AbloxCore/BlockData.swift`; its shape, material, behaviour, tuning and light in `BlockShape`, `BlockMaterial`, `BlockBehavior`, `GimmickSettings`, `BlockLight` |
+| A player's id, looks, and movement | `AbloxCore/PeerID.swift`, `AvatarProfile.swift`, `Player.swift` |
+| Every `==` and `<` written by hand | `AbloxCore/Comparisons.swift` (docs/ipad-build.md says why) |
 | A world | `AbloxCore/WorldDocument.swift` |
 | Triggers and actions | `AbloxCore/EventRule.swift` |
 | Rule evaluation | `AbloxCore/EventMachine.swift` |
