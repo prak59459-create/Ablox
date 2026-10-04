@@ -1,18 +1,18 @@
 {
   "app": "Ablox",
-  "version": "4.1",
-  "build": 30,
+  "version": "4.2",
+  "build": 31,
   "protocol": 8,
   "date": "2026-10-04",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "Quicker to build: the game a player is about to enter is kept in a box of its own, so the menu screens no longer copy a whole world field by field (a third less code for the main menu)",
-      "From 3.9 and 3.8: a few of the compiler's slowest lines written more simply; the Ablox keyboard works again"
+      "The app is the same as 4.1: this version measures more exactly which kinds of change make the iPad build everything again",
+      "From 4.1: quicker to build, the menu screens no longer copy a whole world field by field"
     ],
     "ja": [
-      "ビルドが 速く: これから入るゲームの データを 箱に入れて持つようにして、メニューの画面が ワールドまるごとを 1項目ずつ コピーしなくなりました（メインメニューの 機械語が 3分の1 へった）",
-      "3.9・3.8 の内容: コンパイラが 時間をかけていた 数か所を かんたんに。Ablox キーボードが また使えます"
+      "アプリの中身は 4.1 と同じです。どんな変更で iPad が ぜんぶ ビルドしなおしに なるかを、もっと くわしく はかるように しました",
+      "4.1 の内容: ビルドが 速く（メニューの画面が ワールドまるごとを コピーしない）"
     ]
   }
 }

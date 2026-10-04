@@ -12,8 +12,11 @@
 #   version          the version and build numbers, as every release changes them
 #   ui-body          the inside of one screen's body
 #   engine-body      the inside of one function in the 3D engine
-#   core-body        the inside of one function in AbloxCore
+#   core-new-private a new private function in AbloxCore
 #   core-interface   a new public function in AbloxCore (its interface changes)
+#   core-body-edit   a number inside an existing AbloxCore function, nothing else
+#   core-string      one more translation in Strings.swift, as features add them
+#   core-touch       an AbloxCore file saved again unchanged
 #
 # CI runs it from Actions with the "incremental" input.
 
@@ -85,5 +88,21 @@ build version-undo > /dev/null
 # a new public declaration.
 try ui-body Sources/UI/MainMenu/ShopView.swift 'private func incrementalProbe() -> Int { 1 }'
 try engine-body Sources/Engine/RigidParts.swift 'private func incrementalProbe() -> Int { 1 }'
-try core-body Sources/AbloxCore/BlockAnimation.swift 'private func incrementalProbe() -> Int { 1 }'
+try core-new-private Sources/AbloxCore/BlockAnimation.swift 'private func incrementalProbe() -> Int { 1 }'
 try core-interface Sources/AbloxCore/BlockAnimation.swift 'public func incrementalProbe() -> Int { 1 }'
+
+# Changes inside what is already there, done with sed and undone by copying
+# the file back.
+edit() {
+  local label="$1" file="$2" expression="$3"
+  cp "$file" /tmp/incremental-backup
+  sed -i '' -E "$expression" "$file"
+  if cmp -s "$file" /tmp/incremental-backup; then echo "$label: the edit changed nothing"; return; fi
+  build "$label"
+  cp /tmp/incremental-backup "$file"
+  build "$label-undo" > /dev/null
+}
+edit core-body-edit Sources/AbloxCore/BlockAnimation.swift 's/sin\(t \* 2\.4\) \* 10/sin(t * 2.4) * 11/'
+edit core-string Sources/AbloxCore/Strings.swift 's/\("Match the iPad", "iPadに合わせる"\),/("Match the iPad", "iPadに合わせる"), ("Incremental probe", "テスト"),/'
+touch Sources/AbloxCore/BlockAnimation.swift
+build core-touch
