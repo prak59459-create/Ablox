@@ -13,6 +13,7 @@
 #   ui-body          the inside of one screen's body
 #   engine-body      the inside of one function in the 3D engine
 #   core-new-private a new private function in AbloxCore
+#   core-leaf-private the same in an AbloxCore file few others use
 #   core-interface   a new public function in AbloxCore (its interface changes)
 #   core-body-edit   a number inside an existing AbloxCore function, nothing else
 #   core-string      one more translation in Strings.swift, as features add them
@@ -62,8 +63,15 @@ build() {
   end=$(date +%s)
   local swift
   swift="$(grep -E '^SwiftCompile \([0-9]+ tasks?\) \|' "$log" | sed 's/.*| //')"
-  printf "%-16s status %s  %4d s   Swift compiling %s\n" "$label" "$status" $((end - start)) "${swift:-none}"
+  # The Swift files compiled again: each is a path on a SwiftCompile line.
+  local files
+  files="$(grep -E '^SwiftCompile normal' "$log" | grep -oE '/[^ ]+\.swift' | sort -u | wc -l | tr -d ' ')"
+  printf "%-16s status %s  %4d s   Swift compiling %s, %s files\n" "$label" "$status" $((end - start)) "${swift:-none}" "$files"
   [ "$status" -eq 0 ] || grep -E "error:" "$log" | sort -u | head -20
+  # With `-driver-show-incremental` in the patch, the driver says why it
+  # compiled each file again; the first few reasons, with paths shortened.
+  grep -E 'remark: Incremental compilation' "$log" | sed -E 's|/[^ ]*/Sources/|Sources/|g; s|.*remark: Incremental compilation: ||' \
+    | grep -vE '^(Skipping|Enabling|Incremental compilation has been)' | sort | uniq -c | sort -rn | head -12 | sed 's/^/      /'
 }
 
 # Appends a line to a file, builds, and puts the file back.
@@ -97,6 +105,7 @@ build version-undo > /dev/null
 try ui-body Sources/UI/MainMenu/ShopView.swift 'private func incrementalProbe() -> Int { 1 }'
 try engine-body Sources/Engine/RigidParts.swift 'private func incrementalProbe() -> Int { 1 }'
 try core-new-private Sources/AbloxCore/BlockAnimation.swift 'private func incrementalProbe() -> Int { 1 }'
+try core-leaf-private Sources/AbloxCore/ZipArchive.swift 'private func incrementalProbe() -> Int { 1 }'
 try core-interface Sources/AbloxCore/BlockAnimation.swift 'public func incrementalProbe() -> Int { 1 }'
 
 # Changes inside what is already there, done with sed and undone by copying

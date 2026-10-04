@@ -1,17 +1,17 @@
 {
   "app": "Ablox",
-  "version": "4.4",
-  "build": 33,
+  "version": "4.5",
+  "build": 34,
   "protocol": 8,
   "date": "2026-10-04",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "The app is the same as 4.1: the build measurements now also record how much memory the compiler uses, to keep the build safe on iPads with little memory",
+      "The app is the same as 4.1: the rebuild timing now says how many files were compiled again and why, to find what makes an update rebuild everything",
       "From 4.1: quicker to build, the menu screens no longer copy a whole world field by field"
     ],
     "ja": [
-      "アプリの中身は 4.1 と同じです。ビルドの計測で コンパイラの メモリも はかるように しました（メモリの少ない iPad でも ビルドが 止まらないように するため）",
+      "アプリの中身は 4.1 と同じです。再ビルドの計測で、作りなおした ファイルの数と その理由を 出すように しました（アップデートで ぜんぶ 作りなおしに なる 原因を 見つけるため）",
       "4.1 の内容: ビルドが 速く（メニューの画面が ワールドまるごとを コピーしない）"
     ]
   }
