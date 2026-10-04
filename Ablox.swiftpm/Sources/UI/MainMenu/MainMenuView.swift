@@ -403,7 +403,11 @@ struct UpdateInstall: Identifiable {
 /// What the player is about to enter, so `PlayScreen` knows whether it is
 /// hosting, joining, or playing alone.
 public struct ActiveSession: Identifiable, Equatable {
-    public enum Mode: Equatable {
+    /// `indirect`: each case's value lives in a box of its own. A whole
+    /// world kept inline made every copy of the screens that hold a session
+    /// copy the world field by field, and the code for those copies was a
+    /// third of what the compiler made for the main menu.
+    public indirect enum Mode: Equatable {
         case solo(WorldDocument)
         case hosting(WorldDocument, access: RoomAccess)
         /// An internet room, through the family's database.

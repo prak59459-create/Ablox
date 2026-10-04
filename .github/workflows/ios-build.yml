@@ -10,6 +10,7 @@ on:
       - "Ablox.swiftpm/**"
       - "scripts/ios-build-times.sh"
       - "scripts/ios-build-compare.sh"
+      - "scripts/ios-build-incremental.sh"
       - ".github/workflows/ios-build.yml"
   workflow_dispatch:
     inputs:
@@ -33,6 +34,10 @@ on:
         description: "Pairs of builds to compare"
         type: string
         default: "2"
+      incremental:
+        description: "Time rebuilds after small changes, as after an update written into the project"
+        type: boolean
+        default: false
 
 jobs:
   ios:
@@ -42,11 +47,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build and report
-        if: ${{ !inputs.compare && !inputs.patch_compare }}
+        if: ${{ !inputs.compare && !inputs.patch_compare && !inputs.incremental }}
         run: scripts/ios-build-times.sh
         env:
           PER_FILE: ${{ inputs.per_file && '1' || '' }}
           PATCH: ${{ inputs.patch }}
+      - name: Rebuilds after small changes
+        if: ${{ inputs.incremental }}
+        run: scripts/ios-build-incremental.sh
       - name: Compare a build setting or a change
         if: ${{ inputs.compare || inputs.patch_compare }}
         run: scripts/ios-build-compare.sh
