@@ -401,7 +401,7 @@ struct UpdateInstall: Identifiable {
 
 /// What the player is about to enter, so `PlayScreen` knows whether it is
 /// hosting, joining, or playing alone.
-public struct ActiveSession: Identifiable, Equatable {
+public struct ActiveSession: EqualByID {
     /// `indirect`: each case's value lives in a box of its own. A whole
     /// world kept inline made every copy of the screens that hold a session
     /// copy the world field by field, and the code for those copies was a
@@ -423,8 +423,6 @@ public struct ActiveSession: Identifiable, Equatable {
     public init(mode: Mode) {
         self.mode = mode
     }
-
-    public static func == (lhs: ActiveSession, rhs: ActiveSession) -> Bool { lhs.id == rhs.id }
 }
 
 // MARK: - Sidebar

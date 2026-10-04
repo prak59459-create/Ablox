@@ -194,6 +194,20 @@ spread over every view rather than a few slow functions.
 - **What the app uses from the core is `public`**, so the core still builds
   as a module of its own for the tests.
 - **The target's name differs from the app product's.**
+- **Operators are written in four files only**: `AbloxCore/Comparisons.swift`,
+  `Math.swift`, `AppVersion.swift` and `ScriptVector.swift`. To check any
+  `a == b` the compiler looks at every `==` the module writes, so a type with
+  its own `==` or `<` makes every file that compares anything depend on its
+  file. A type takes them from a protocol in Comparisons.swift instead
+  (`ComparedByCase`, `RankedByRawValue`, `EqualByID`, `EqualByKey`,
+  `AlwaysEqual`), or from the compiler.
+- **Everyday types are extended in a few files only** (`View`, `Array`,
+  `Double`, `Color`, `SIMD3`, …): `UI/Components/ViewExtras.swift`,
+  `DesignSystem.swift`, `Engine/AppleBridging.swift`, `ProceduralMesh.swift`
+  and `AbloxCore/ScriptVector.swift`. An extension makes its file a
+  dependency of every file that uses the type. The app's own widely used
+  types (`ColorRGBA`, `AvatarProfile`, `WorldDocument`) keep their
+  extensions beside them, not in the feature files that use them.
 - **No macros** (`#Preview`, `@Observable`, …). Each needs a plugin run
   during the build, for nothing a player sees.
 - **No debug information**: both targets pass `-Xfrontend -gnone` through
@@ -256,6 +270,14 @@ declared in it, even a private function. Hence the rules below on where
 operators and extensions of widely used types live, and the report of which
 files rebuild how many others (`scripts/swiftdeps-fanin.py`).
 
+Measured with that report on the core alone (Linux, 89 files), before and
+after Ablox 4.7 moved every hand-written operator into protocols and the
+extensions beside their types: the files whose declarations rebuild half
+the core or more went from 18 to 6, and those six seldom change
+(`Comparisons`, `Math`, `AppVersion`, `ScriptVector`, `Localization`).
+`BlockData.swift` went from 80 files to 23, `BlockAnimation.swift` from 80
+to 19, `ScriptAST.swift` from 80 to 9, `EventMachine.swift` from 81 to 8.
+
 ---
 
 ## Updates without a full build
@@ -290,7 +312,8 @@ goes on this page.
 manifest or the Apple layers — nothing here can. All it does is refuse the
 spellings this page records as rejected, plus assert the one-target shape, the
 `AppleProductTypes` import, no `import AbloxCore` anywhere, a core that
-imports Foundation alone, and no macros.
+imports Foundation alone, no macros, and operators and extensions of
+everyday types only in the files listed above.
 
 It is a ratchet on known mistakes, not a substitute for opening the project on
 an iPad. **When a new error turns up on device, add its exact wording to this

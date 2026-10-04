@@ -5,17 +5,6 @@ import SwiftUI
 // tab opens first — and the options that choose them. Rules in
 // AbloxCore/FamilyExtras.swift (`AccessOptions`).
 
-extension View {
-    /// Bold text and less motion, as chosen, for everything inside.
-    func abloxAccess(_ options: AccessOptions) -> some View {
-        self
-            .bold(options.boldText)
-            .transaction { transaction in
-                if options.reduceMotion { transaction.animation = nil }
-            }
-    }
-}
-
 /// The last few sounds, as words, at the top of the play screen.
 struct SoundCaptionsView: View {
     let captions: [SoundCaption]

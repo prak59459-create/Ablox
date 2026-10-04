@@ -1,18 +1,18 @@
 {
   "app": "Ablox",
-  "version": "4.6",
-  "build": 35,
+  "version": "4.7",
+  "build": 36,
   "protocol": 8,
   "date": "2026-10-04",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "Quicker builds after an update: the app is one module again, so the build after an update compiles only the files that changed and the files that use them (a small change: about 37 s down to 9 s on the test Mac)",
-      "The first build after this update still builds everything once, because the project's layout changed"
+      "Builds after an update touch fewer files: comparisons written by hand (==, <) and additions to everyday types (arrays, numbers, views) now live in a few files that seldom change, so changing a block, a script rule or a screen no longer rebuilds nearly the whole app",
+      "From 4.6: the app is one module again, so the build after an update compiles only the files that changed and those that use them"
     ],
     "ja": [
-      "アップデートのあとの ビルドが 速く なります。アプリを 1つの モジュールに もどしたので、変わった ファイルと それを 使う ファイルだけを 作りなおします（小さな 変更なら テスト用の Mac で 約37秒 → 9秒）",
-      "この版に してから 最初の 1回だけは、プロジェクトの 組み立てが 変わったため ぜんぶ ビルドします"
+      "アップデートの あとの ビルドで 作りなおす ファイルが 少なく なります。自分で 書いていた くらべ方（==、<）と、みんなが 使う 型（配列・数・画面）への 追加を、ほとんど 変わらない 少しの ファイルに まとめたので、ブロックや スクリプトや 画面を 変えても アプリの ほぼ ぜんぶを 作りなおさなく なりました",
+      "4.6 の内容: アプリを 1つの モジュールに もどし、アップデートの あとは 変わった ファイルと それを 使う ファイルだけを 作りなおします"
     ]
   }
 }

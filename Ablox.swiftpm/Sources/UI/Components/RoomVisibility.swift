@@ -30,12 +30,3 @@ struct RoomVisibilityDialog: ViewModifier {
         }
     }
 }
-
-extension View {
-    /// Asks who can join before a room opens.
-    func roomVisibilityDialog(isPresented: Binding<Bool>, allowsPublic: Bool = true, allowsInternet: Bool = false,
-                              onChoose: @escaping (_ access: RoomAccess) -> Void) -> some View {
-        modifier(RoomVisibilityDialog(isPresented: isPresented, allowsPublic: allowsPublic, allowsInternet: allowsInternet,
-                                      onChoose: onChoose))
-    }
-}

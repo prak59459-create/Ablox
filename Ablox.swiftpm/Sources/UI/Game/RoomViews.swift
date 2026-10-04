@@ -152,27 +152,6 @@ struct PollCard: View {
     }
 }
 
-// MARK: - Leaving as the host
-
-extension View {
-    /// For a host with people still playing: hand the room on, or end it
-    /// for everyone.
-    func leaveRoomChoice(isPresented: Binding<Bool>, session: SessionCoordinator, onLeave: @escaping () -> Void) -> some View {
-        confirmationDialog(L("Leave the room?"), isPresented: isPresented, titleVisibility: .visible) {
-            if let next = HostMove.successor(in: session.people, leavingHost: session.localPeerID) {
-                Button(L("Hand the room to {} and leave", next.profile.displayName)) {
-                    session.handOverAndLeave()
-                    onLeave()
-                }
-            }
-            Button(L("End the game for everyone"), role: .destructive, action: onLeave)
-            Button(L("Cancel"), role: .cancel) {}
-        } message: {
-            Text(L("Handing it over keeps the game going on another iPad, with the same room code."))
-        }
-    }
-}
-
 // MARK: - The room tab in the menu
 
 /// Ready, and — for the host — who may come in, warping, teams, a vote, a
