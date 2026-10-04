@@ -1,20 +1,18 @@
 {
   "app": "Ablox",
-  "version": "3.7",
-  "build": 26,
+  "version": "3.8",
+  "build": 27,
   "protocol": 8,
   "date": "2026-10-04",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "No more brief hitches when a part changes colour: such a part is drawn on its own again, as before 3.3, instead of waiting for the GPU to repaint a colour palette",
-      "From 3.4: players' faces, hats, pets, rides and weapons are drawn as fewer pieces and look exactly the same (a car of eleven parts is five)",
-      "From 3.3: parts with words over them stay drawn together with the rest; everything from 2.6 is still here"
+      "The Ablox keyboard works again: its keys answered no touches on newer iPads, every tap falling through to the screen behind it",
+      "From 3.7: no brief hitches when a part changes colour; players' gear is drawn as fewer pieces and looks exactly the same"
     ],
     "ja": [
-      "パーツの色が変わるときの 小さな カクつきが なくなりました（色が変わるパーツは 3.3 より前と同じく 1つで描きます。色見本の ぬりかえで GPU を待たない）",
-      "3.4 の内容: プレイヤーの顔・帽子・ペット・乗り物・武器を 少ない かたまりで描く（見た目は同じ。11パーツの車は 5つに）",
-      "3.3 の内容: 文字がのったパーツも まとめたまま。2.6 からの内容もそのまま"
+      "Ablox キーボードが また使えるようになりました（新しい iPad では キーを押しても 反応せず、うしろの画面に タッチが通りぬけていました）",
+      "3.7 の内容: パーツの色が変わるときの カクつきなし。プレイヤーの持ち物も 少ない かたまりで描く（見た目は同じ）"
     ]
   }
 }
