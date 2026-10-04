@@ -193,6 +193,14 @@ part by part, and prints how far apart the pictures are, the mean shift of
 each colour and where on the screen they differ; at the end it draws the sky
 alone, the most that simulator draws at all.
 
+Players are drawn the same way at a smaller scale: whatever only ever moves
+as a whole — a face, a hat, a pet, a ride, a weapon — has its parts that share
+a plain material merged into one mesh when it is built (`RigidParts`), the
+parts' own vertices placed where they were and drawn with the very material
+they had; a part that turns by itself (a hat's propeller) is left out. The
+frame-rate run dresses eight players in every kind of gear and checks every
+hat, face and pet merged against the same one unmerged (`BenchmarkCrowd`).
+
 A baked part keeps its entity, switched off. A change that shows (`looksTheSame`
 ignores names, tags, scores and words), an effect that tints, slides or hides it, or a
 child hung from it takes it out: its mesh is rebuilt without it, and until then

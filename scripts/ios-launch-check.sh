@@ -231,6 +231,9 @@ if [ "${BENCHMARK:-1}" = 1 ]; then
     head -84 <<< "$lines"
     echo "   ..."
     tail -12 <<< "$lines"
+    echo "== Players in every kind of gear, and their merged parts"
+    grep -h "AbloxCrowd" "$out/benchmark.stderr.log" "$out/benchmark.stdout.log" 2>/dev/null \
+      || echo "   (no players were dressed)"
     echo "== The same view merged, merged again and part by part (nothing moving)"
     grep -h "AbloxLook" "$out/benchmark.stderr.log" "$out/benchmark.stdout.log" 2>/dev/null \
       || echo "   (no comparison was made)"

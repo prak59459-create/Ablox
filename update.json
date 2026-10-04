@@ -1,19 +1,19 @@
 {
   "app": "Ablox",
-  "version": "3.3",
-  "build": 22,
+  "version": "3.4",
+  "build": 23,
   "protocol": 8,
   "date": "2026-10-04",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "Parts that only change colour (a dance floor on every beat, a light turning red) stay drawn together with the rest: only their colour is painted again",
-      "Parts with words over them (prices, names on plates) are drawn together with the rest too; the words stay exactly as they were",
+      "Players are drawn as fewer pieces: the parts of a face, hat, pet, ride or weapon that share a colour are one piece (a car of eleven parts is five), and look exactly the same — a full room is much lighter",
+      "From 3.3: parts that only change colour and parts with words over them stay drawn together with the rest",
       "Everything from 2.6 to 3.2: big games draw much faster, parts of many colours are drawn as one, touches no longer redraw the whole play screen"
     ],
     "ja": [
-      "色だけ変わるパーツ（リズムで光るダンスフロア、赤に変わるライトなど）も、ほかのパーツと いっしょに描いたまま 色だけ ぬりかえるようになりました",
-      "文字がのったパーツ（ねだんや名前のプレート）も まとめて描くようになりました。文字は いままでどおり 表示されます",
+      "プレイヤーを より少ない かたまりで 描くようになりました（顔・帽子・ペット・乗り物・武器の 同じ色のパーツを 1つに。11パーツの車は 5つに）。見た目は まったく同じで、人が多いときに 軽くなります",
+      "3.3 の内容: 色だけ変わるパーツや 文字がのったパーツも まとめて描いたまま",
       "2.6〜3.2 の内容もそのまま: 大きなゲームの描画が速く、色の多いパーツも まとめて描き、さわるたびの作りなおしなし"
     ]
   }
