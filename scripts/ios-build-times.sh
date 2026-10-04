@@ -63,6 +63,15 @@ if [ -n "${PER_FILE:-}" ]; then
   xcodebuild clean -scheme "$scheme" -destination 'generic/platform=iOS Simulator' \
     -derivedDataPath "$derived" > /dev/null 2>&1
 fi
+# Memory: every half second, the compilers running and how much each holds.
+# An iPad with 3 GB stops a build that needs more, with no error shown.
+memory="/tmp/ablox-memory.txt"
+: > "$memory"
+( while true; do
+    ps -axo rss=,comm= | awk '/swift-frontend/ { n++; sum += $1; if ($1 > max) max = $1 } END { print n + 0, sum + 0, max + 0 }' >> "$memory"
+    sleep 0.5
+  done ) &
+watcher=$!
 start=$(date +%s)
 xcodebuild build \
   -scheme "$scheme" \
@@ -75,9 +84,12 @@ xcodebuild build \
   OTHER_SWIFT_FLAGS="\$(inherited) $flags" > "$log" 2>&1
 status=$?
 end=$(date +%s)
+kill "$watcher" 2>/dev/null
 
 echo
 echo "== Build finished with status $status in $((end - start)) s"
+awk '{ if ($1 > jobs) jobs = $1; if ($2 > total) total = $2; if ($3 > one) one = $3 }
+     END { printf "== Memory: at most %d compilers at once, %d MB together, %d MB the largest one\n", jobs, total / 1024, one / 1024 }' "$memory"
 
 echo
 echo "== Slowest function bodies (ms, where, what)"
