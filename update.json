@@ -1,7 +1,7 @@
 {
   "app": "Ablox",
-  "version": "3.4",
-  "build": 23,
+  "version": "3.5",
+  "build": 24,
   "protocol": 8,
   "date": "2026-10-04",
   "package": "Ablox.swiftpm",
