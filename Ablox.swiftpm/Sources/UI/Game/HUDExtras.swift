@@ -1,7 +1,6 @@
 import SwiftUI
 import UIKit
 import UIKit.UIGestureRecognizerSubclass
-import AbloxCore
 
 // The play screen's optional furniture: the compass, the little chips of
 // facts, extra buttons, the visit's stats and the options that choose them.

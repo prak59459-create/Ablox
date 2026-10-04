@@ -247,6 +247,24 @@ PY
 fi
 
 echo
+echo "== What an update rebuilds: the files compiled again after a change to what one file declares"
+# From the compiler's own dependency records (.swiftdeps), turned into text
+# by swift-frontend run under the name swift-dependency-tool, which is how it
+# picks that mode.
+frontend="$(xcrun --find swift-frontend 2>/dev/null || true)"
+if [ -n "$frontend" ]; then
+  deps_dir="$(mktemp -d)"
+  ln -s "$frontend" "$deps_dir/swift-dependency-tool"
+  find "$derived" -name '*.swiftdeps' -path '*arm64*' ! -name '*-master*' 2>/dev/null | while read -r deps; do
+    "$deps_dir/swift-dependency-tool" --to-yaml --input-filename="$deps" \
+      --output-filename="$deps_dir/$(basename "$deps").yaml" > /dev/null 2>&1
+  done
+  python3 ../scripts/swiftdeps-fanin.py Sources "$deps_dir"/*.yaml 2>&1 | head -45
+else
+  echo "swift-frontend not found"
+fi
+
+echo
 echo "== Build timing summary"
 sed -n '/Build Timing Summary/,/^\*\* BUILD/p' "$log" | head -60
 

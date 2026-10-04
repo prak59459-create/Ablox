@@ -1,7 +1,6 @@
 import SwiftUI
 import UIKit
 import AVKit
-import AbloxCore
 
 // The album, the second round: favourites and captions, grouped by day or
 // by game, pictures or clips, a search, choosing several to share or

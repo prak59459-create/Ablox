@@ -1,18 +1,18 @@
 {
   "app": "Ablox",
-  "version": "4.5",
-  "build": 34,
+  "version": "4.6",
+  "build": 35,
   "protocol": 8,
   "date": "2026-10-04",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "The app is the same as 4.1: the rebuild timing now says how many files were compiled again and why, to find what makes an update rebuild everything",
-      "From 4.1: quicker to build, the menu screens no longer copy a whole world field by field"
+      "Quicker builds after an update: the app is one module again, so the build after an update compiles only the files that changed and the files that use them (a small change: about 37 s down to 9 s on the test Mac)",
+      "The first build after this update still builds everything once, because the project's layout changed"
     ],
     "ja": [
-      "アプリの中身は 4.1 と同じです。再ビルドの計測で、作りなおした ファイルの数と その理由を 出すように しました（アップデートで ぜんぶ 作りなおしに なる 原因を 見つけるため）",
-      "4.1 の内容: ビルドが 速く（メニューの画面が ワールドまるごとを コピーしない）"
+      "アップデートのあとの ビルドが 速く なります。アプリを 1つの モジュールに もどしたので、変わった ファイルと それを 使う ファイルだけを 作りなおします（小さな 変更なら テスト用の Mac で 約37秒 → 9秒）",
+      "この版に してから 最初の 1回だけは、プロジェクトの 組み立てが 変わったため ぜんぶ ビルドします"
     ]
   }
 }

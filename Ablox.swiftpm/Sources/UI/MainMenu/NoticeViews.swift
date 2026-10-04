@@ -1,5 +1,4 @@
 import SwiftUI
-import AbloxCore
 
 /// The newest notice under the update banner, with × to close it and a tap
 /// to read the rest.

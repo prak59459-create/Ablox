@@ -1,6 +1,5 @@
 import SwiftUI
 import UIKit
-import AbloxCore
 
 // Photo mode, the second round: a timer and bursts, lines in thirds, the
 // picture's shape, a frame and a stamp, a zoom lens, poses, a flash, and the

@@ -1,5 +1,4 @@
 import SwiftUI
-import AbloxCore
 
 // Settings → Suggestion box: write an idea or a problem, send it, and see
 // what became of the ones sent from this iPad. Rules in

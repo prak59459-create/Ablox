@@ -1,6 +1,5 @@
 import SwiftUI
 import UIKit
-import AbloxCore
 
 // The chat while playing: lines with times, stars and mentions, phrases in
 // groups and the player's own, emoji, what they said lately, whispering to

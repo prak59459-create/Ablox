@@ -88,10 +88,10 @@ Hard-coding either breaks the other, and only the iPad can report the one it
 breaks. The fix is to depend on neither: the four lines of arithmetic are
 written out inline.
 
-The same trap is why, at the time, **no file under `Sources/` contained
-`import AbloxCore`**: on device there was one module and nothing to import.
-That changed with *Two targets* below — the core is now a module called
-`AbloxCore` in both builds, and every file outside it imports it.
+The same trap is why **no file under `Sources/` contains
+`import AbloxCore`**: on device there is one module and nothing to import.
+(For a while there were two, see *Two targets* below; *One module again*
+says why that ended.)
 
 ### `is only available in iOS 18.0 or newer`
 
@@ -146,9 +146,11 @@ The same round's screen listed these, fixed at the time:
 
 ---
 
-## Two targets
+## Two targets (until Ablox 4.6)
 
-Both apps now declare two targets: the library `AbloxCore` (`Sources/AbloxCore`),
+*Replaced by one module again, below; kept for its measurements.*
+
+Both apps declared two targets: the library `AbloxCore` (`Sources/AbloxCore`),
 and the app, which depends on it. Each compile job then holds one module's
 source, with the other read back as a small compiled summary, instead of the
 whole app at once.
@@ -182,15 +184,16 @@ about five times as much code per line as the core's logic, so the cost is
 spread over every view rather than a few slow functions.
 
 - **The core imports Foundation alone** (and `Compression`). Glue to Apple
-  frameworks lives in `Engine/AppleBridging.swift`.
-- **Every file outside the core says `import AbloxCore`.**
+  frameworks lives in `Engine/AppleBridging.swift`. Still the rule with one
+  module: the root package builds the core alone on Linux for the tests.
+- **No file imports `AbloxCore` or names a module** (`AbloxCore.lerp`): on
+  device the core is part of the app's module.
 - **Names the core shares with Apple frameworks** — `Gesture`, `BoundingBox`,
-  `MusicTrack` — are pinned to the core's in `Engine/CoreNames.swift`, so the
-  app's files mean what they meant as one module.
-- **What the app uses from the core is `public`.** An internal member used
-  from the app is a compile error on device, not on Linux, so the macOS CI
-  build (`.github/workflows/ios-build.yml`) is what catches it.
-- **The library target's name differs from the app product's.**
+  `MusicTrack` — mean the core's, because a module's own declarations win
+  over imported ones. SwiftUI's is written `SwiftUI.Gesture`.
+- **What the app uses from the core is `public`**, so the core still builds
+  as a module of its own for the tests.
+- **The target's name differs from the app product's.**
 - **No macros** (`#Preview`, `@Observable`, …). Each needs a plugin run
   during the build, for nothing a player sees.
 - **No debug information**: both targets pass `-Xfrontend -gnone` through
@@ -215,6 +218,43 @@ SwiftPM dependencies are still avoided. Swift Playgrounds can only resolve them
 by git URL, which would mean the project cannot be opened without a network.
 The shared core is mirrored between the two repositories as files, and
 `scripts/sync-core.sh --check` keeps the copies byte-identical.
+
+---
+
+## One module again
+
+Two modules made a full build a little lighter, but they made every update
+that added a declaration to the core rebuild almost the whole app. With
+`-driver-show-incremental` the compiler says why it compiles a file again
+(`scripts/ios-build-incremental.sh` lists the reasons), and across two
+modules the reason was always the same: *the core's interface changed*. It
+cannot tell which file of the core changed, so every file of the app that
+uses anything from the core is compiled again — the SwiftUI screens, which
+are the expensive half.
+
+Within one module it follows each file: a file whose declarations changed
+rebuilds the files that use something it declares, and nothing else.
+
+Measured on CI, each change made to the built project and timed alone:
+
+| Rebuild after… | Two modules | One module |
+|---|---|---|
+| a new private function in `ZipArchive.swift` (used by 3 files) | 37 s, 92 files | 9 s, 6 files |
+| the same in `BlockAnimation.swift` (used, through `Block`, by all) | 29 s, 170 files | 27 s, 161 files |
+| a new public function in `BlockAnimation.swift` | 34 s, 170 files | 26 s, 161 files |
+| a function body in the core, a translation, the version number | 7 s | 7–9 s |
+
+A full build is about the same either way (45.0 s against 41.7 s, three
+builds each on one runner), and so is the compilers' memory (the largest
+660 MB against 616 MB on a 3-core runner; a job holds about 350 MB when it
+compiles one file).
+
+What one module does not fix: a file that declares something nearly every
+file uses (`Block`, `BlockAnimation`, an `==` or `<` of its own, an
+`extension Array`) still rebuilds nearly everything when anything is
+declared in it, even a private function. Hence the rules below on where
+operators and extensions of widely used types live, and the report of which
+files rebuild how many others (`scripts/swiftdeps-fanin.py`).
 
 ---
 
@@ -248,8 +288,8 @@ goes on this page.
 
 `scripts/check-playgrounds-project.sh` runs in CI. It cannot type-check the
 manifest or the Apple layers — nothing here can. All it does is refuse the
-spellings this page records as rejected, plus assert the two-target shape, the
-`AppleProductTypes` import, `import AbloxCore` outside the core, a core that
+spellings this page records as rejected, plus assert the one-target shape, the
+`AppleProductTypes` import, no `import AbloxCore` anywhere, a core that
 imports Foundation alone, and no macros.
 
 It is a ratchet on known mistakes, not a substitute for opening the project on

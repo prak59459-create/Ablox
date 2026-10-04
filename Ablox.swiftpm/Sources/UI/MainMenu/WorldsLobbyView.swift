@@ -1,6 +1,5 @@
 import SwiftUI
 import UniformTypeIdentifiers
-import AbloxCore
 
 /// The world library: create, play, host, and (on a device with Ablox Studio
 /// installed) hand off for editing.

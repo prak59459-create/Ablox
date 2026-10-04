@@ -11,6 +11,7 @@ on:
       - "scripts/ios-build-times.sh"
       - "scripts/ios-build-compare.sh"
       - "scripts/ios-build-incremental.sh"
+      - "scripts/swiftdeps-fanin.py"
       - ".github/workflows/ios-build.yml"
   workflow_dispatch:
     inputs:
