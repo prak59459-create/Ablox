@@ -88,10 +88,11 @@ Hard-coding either breaks the other, and only the iPad can report the one it
 breaks. The fix is to depend on neither: the four lines of arithmetic are
 written out inline.
 
-The same trap is why **no file under `Sources/` contains
-`import AbloxCore`**: on device there is one module and nothing to import.
-(For a while there were two, see *Two targets* below; *One module again*
-says why that ended.)
+The same trap is why, at the time, **no file under `Sources/` contained
+`import AbloxCore`**: on device there was one module and nothing to import.
+That changed with *Two targets* below — the core is a module called
+`AbloxCore` in both builds, and every file outside it imports it. (One
+module was tried again in 4.6–5.1 and failed on the iPad: *Round 4*.)
 
 ### `is only available in iOS 18.0 or newer`
 
@@ -146,11 +147,9 @@ The same round's screen listed these, fixed at the time:
 
 ---
 
-## Two targets (until Ablox 4.6)
+## Two targets
 
-*Replaced by one module again, below; kept for its measurements.*
-
-Both apps declared two targets: the library `AbloxCore` (`Sources/AbloxCore`),
+Both apps declare two targets: the library `AbloxCore` (`Sources/AbloxCore`),
 and the app, which depends on it. Each compile job then holds one module's
 source, with the other read back as a small compiled summary, instead of the
 whole app at once.
@@ -186,14 +185,14 @@ spread over every view rather than a few slow functions.
 - **The core imports Foundation alone** (and `Compression`). Glue to Apple
   frameworks lives in `Engine/AppleBridging.swift`. Still the rule with one
   module: the root package builds the core alone on Linux for the tests.
-- **No file imports `AbloxCore` or names a module** (`AbloxCore.lerp`): on
-  device the core is part of the app's module.
+- **Every file outside the core says `import AbloxCore`.**
 - **Names the core shares with Apple frameworks** — `Gesture`, `BoundingBox`,
-  `MusicTrack` — mean the core's, because a module's own declarations win
-  over imported ones. SwiftUI's is written `SwiftUI.Gesture`.
-- **What the app uses from the core is `public`**, so the core still builds
-  as a module of its own for the tests.
-- **The target's name differs from the app product's.**
+  `MusicTrack` — are pinned to the core's in `Engine/CoreNames.swift`, so the
+  app's files mean what they meant as one module.
+- **What the app uses from the core is `public`.** An internal member used
+  from the app is a compile error on device, not on Linux, so the macOS CI
+  build (`.github/workflows/ios-build.yml`) is what catches it.
+- **The library target's name differs from the app product's.**
 - **Operators are written in four files only**: `AbloxCore/Comparisons.swift`,
   `Math.swift`, `AppVersion.swift` and `ScriptVector.swift`. To check any
   `a == b` the compiler looks at every `==` the module writes, so a type with
@@ -235,7 +234,12 @@ The shared core is mirrored between the two repositories as files, and
 
 ---
 
-## One module again
+## One module again (Ablox 4.6–5.1, then undone)
+
+*Tried for faster rebuilds after an update, and undone in 5.2 because the
+iPad could not build it at all (Round 4, below). The measurements stay:
+they are why operators and extensions of everyday types still live in a
+few files — that keeps rebuilds small inside each module.*
 
 Two modules made a full build a little lighter, but they made every update
 that added a declaration to the core rebuild almost the whole app. With
@@ -308,6 +312,27 @@ beside the compiling) and the app is linked (about 1 s).
 
 ---
 
+## Round 4 — one module again, and the build failed with no error
+
+Ablox 4.6 put the whole app back into one module, so that an update would
+rebuild only the files it touched (*One module again*, above, has why and
+what CI measured). On the iPad the build then failed with nothing listed —
+the same as Round 3, the last time the app was one module, and the same
+reading: the compilers ran out of memory. CI's Macs have far more memory
+than an iPad with 3 GB, and measured the largest compiler at about the same
+size either way, which is why it looked safe there; the iPad says otherwise.
+
+5.2 is two modules again. The rule from both rounds: **the app stays two
+modules** (or more), whatever a rebuild would save, until the iPad itself
+shows one module building.
+
+If a build fails with no error: close other apps and press Run again — the
+files already compiled are kept, so each try gets further (Round 3 launched
+on the third). A project that cannot launch cannot update itself, so a new
+version then comes from GitHub as a new project.
+
+---
+
 ## Updates without a full build
 
 A new version handed to Swift Playgrounds as a new project is built from
@@ -338,8 +363,8 @@ goes on this page.
 
 `scripts/check-playgrounds-project.sh` runs in CI. It cannot type-check the
 manifest or the Apple layers — nothing here can. All it does is refuse the
-spellings this page records as rejected, plus assert the one-target shape, the
-`AppleProductTypes` import, no `import AbloxCore` anywhere, a core that
+spellings this page records as rejected, plus assert the two-target shape, the
+`AppleProductTypes` import, `import AbloxCore` outside the core, a core that
 imports Foundation alone, no macros, and operators and extensions of
 everyday types only in the files listed above.
 

@@ -1,18 +1,18 @@
 {
   "app": "Ablox",
-  "version": "5.1",
-  "build": 40,
+  "version": "5.2",
+  "build": 41,
   "protocol": 8,
-  "date": "2026-10-04",
+  "date": "2026-10-05",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "The app is the same as 5.0; the notes on building faster are brought up to date. To build quickly, update from Settings → Updates: only the files that changed are written into the project, and only they and the files that use them are compiled again",
-      "From 4.6 to 5.0: the app is one module again, and the files most of it uses seldom change, so a typical update rebuilds a few to about fifty files"
+      "Builds on the iPad again: 4.6 to 5.1 made the app one module, and on an iPad with little memory the build then failed with no error. The app is two modules again, as up to 4.5",
+      "Kept from 4.7 to 5.0: comparisons and additions to everyday types in a few files, and the split files, so an update still rebuilds fewer files inside each module"
     ],
     "ja": [
-      "アプリの 中身は 5.0 と 同じです（ビルドを 速く する ための 記録を 新しく しました）。速く ビルド するには、アプリの 設定 → アップデート から 更新して ください。変わった ファイルだけが プロジェクトに 書きこまれ、それと それを 使う ファイルだけを 作りなおします",
-      "4.6〜5.0 の内容: アプリを 1つの モジュールに もどし、みんなが 使う ファイルを ほとんど 変わらない 形に したので、ふつうの アップデートで 作りなおすのは 数ファイル〜50ファイル ほどです"
+      "iPad で また ビルドできる ように なりました。4.6〜5.1 で アプリを 1つの モジュールに したところ、メモリの 少ない iPad では エラーの 表示なしで ビルドが 失敗して いました。4.5 までと 同じ 2つの モジュールに もどしました",
+      "4.7〜5.0 の 内容（くらべ方などを 少しの ファイルに まとめた・ファイルを 分けた）は そのまま。モジュールの 中では アップデートの あとに 作りなおす ファイルが 少ない ままです"
     ]
   }
 }

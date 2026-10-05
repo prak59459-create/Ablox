@@ -1,4 +1,5 @@
 import SwiftUI
+import AbloxCore
 
 /// What a world's script puts on the screen: its own GUI, placed freely, and
 /// the shooter furniture — crosshair, health, hit marker — that appears only

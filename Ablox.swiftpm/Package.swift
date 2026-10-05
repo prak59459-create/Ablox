@@ -7,9 +7,9 @@
 // and unit-test `Sources/AbloxCore` off-device — it points at these same
 // source files, so there is one implementation rather than a copy.
 //
-// One target here: the whole app, `Sources/AbloxCore` included, is one
-// module. The root package builds the core on its own as `AbloxCore` for the
-// tests, so no file under Sources/ imports it or names a module.
+// Two targets: AbloxCore (the portable core, also built and tested
+// off-device by the root package) and the app. The core is its own module on
+// both, so every file outside Sources/AbloxCore says `import AbloxCore`.
 
 import PackageDescription
 import AppleProductTypes
@@ -25,8 +25,8 @@ let package = Package(
             targets: ["AbloxApp"],
             bundleIdentifier: "com.ablox.client",
             teamIdentifier: "",
-            displayVersion: "5.1",
-            bundleVersion: "40",
+            displayVersion: "5.2",
+            bundleVersion: "41",
             // No `appIcon:` on purpose. The parameter is optional, and two
             // guesses at `PlaceholderIcon`'s member names (`.hammer`, then
             // `.cube`) were both rejected on device — a wrong one does not
@@ -63,24 +63,33 @@ let package = Package(
         )
     ],
     targets: [
-        // One module, for the build after an update: the compiler then
-        // follows which file uses which declaration, and an update that
-        // touches a few files rebuilds those and the files that use what
-        // they declare. Across two modules it could only tell that the core
-        // had changed, and rebuilt nearly every screen for any new
-        // declaration in it (docs/ipad-build.md, "One module again").
+        // Two modules rather than one, for the build on an iPad: each compile
+        // job then holds only its own module's source, with the other one read
+        // back as a small compiled summary. As one module the app has twice
+        // failed to build on an iPad with 3 GB of memory, with no error shown
+        // (46,000 lines in 1.x, and again in 4.6–5.1): the compilers ran out
+        // of memory. One module would rebuild less after an update, but it
+        // has to build at all first (docs/ipad-build.md, "Round 4").
         //
-        // The target's name must differ from the app product's ("Ablox");
-        // Swift Playgrounds refuses a target and a product that share one.
+        // The library target's name must differ from the app product's
+        // ("Ablox"); Swift Playgrounds refuses a target and a product that
+        // share one.
         //
         // `-gnone`: no debug information. Nothing on an iPad reads it, and
         // making it was about a fifth of the build (docs/ipad-build.md). It
         // goes to the compiler itself (`-Xfrontend`): package flags come
         // before the `-g` of a debug build, so given to the driver it would
         // lose, and the last one wins.
+        .target(
+            name: "AbloxCore",
+            path: "Sources/AbloxCore",
+            swiftSettings: [.unsafeFlags(["-Xfrontend", "-gnone"])]
+        ),
         .executableTarget(
             name: "AbloxApp",
+            dependencies: ["AbloxCore"],
             path: "Sources",
+            exclude: ["AbloxCore"],
             swiftSettings: [.unsafeFlags(["-Xfrontend", "-gnone"])]
         )
     ]
