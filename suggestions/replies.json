@@ -28,14 +28,6 @@
       "version": "2.5"
     },
     {
-      "id": "s1791437398276-N7SRF9",
-      "status": "planned",
-      "message": {
-        "en": "We're reading your idea — back soon!",
-        "ja": "読んでいます。少し待っててね！"
-      }
-    },
-    {
       "id": "s1791437123919-6V5PSV",
       "status": "done",
       "message": {
@@ -43,6 +35,14 @@
         "ja": "シフトロックができたよ！プレイ画面の上のカギのボタンを押すと、キャラクターがカメラの向いている方を向くよ。顔のある方もちゃんと正面になったよ。"
       },
       "version": "5.3"
+    },
+    {
+      "id": "s1791437398276-N7SRF9",
+      "status": "planned",
+      "message": {
+        "en": "Great idea! We've started: trees, houses, shops and lamps in the games now have more detail. More finishing touches for each game are on the way.",
+        "ja": "いいアイデアだね！まず、ゲームの木や家、お店、街灯をくわしくしたよ。ゲームごとの仕上げも、これから少しずつ足していくね。"
+      }
     }
   ]
 }
