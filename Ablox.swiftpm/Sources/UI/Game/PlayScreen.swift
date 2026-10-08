@@ -1236,6 +1236,10 @@ public struct PlayScreen: View {
                 }
             }
 
+            if hud.showShiftLockButton, session.scripted.camera.mode == .thirdPerson, !preferFirstPerson, spectating == nil {
+                ShiftLockButton(isOn: $settings.preferences.hud.shiftLock)
+            }
+
             if hud.shows(.camera), settings.parental.family.picturesAllowed {
                 barButton("camera.fill", L("Take a picture")) { takePicture() }
             }

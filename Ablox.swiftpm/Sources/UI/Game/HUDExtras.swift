@@ -430,6 +430,7 @@ struct PlayScreenOptionsView: View {
             Toggle(L("Run button"), isOn: hud.showRunButton)
             Toggle(L("Keep walking button"), isOn: hud.showWalkButton)
             Toggle(L("First-person button"), isOn: hud.showViewButton)
+            Toggle(L("Shift lock button"), isOn: hud.showShiftLockButton)
             Picker(L("Button layout"), selection: Binding(
                 get: { ButtonPreset.allCases.first { $0.matches(settings.preferences) } },
                 set: { preset in if let preset { preset.apply(to: &settings.preferences) } })) {
@@ -462,6 +463,7 @@ struct PlayScreenOptionsView: View {
     private var cameraSection: some View {
         Section {
             Toggle(L("Camera follows behind me"), isOn: hud.cameraFollows)
+            Toggle(L("Shift lock (face where the camera looks)"), isOn: hud.shiftLock)
             Toggle(L("Two taps put the camera behind me"), isOn: hud.doubleTapResetsCamera)
             Toggle(L("Swap left and right looking"), isOn: hud.invertLookX)
             Toggle(L("Swap up and down looking"), isOn: $settings.invertCameraY)

@@ -1,18 +1,18 @@
 {
   "app": "Ablox",
-  "version": "5.2",
-  "build": 41,
+  "version": "5.3",
+  "build": 42,
   "protocol": 8,
-  "date": "2026-10-05",
+  "date": "2026-10-08",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "Builds on the iPad again: 4.6 to 5.1 made the app one module, and on an iPad with little memory the build then failed with no error. The app is two modules again, as up to 4.5",
-      "Kept from 4.7 to 5.0: comparisons and additions to everyday types in a few files, and the split files, so an update still rebuilds fewer files inside each module"
+      "Shift lock: a lock button on the play screen's top bar. On, your character faces where the camera looks and the stick steps it sideways; off, it turns to the way you walk. Hide the button in Settings → Play screen → Buttons",
+      "Your character's face is now its front: walking left or right, it used to face the other way. Other players and characters in games are fixed too"
     ],
     "ja": [
-      "iPad で また ビルドできる ように なりました。4.6〜5.1 で アプリを 1つの モジュールに したところ、メモリの 少ない iPad では エラーの 表示なしで ビルドが 失敗して いました。4.5 までと 同じ 2つの モジュールに もどしました",
-      "4.7〜5.0 の 内容（くらべ方などを 少しの ファイルに まとめた・ファイルを 分けた）は そのまま。モジュールの 中では アップデートの あとに 作りなおす ファイルが 少ない ままです"
+      "シフトロック: プレイ画面の 上に カギの ボタンが できました。オンに すると キャラクターが カメラの 向いている 方を 向き、スティックで 横にも 歩けます。オフでは 歩く 方向を 向きます。ボタンは 設定 → プレイ画面 → ボタン で かくせます",
+      "キャラクターの 顔の ある方が 正面に なりました。左右に 歩くと 反対を 向いて いたのを 直しました。ほかの プレイヤーや ゲームの キャラクターも 直っています"
     ]
   }
 }
