@@ -46,11 +46,12 @@
     },
     {
       "id": "s1791503263846-25HANM",
-      "status": "planned",
+      "status": "done",
       "message": {
-        "en": "We're reading your idea — back soon!",
-        "ja": "読んでいます。少し待っててね！"
-      }
+        "en": "Thank you! Meme Heist's walking memes now show up and keep walking, even for friends who join late. We are checking every game for more bugs, a few at a time.",
+        "ja": "ありがとう！ミームハイストの カーペットの ミームが ちゃんと見えて 歩くように なったよ。あとから入った友だちにも 見えるよ。ほかのゲームも 少しずつ 見直していくね。"
+      },
+      "version": "5.4"
     }
   ]
 }

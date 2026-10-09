@@ -199,6 +199,13 @@ or `wobble`, at `b.animation_speed` (1 is usual); it turns and stretches the
 block (and what hangs from it) without moving it, so `move_to` still carries it
 along. `nil` stops it. An iPad that has not updated shows it still (2.2).
 
+**Moves over time**: `b.move(…, secs)` and `b.move_to(dest, secs)` of 2 seconds
+or more go at a steady speed, so `start + speed × time` is where the block is
+(a character walking a carpet); shorter ones speed up and slow down, like a
+door. Someone who joins halfway sees the block where it has got to, and it
+goes on from there; changing its words or colour on the way does not make it
+jump to the end (5.4).
+
 **World**: `gravity sky sky_top sky_bottom light sun sun_yaw ground
 ground_color fall_height weather time day_length sky_style effect shadows
 music`. Blocks also have `particles` (a kind, or nil) and `image` (the name of

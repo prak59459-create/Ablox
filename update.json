@@ -1,18 +1,20 @@
 {
   "app": "Ablox",
-  "version": "5.3",
-  "build": 42,
+  "version": "5.4",
+  "build": 43,
   "protocol": 8,
-  "date": "2026-10-08",
+  "date": "2026-10-09",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "Shift lock: a lock button on the play screen's top bar. On, your character faces where the camera looks and the stick steps it sideways; off, it turns to the way you walk. Hide the button in Settings → Play screen → Buttons",
-      "Your character's face is now its front: walking left or right, it used to face the other way. Other players and characters in games are fixed too"
+      "Characters that walk a long way (the memes on Meme Heist's carpet) are drawn wherever they have got to: they used to vanish when the place they set off from was far away",
+      "Someone who joins a game halfway sees moving characters where they are and walking on, not standing still at the end of their path",
+      "A character that gets new words or colours on its way (a sale price) no longer jumps to the end of its path, and long moves go at a steady speed"
     ],
     "ja": [
-      "シフトロック: プレイ画面の 上に カギの ボタンが できました。オンに すると キャラクターが カメラの 向いている 方を 向き、スティックで 横にも 歩けます。オフでは 歩く 方向を 向きます。ボタンは 設定 → プレイ画面 → ボタン で かくせます",
-      "キャラクターの 顔の ある方が 正面に なりました。左右に 歩くと 反対を 向いて いたのを 直しました。ほかの プレイヤーや ゲームの キャラクターも 直っています"
+      "長い道を歩くキャラクター（ミームハイストのカーペットのミームなど）が、いる場所で ちゃんと見えるようになりました。出発した場所が遠いと 消えていたのを直しました",
+      "ゲームの とちゅうで 入った人にも、動くキャラクターが いまの場所から 歩いて見えます。道の終わりで 止まって見えていたのを直しました",
+      "歩いている とちゅうで 文字や色が変わっても（セールの値段など）道の終わりに ワープしなくなりました。長い移動は 同じはやさで 進みます"
     ]
   }
 }
