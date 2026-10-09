@@ -1,20 +1,18 @@
 {
   "app": "Ablox",
-  "version": "5.4",
-  "build": 43,
+  "version": "5.5",
+  "build": 44,
   "protocol": 8,
   "date": "2026-10-09",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "Characters that walk a long way (the memes on Meme Heist's carpet) are drawn wherever they have got to: they used to vanish when the place they set off from was far away",
-      "Someone who joins a game halfway sees moving characters where they are and walking on, not standing still at the end of their path",
-      "A character that gets new words or colours on its way (a sale price) no longer jumps to the end of its path, and long moves go at a steady speed"
+      "Characters walking a long way (the memes on Meme Heist's carpet) are drawn exactly where the game has them: the buy button could show by an empty carpet while the meme was invisible",
+      "A character made and sent walking at the same moment always sets off, even when its move arrives a moment before it does"
     ],
     "ja": [
-      "長い道を歩くキャラクター（ミームハイストのカーペットのミームなど）が、いる場所で ちゃんと見えるようになりました。出発した場所が遠いと 消えていたのを直しました",
-      "ゲームの とちゅうで 入った人にも、動くキャラクターが いまの場所から 歩いて見えます。道の終わりで 止まって見えていたのを直しました",
-      "歩いている とちゅうで 文字や色が変わっても（セールの値段など）道の終わりに ワープしなくなりました。長い移動は 同じはやさで 進みます"
+      "長い道を歩くキャラクター（ミームハイストのカーペットのミームなど）が、ゲームの中で いる場所に ぴったり見えるようになりました。ミームが見えないのに「買う」ボタンが出ることがあったのを直しました",
+      "作ってすぐ歩かせたキャラクターが、かならず 歩きはじめるようになりました"
     ]
   }
 }

@@ -55,11 +55,12 @@
     },
     {
       "id": "s1791520756808-38DW3B",
-      "status": "planned",
+      "status": "done",
       "message": {
-        "en": "We're reading your idea — back soon!",
-        "ja": "読んでいます。少し待っててね！"
-      }
+        "en": "Thanks for telling us! The memes walking on the carpet now show up right where you can buy them.",
+        "ja": "おしえてくれて ありがとう！カーペットを 歩くミームが、「買う」ボタンの 場所に ちゃんと 見えるように なったよ。"
+      },
+      "version": "5.5"
     }
   ]
 }
