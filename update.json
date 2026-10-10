@@ -1,20 +1,16 @@
 {
   "app": "Ablox",
-  "version": "5.6",
-  "build": 45,
+  "version": "5.7",
+  "build": 46,
   "protocol": 8,
   "date": "2026-10-10",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "The 30 built-in sounds (coin, jump, door, explosion, win…) are real recordings now. Settings → Sound library → Recorded sounds turns the old beeps back on",
-      "A sound library with over 6,000 sound effects: animals, doors, footsteps, magic, machines, crowds and more. Listen to them, copy a name into a script — sound(\"retro-game-coin-08\") — and download them all for playing offline (Settings → Sound library)",
-      "A game's library sounds download when it starts, so the first one plays on time"
+      "The sound library lists every one of its 591 kinds of sound (6,056 sounds, 351 MB to download them all) — the list stopped at 400 before"
     ],
     "ja": [
-      "最初から入っている 30 種類の効果音（コイン、ジャンプ、ドア、爆発、勝ち…）が本物の録音になりました。設定 → 効果音ライブラリ →「録音の効果音」をオフにすると前の電子音にもどせます",
-      "6,000 以上の効果音が入った「効果音ライブラリ」ができました。動物、ドア、足音、魔法、機械、歓声など。聞いてみたり、名前をスクリプトにコピーして sound(\"retro-game-coin-08\") のように使ったり、「すべてダウンロード」でインターネットなしでも鳴らせます（設定 → 効果音ライブラリ）",
-      "ゲームで使うライブラリの効果音は、ゲームが始まるときにダウンロードされるので、最初の音もちゃんと鳴ります"
+      "効果音ライブラリに 591 種類（6,056 個、ぜんぶで 351 MB）すべてが出るようになりました。前は 400 種類で切れていました"
     ]
   }
 }
