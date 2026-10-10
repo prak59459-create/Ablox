@@ -309,8 +309,16 @@ end
   space`. `music("off")` is quiet; `music(nil)` goes back to the world's own
   (`world.music`). Players set its volume in Settings.
 - **Sounds** can be louder, softer, higher or lower: `sound("coin", {volume,
-  pitch})`. There are 30 of them (`coin jump powerup explosion splash door click
-  whoosh win lose magic pop bell laser alarm drum` and the older ones).
+  pitch})`. There are 30 built in (`coin jump powerup explosion splash door click
+  whoosh win lose magic pop bell laser alarm drum` and the older ones), each a
+  real recording since Ablox 5.6.
+- **The sound library** has over 6,000 more: `sound("retro-game-coin-08")`,
+  `p.sound("animal-cat-meow-02", {volume: 0.6})`. Find one in *Settings → Sound
+  library* (or Studio's *Sound library* button), listen, and copy its name. A
+  game's sounds download when it starts; *Download all* there keeps every one
+  on the iPad for playing offline. They are CC0 recordings from
+  [SFXMint](https://sfxmint.com), copied into the game list repository's
+  `sounds/` folder, so they are free to use in any game.
 - **Particles**: `fire smoke sparkles confetti rain snow bubbles hearts stars
   leaves magic dust`, as a puff or `{seconds: 5}` of them, anywhere, or
   `b.particles = "fire"` for a block that keeps burning.

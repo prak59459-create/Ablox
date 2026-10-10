@@ -36,6 +36,8 @@ struct AbloxApp: App {
         // Before anything else: notices a crash last time and watches this run.
         ProblemRecorder.shared.start(app: "Ablox")
         ProblemRecorder.shared.noteActivity("Starting")
+        // Sounds a game names come from the same place as the game list.
+        SoundLibraryStore.shared.source = settings.catalogueSource
     }
 
     var body: some Scene {

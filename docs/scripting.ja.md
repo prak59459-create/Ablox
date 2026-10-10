@@ -272,7 +272,8 @@ end
 
 - **ランキング** はプレイヤーごとの最高記録をホストの iPad に残します（タイムなら `{lower: true}`）。`leaderboard` は順位を返します。
 - **音楽** は iPad が作ります：`calm adventure spooky race boss shop party space`。`music("off")` で無音、`music(nil)` でワールドの音楽（`world.music`）に戻ります。
-- **効果音** は大きさ・高さを変えられます：`sound("coin", {volume: 0.5, pitch: 1.5})`。
+- **効果音** は大きさ・高さを変えられます：`sound("coin", {volume: 0.5, pitch: 1.5})`。最初から入っている 30 種類（`coin jump powerup explosion splash door click whoosh win lose magic pop bell laser alarm drum` など）は、Ablox 5.6 から本物の録音です。
+- **効果音ライブラリ** には、ほかに 6,000 以上の音があります：`sound("retro-game-coin-08")`、`p.sound("animal-cat-meow-02", {volume: 0.6})`。**設定 → 効果音ライブラリ**（Studio では「効果音ライブラリ」ボタン）で探して、聞いて、名前をコピーしてください。ゲームで使う音はゲームが始まるときにダウンロードされます。「すべてダウンロード」を押すと全部が iPad に入り、インターネットなしでも鳴ります。音は [SFXMint](https://sfxmint.com) の CC0（自由に使える）録音で、ゲーム一覧のリポジトリの `sounds/` フォルダにコピーしてあります。
 - **パーティクル**：`fire smoke sparkles confetti rain snow bubbles hearts stars leaves magic dust`。`b.particles = "fire"` でずっと燃えるブロックになります。
 - **speak(文)** は「キャラクターのセリフを読み上げる」をオンにした人に声で読み上げます。会話の吹き出しも読み上げます。
 - **ワールド**：`world.weather`（`clear rain snow fog storm`）、`world.time`（時刻）、`world.day_length`（1日が何分か。0 で止まる）、`world.sky_style`（`gradient clouds sunset stars aurora space`）、`world.effect`（`none bloom vivid warm cool noir retro dream`）、`world.shadows`。
