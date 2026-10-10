@@ -11,7 +11,7 @@ struct DownloadAllCard: View {
     @ObservedObject private var downloads = GameDownloads.shared
 
     private var playable: [GameListing] { library.listings.filter(\.isSupported) }
-    private var missing: [GameListing] { playable.filter { !library.isInstalled($0) } }
+    private var missing: [GameListing] { playable.filter { !library.isInstalled($0) || library.isOutdated($0) } }
 
     /// The size still to download, when the list says every game's size.
     private var missingBytes: Int? {

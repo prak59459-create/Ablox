@@ -1,0 +1,683 @@
+{
+  "app": "Ablox",
+  "releases": [
+    {
+      "version": "5.9",
+      "build": 48,
+      "date": "2026-10-10",
+      "notes": {
+        "en": [
+          "Settings → Updates → Update history: every version so far and what each one changed, newest first, with this iPad's version marked",
+          "A game from the list that has been updated is downloaded again before you play it, instead of the old copy on this iPad being played forever (this is why Last Survivor Games' new rounds did not show)",
+          "Download all also fetches games whose newer version is in the list, and the Play button says when a new version will come down first"
+        ],
+        "ja": [
+          "設定 → アップデート →「アップデートの履歴」で、これまでの版と それぞれで変わったところを 新しい順に見られます（この iPad の版に しるし）",
+          "ゲーム一覧で新しくなったゲームは、遊ぶ前に もう一度ダウンロードするようにしました。前は iPad に入った古いゲームのまま 遊んでいました（Last Survivor Games の新しいゲームが出なかったのは これが原因です）",
+          "「すべてダウンロード」は 新しい版が出たゲームも ダウンロードします。遊ぶボタンは、先に新しい版をダウンロードするときは そう表示します"
+        ]
+      }
+    },
+    {
+      "version": "5.8",
+      "build": 47,
+      "date": "2026-10-10",
+      "notes": {
+        "en": [
+          "The sound library (6,056 sounds) is now on the game list's main branch as well, so it works whichever branch Settings → Game list points at",
+          "The sound list is fetched once in the background when the app starts, so the first game that plays a library sound does not wait for it"
+        ],
+        "ja": [
+          "効果音ライブラリ（6,056 個）がゲーム一覧の main ブランチにも入りました。設定 → ゲーム一覧 のブランチがどちらでも使えます",
+          "アプリを開いたときに効果音の一覧を裏で読みこんでおくので、ライブラリの音を使うゲームでも最初の音から鳴ります"
+        ]
+      }
+    },
+    {
+      "version": "5.7",
+      "build": 46,
+      "date": "2026-10-10",
+      "notes": {
+        "en": [
+          "The sound library lists every one of its 591 kinds of sound (6,056 sounds, 351 MB to download them all) — the list stopped at 400 before"
+        ],
+        "ja": [
+          "効果音ライブラリに 591 種類（6,056 個、ぜんぶで 351 MB）すべてが出るようになりました。前は 400 種類で切れていました"
+        ]
+      }
+    },
+    {
+      "version": "5.6",
+      "build": 45,
+      "date": "2026-10-10",
+      "notes": {
+        "en": [
+          "The 30 built-in sounds (coin, jump, door, explosion, win…) are real recordings now. Settings → Sound library → Recorded sounds turns the old beeps back on",
+          "A sound library with over 6,000 sound effects: animals, doors, footsteps, magic, machines, crowds and more. Listen to them, copy a name into a script — sound(\"retro-game-coin-08\") — and download them all for playing offline (Settings → Sound library)",
+          "A game's library sounds download when it starts, so the first one plays on time"
+        ],
+        "ja": [
+          "最初から入っている 30 種類の効果音（コイン、ジャンプ、ドア、爆発、勝ち…）が本物の録音になりました。設定 → 効果音ライブラリ →「録音の効果音」をオフにすると前の電子音にもどせます",
+          "6,000 以上の効果音が入った「効果音ライブラリ」ができました。動物、ドア、足音、魔法、機械、歓声など。聞いてみたり、名前をスクリプトにコピーして sound(\"retro-game-coin-08\") のように使ったり、「すべてダウンロード」でインターネットなしでも鳴らせます（設定 → 効果音ライブラリ）",
+          "ゲームで使うライブラリの効果音は、ゲームが始まるときにダウンロードされるので、最初の音もちゃんと鳴ります"
+        ]
+      }
+    },
+    {
+      "version": "5.5",
+      "build": 44,
+      "date": "2026-10-09",
+      "notes": {
+        "en": [
+          "Characters walking a long way (the memes on Meme Heist's carpet) are drawn exactly where the game has them: the buy button could show by an empty carpet while the meme was invisible",
+          "A character made and sent walking at the same moment always sets off, even when its move arrives a moment before it does"
+        ],
+        "ja": [
+          "長い道を歩くキャラクター（ミームハイストのカーペットのミームなど）が、ゲームの中で いる場所に ぴったり見えるようになりました。ミームが見えないのに「買う」ボタンが出ることがあったのを直しました",
+          "作ってすぐ歩かせたキャラクターが、かならず 歩きはじめるようになりました"
+        ]
+      }
+    },
+    {
+      "version": "5.4",
+      "build": 43,
+      "date": "2026-10-09",
+      "notes": {
+        "en": [
+          "Characters that walk a long way (the memes on Meme Heist's carpet) are drawn wherever they have got to: they used to vanish when the place they set off from was far away",
+          "Someone who joins a game halfway sees moving characters where they are and walking on, not standing still at the end of their path",
+          "A character that gets new words or colours on its way (a sale price) no longer jumps to the end of its path, and long moves go at a steady speed"
+        ],
+        "ja": [
+          "長い道を歩くキャラクター（ミームハイストのカーペットのミームなど）が、いる場所で ちゃんと見えるようになりました。出発した場所が遠いと 消えていたのを直しました",
+          "ゲームの とちゅうで 入った人にも、動くキャラクターが いまの場所から 歩いて見えます。道の終わりで 止まって見えていたのを直しました",
+          "歩いている とちゅうで 文字や色が変わっても（セールの値段など）道の終わりに ワープしなくなりました。長い移動は 同じはやさで 進みます"
+        ]
+      }
+    },
+    {
+      "version": "5.3",
+      "build": 42,
+      "date": "2026-10-08",
+      "notes": {
+        "en": [
+          "Shift lock: a lock button on the play screen's top bar. On, your character faces where the camera looks and the stick steps it sideways; off, it turns to the way you walk. Hide the button in Settings → Play screen → Buttons",
+          "Your character's face is now its front: walking left or right, it used to face the other way. Other players and characters in games are fixed too"
+        ],
+        "ja": [
+          "シフトロック: プレイ画面の 上に カギの ボタンが できました。オンに すると キャラクターが カメラの 向いている 方を 向き、スティックで 横にも 歩けます。オフでは 歩く 方向を 向きます。ボタンは 設定 → プレイ画面 → ボタン で かくせます",
+          "キャラクターの 顔の ある方が 正面に なりました。左右に 歩くと 反対を 向いて いたのを 直しました。ほかの プレイヤーや ゲームの キャラクターも 直っています"
+        ]
+      }
+    },
+    {
+      "version": "5.2",
+      "build": 41,
+      "date": "2026-10-05",
+      "notes": {
+        "en": [
+          "Builds on the iPad again: 4.6 to 5.1 made the app one module, and on an iPad with little memory the build then failed with no error. The app is two modules again, as up to 4.5",
+          "Kept from 4.7 to 5.0: comparisons and additions to everyday types in a few files, and the split files, so an update still rebuilds fewer files inside each module"
+        ],
+        "ja": [
+          "iPad で また ビルドできる ように なりました。4.6〜5.1 で アプリを 1つの モジュールに したところ、メモリの 少ない iPad では エラーの 表示なしで ビルドが 失敗して いました。4.5 までと 同じ 2つの モジュールに もどしました",
+          "4.7〜5.0 の 内容（くらべ方などを 少しの ファイルに まとめた・ファイルを 分けた）は そのまま。モジュールの 中では アップデートの あとに 作りなおす ファイルが 少ない ままです"
+        ]
+      }
+    },
+    {
+      "version": "5.1",
+      "build": 40,
+      "date": "2026-10-04",
+      "notes": {
+        "en": [
+          "The app is the same as 5.0; the notes on building faster are brought up to date. To build quickly, update from Settings → Updates: only the files that changed are written into the project, and only they and the files that use them are compiled again",
+          "From 4.6 to 5.0: the app is one module again, and the files most of it uses seldom change, so a typical update rebuilds a few to about fifty files"
+        ],
+        "ja": [
+          "アプリの 中身は 5.0 と 同じです（ビルドを 速く する ための 記録を 新しく しました）。速く ビルド するには、アプリの 設定 → アップデート から 更新して ください。変わった ファイルだけが プロジェクトに 書きこまれ、それと それを 使う ファイルだけを 作りなおします",
+          "4.6〜5.0 の内容: アプリを 1つの モジュールに もどし、みんなが 使う ファイルを ほとんど 変わらない 形に したので、ふつうの アップデートで 作りなおすのは 数ファイル〜50ファイル ほどです"
+        ]
+      }
+    },
+    {
+      "version": "5.0",
+      "build": 39,
+      "date": "2026-10-04",
+      "notes": {
+        "en": [
+          "Builds after an update touch fewer files again: blocks' shapes, materials, behaviours and lights, and a world's particles, music, sounds and panels each have a file of their own, so a new kind of block or a new particle rebuilds only what uses it",
+          "From 4.9: a change to how players move rebuilds 54 files in 17 s on the test Mac, where it rebuilt 85 files in 33 s"
+        ],
+        "ja": [
+          "アップデートの あとの ビルドで 作りなおす ファイルが さらに 少なく なります。ブロックの 形・素材・動き・明かり、ワールドの パーティクル・音楽・音・パネルを それぞれ 自分の ファイルに 分けたので、新しい ブロックや パーティクルを 足しても それを 使う ファイルだけを 作りなおします",
+          "4.9 の内容: プレイヤーの 動きを 変えたときの 再ビルドが テスト用の Mac で 85ファイル・33秒 → 54ファイル・17秒"
+        ]
+      }
+    },
+    {
+      "version": "4.9",
+      "build": 38,
+      "date": "2026-10-04",
+      "notes": {
+        "en": [
+          "Builds after an update touch fewer files again: a player's identity and looks have files of their own, so a change to movement no longer rebuilds most of the app (85 files down to the few that use movement)",
+          "From 4.7: a change to blocks' animation rebuilds 29 files in 14 s on the test Mac, where 4.6 rebuilt 161 files in 27 s"
+        ],
+        "ja": [
+          "アップデートの あとの ビルドで 作りなおす ファイルが さらに 少なく なります。プレイヤーの ID と 見た目を それぞれ 自分の ファイルに 分けたので、動きの しくみを 変えても アプリの 大部分を 作りなおさなく なりました（85ファイル → 動きを 使う 少しの ファイルだけ）",
+          "4.7 の内容: ブロックの 動きを 変えたときの 再ビルドが テスト用の Mac で 161ファイル・27秒 → 29ファイル・14秒"
+        ]
+      }
+    },
+    {
+      "version": "4.8",
+      "build": 37,
+      "date": "2026-10-04",
+      "notes": {
+        "en": [
+          "The app is the same as 4.7: the rebuild timing now also tries the files updates touch most (the main menu, the settings, the play screen, blocks, players and others)",
+          "From 4.7: builds after an update touch fewer files, now that comparisons and additions to everyday types live in a few files that seldom change"
+        ],
+        "ja": [
+          "アプリの 中身は 4.7 と 同じです。再ビルドの 計測で、アップデートで よく 変わる ファイル（メインメニュー・設定・プレイ画面・ブロック・プレイヤー など）も ためす ように しました",
+          "4.7 の内容: くらべ方と、みんなが 使う 型への 追加を 少しの ファイルに まとめ、アップデートの あとの ビルドで 作りなおす ファイルを へらしました"
+        ]
+      }
+    },
+    {
+      "version": "4.7",
+      "build": 36,
+      "date": "2026-10-04",
+      "notes": {
+        "en": [
+          "Builds after an update touch fewer files: comparisons written by hand (==, <) and additions to everyday types (arrays, numbers, views) now live in a few files that seldom change, so changing a block, a script rule or a screen no longer rebuilds nearly the whole app",
+          "From 4.6: the app is one module again, so the build after an update compiles only the files that changed and those that use them"
+        ],
+        "ja": [
+          "アップデートの あとの ビルドで 作りなおす ファイルが 少なく なります。自分で 書いていた くらべ方（==、<）と、みんなが 使う 型（配列・数・画面）への 追加を、ほとんど 変わらない 少しの ファイルに まとめたので、ブロックや スクリプトや 画面を 変えても アプリの ほぼ ぜんぶを 作りなおさなく なりました",
+          "4.6 の内容: アプリを 1つの モジュールに もどし、アップデートの あとは 変わった ファイルと それを 使う ファイルだけを 作りなおします"
+        ]
+      }
+    },
+    {
+      "version": "4.6",
+      "build": 35,
+      "date": "2026-10-04",
+      "notes": {
+        "en": [
+          "Quicker builds after an update: the app is one module again, so the build after an update compiles only the files that changed and the files that use them (a small change: about 37 s down to 9 s on the test Mac)",
+          "The first build after this update still builds everything once, because the project's layout changed"
+        ],
+        "ja": [
+          "アップデートのあとの ビルドが 速く なります。アプリを 1つの モジュールに もどしたので、変わった ファイルと それを 使う ファイルだけを 作りなおします（小さな 変更なら テスト用の Mac で 約37秒 → 9秒）",
+          "この版に してから 最初の 1回だけは、プロジェクトの 組み立てが 変わったため ぜんぶ ビルドします"
+        ]
+      }
+    },
+    {
+      "version": "4.5",
+      "build": 34,
+      "date": "2026-10-04",
+      "notes": {
+        "en": [
+          "The app is the same as 4.1: the rebuild timing now says how many files were compiled again and why, to find what makes an update rebuild everything",
+          "From 4.1: quicker to build, the menu screens no longer copy a whole world field by field"
+        ],
+        "ja": [
+          "アプリの中身は 4.1 と同じです。再ビルドの計測で、作りなおした ファイルの数と その理由を 出すように しました（アップデートで ぜんぶ 作りなおしに なる 原因を 見つけるため）",
+          "4.1 の内容: ビルドが 速く（メニューの画面が ワールドまるごとを コピーしない）"
+        ]
+      }
+    },
+    {
+      "version": "4.4",
+      "build": 33,
+      "date": "2026-10-04",
+      "notes": {
+        "en": [
+          "The app is the same as 4.1: the build measurements now also record how much memory the compiler uses, to keep the build safe on iPads with little memory",
+          "From 4.1: quicker to build, the menu screens no longer copy a whole world field by field"
+        ],
+        "ja": [
+          "アプリの中身は 4.1 と同じです。ビルドの計測で コンパイラの メモリも はかるように しました（メモリの少ない iPad でも ビルドが 止まらないように するため）",
+          "4.1 の内容: ビルドが 速く（メニューの画面が ワールドまるごとを コピーしない）"
+        ]
+      }
+    },
+    {
+      "version": "4.3",
+      "build": 32,
+      "date": "2026-10-04",
+      "notes": {
+        "en": [
+          "The app is the same as 4.1: the build measurements can now try a setting before it is used, to find what makes rebuilds after an update quick",
+          "From 4.1: quicker to build, the menu screens no longer copy a whole world field by field"
+        ],
+        "ja": [
+          "アプリの中身は 4.1 と同じです。アップデートのあとの 再ビルドを 速くする 設定を、使う前に ためせるように しました",
+          "4.1 の内容: ビルドが 速く（メニューの画面が ワールドまるごとを コピーしない）"
+        ]
+      }
+    },
+    {
+      "version": "4.2",
+      "build": 31,
+      "date": "2026-10-04",
+      "notes": {
+        "en": [
+          "The app is the same as 4.1: this version measures more exactly which kinds of change make the iPad build everything again",
+          "From 4.1: quicker to build, the menu screens no longer copy a whole world field by field"
+        ],
+        "ja": [
+          "アプリの中身は 4.1 と同じです。どんな変更で iPad が ぜんぶ ビルドしなおしに なるかを、もっと くわしく はかるように しました",
+          "4.1 の内容: ビルドが 速く（メニューの画面が ワールドまるごとを コピーしない）"
+        ]
+      }
+    },
+    {
+      "version": "4.1",
+      "build": 30,
+      "date": "2026-10-04",
+      "notes": {
+        "en": [
+          "Quicker to build: the game a player is about to enter is kept in a box of its own, so the menu screens no longer copy a whole world field by field (a third less code for the main menu)",
+          "From 3.9 and 3.8: a few of the compiler's slowest lines written more simply; the Ablox keyboard works again"
+        ],
+        "ja": [
+          "ビルドが 速く: これから入るゲームの データを 箱に入れて持つようにして、メニューの画面が ワールドまるごとを 1項目ずつ コピーしなくなりました（メインメニューの 機械語が 3分の1 へった）",
+          "3.9・3.8 の内容: コンパイラが 時間をかけていた 数か所を かんたんに。Ablox キーボードが また使えます"
+        ]
+      }
+    },
+    {
+      "version": "4.0",
+      "build": 29,
+      "date": "2026-10-04",
+      "notes": {
+        "en": [
+          "The app is the same as 3.9: this version only sharpens how build time is measured, so ways to build faster can be tried before they reach the iPad",
+          "From 3.9 and 3.8: a few of the compiler's slowest lines written more simply; the Ablox keyboard works again"
+        ],
+        "ja": [
+          "アプリの中身は 3.9 と同じです。ビルド時間を はかる しくみだけ 強くしました（速くする方法を iPad に届ける前に ためせるように）",
+          "3.9・3.8 の内容: コンパイラが 時間をかけていた 数か所を かんたんに。Ablox キーボードが また使えます"
+        ]
+      }
+    },
+    {
+      "version": "3.9",
+      "build": 28,
+      "date": "2026-10-04",
+      "notes": {
+        "en": [
+          "A little quicker to build: a few of the slowest lines for the compiler are written in simpler steps (the work on build time continues)",
+          "From 3.8: the Ablox keyboard works again"
+        ],
+        "ja": [
+          "ビルドが すこし速く: コンパイラが いちばん時間をかけていた 数か所を、かんたんな 手順に 書きなおしました（ビルド時間の 改善は つづけています）",
+          "3.8 の内容: Ablox キーボードが また使えます"
+        ]
+      }
+    },
+    {
+      "version": "3.8",
+      "build": 27,
+      "date": "2026-10-04",
+      "notes": {
+        "en": [
+          "The Ablox keyboard works again: its keys answered no touches on newer iPads, every tap falling through to the screen behind it",
+          "From 3.7: no brief hitches when a part changes colour; players' gear is drawn as fewer pieces and looks exactly the same"
+        ],
+        "ja": [
+          "Ablox キーボードが また使えるようになりました（新しい iPad では キーを押しても 反応せず、うしろの画面に タッチが通りぬけていました）",
+          "3.7 の内容: パーツの色が変わるときの カクつきなし。プレイヤーの持ち物も 少ない かたまりで描く（見た目は同じ）"
+        ]
+      }
+    },
+    {
+      "version": "3.7",
+      "build": 26,
+      "date": "2026-10-04",
+      "notes": {
+        "en": [
+          "No more brief hitches when a part changes colour: such a part is drawn on its own again, as before 3.3, instead of waiting for the GPU to repaint a colour palette",
+          "From 3.4: players' faces, hats, pets, rides and weapons are drawn as fewer pieces and look exactly the same (a car of eleven parts is five)",
+          "From 3.3: parts with words over them stay drawn together with the rest; everything from 2.6 is still here"
+        ],
+        "ja": [
+          "パーツの色が変わるときの 小さな カクつきが なくなりました（色が変わるパーツは 3.3 より前と同じく 1つで描きます。色見本の ぬりかえで GPU を待たない）",
+          "3.4 の内容: プレイヤーの顔・帽子・ペット・乗り物・武器を 少ない かたまりで描く（見た目は同じ。11パーツの車は 5つに）",
+          "3.3 の内容: 文字がのったパーツも まとめたまま。2.6 からの内容もそのまま"
+        ]
+      }
+    },
+    {
+      "version": "3.6",
+      "build": 25,
+      "date": "2026-10-04",
+      "notes": {
+        "en": [
+          "A part changing colour no longer makes the game wait for the frame being drawn: its new colour comes with a new palette, given only to the pieces that changed",
+          "From 3.4: players' faces, hats, pets, rides and weapons are drawn as fewer pieces and look exactly the same (a car of eleven parts is five)",
+          "From 3.3: parts that only change colour and parts with words over them stay drawn together with the rest; everything from 2.6 is still here"
+        ],
+        "ja": [
+          "パーツの色が変わるとき、いま描いている途中のフレームを 待たなくなりました（新しい色見本を作って、色が変わった かたまりにだけ わたします）",
+          "3.4 の内容: プレイヤーの顔・帽子・ペット・乗り物・武器を 少ない かたまりで描く（見た目は同じ。11パーツの車は 5つに）",
+          "3.3 の内容: 色だけ変わるパーツや 文字がのったパーツも まとめたまま。2.6 からの内容もそのまま"
+        ]
+      }
+    },
+    {
+      "version": "3.5",
+      "build": 24,
+      "date": "2026-10-04",
+      "notes": {
+        "en": [
+          "Players are drawn as fewer pieces: the parts of a face, hat, pet, ride or weapon that share a colour are one piece (a car of eleven parts is five), and look exactly the same — a full room is much lighter",
+          "From 3.3: parts that only change colour and parts with words over them stay drawn together with the rest",
+          "Everything from 2.6 to 3.2: big games draw much faster, parts of many colours are drawn as one, touches no longer redraw the whole play screen"
+        ],
+        "ja": [
+          "プレイヤーを より少ない かたまりで 描くようになりました（顔・帽子・ペット・乗り物・武器の 同じ色のパーツを 1つに。11パーツの車は 5つに）。見た目は まったく同じで、人が多いときに 軽くなります",
+          "3.3 の内容: 色だけ変わるパーツや 文字がのったパーツも まとめて描いたまま",
+          "2.6〜3.2 の内容もそのまま: 大きなゲームの描画が速く、色の多いパーツも まとめて描き、さわるたびの作りなおしなし"
+        ]
+      }
+    },
+    {
+      "version": "3.4",
+      "build": 23,
+      "date": "2026-10-04",
+      "notes": {
+        "en": [
+          "Players are drawn as fewer pieces: the parts of a face, hat, pet, ride or weapon that share a colour are one piece (a car of eleven parts is five), and look exactly the same — a full room is much lighter",
+          "From 3.3: parts that only change colour and parts with words over them stay drawn together with the rest",
+          "Everything from 2.6 to 3.2: big games draw much faster, parts of many colours are drawn as one, touches no longer redraw the whole play screen"
+        ],
+        "ja": [
+          "プレイヤーを より少ない かたまりで 描くようになりました（顔・帽子・ペット・乗り物・武器の 同じ色のパーツを 1つに。11パーツの車は 5つに）。見た目は まったく同じで、人が多いときに 軽くなります",
+          "3.3 の内容: 色だけ変わるパーツや 文字がのったパーツも まとめて描いたまま",
+          "2.6〜3.2 の内容もそのまま: 大きなゲームの描画が速く、色の多いパーツも まとめて描き、さわるたびの作りなおしなし"
+        ]
+      }
+    },
+    {
+      "version": "3.3",
+      "build": 22,
+      "date": "2026-10-04",
+      "notes": {
+        "en": [
+          "Parts that only change colour (a dance floor on every beat, a light turning red) stay drawn together with the rest: only their colour is painted again",
+          "Parts with words over them (prices, names on plates) are drawn together with the rest too; the words stay exactly as they were",
+          "Everything from 2.6 to 3.2: big games draw much faster, parts of many colours are drawn as one, touches no longer redraw the whole play screen"
+        ],
+        "ja": [
+          "色だけ変わるパーツ（リズムで光るダンスフロア、赤に変わるライトなど）も、ほかのパーツと いっしょに描いたまま 色だけ ぬりかえるようになりました",
+          "文字がのったパーツ（ねだんや名前のプレート）も まとめて描くようになりました。文字は いままでどおり 表示されます",
+          "2.6〜3.2 の内容もそのまま: 大きなゲームの描画が速く、色の多いパーツも まとめて描き、さわるたびの作りなおしなし"
+        ]
+      }
+    },
+    {
+      "version": "3.2",
+      "build": 21,
+      "date": "2026-10-03",
+      "notes": {
+        "en": [
+          "Characters and buildings of many colours are drawn as far fewer pieces: parts of plain materials share one piece whatever their colour, and look the same",
+          "Everything from 2.6 to 3.1: big games draw much faster, touches no longer redraw the whole play screen, and moving blocks only move"
+        ],
+        "ja": [
+          "色の多いキャラクターや建物を、ずっと少ない かたまりで 描くようになりました（ふつうの素材のパーツは 色がちがっても 1つにまとめます。見た目は そのまま）",
+          "2.6〜3.1 の内容もそのまま: 大きなゲームの描画が速く、さわるたびの作りなおしなし、動くブロックは 場所を変えるだけ"
+        ]
+      }
+    },
+    {
+      "version": "3.1",
+      "build": 20,
+      "date": "2026-10-03",
+      "notes": {
+        "en": [
+          "Characters and blocks that move are drawn in their new place without everything else about them being looked at again",
+          "Worlds whose blocks change many times a second no longer read through every block to find the moving platforms",
+          "Everything from 2.6 to 3.0: big games draw much faster, look the same, and touches no longer redraw the whole play screen"
+        ],
+        "ja": [
+          "動くキャラクターやブロックは、新しい場所に描くだけにして、ほかの所を 毎回 見なおさなくなりました",
+          "ブロックが 1秒に何度も変わるワールドで、動く床を探すために 全部のブロックを 読みなおさなくなりました",
+          "2.6〜3.0 の内容もそのまま: 大きなゲームの描画が速く、見た目は同じ。さわるたびに プレイ画面ぜんたいを 作りなおしません"
+        ]
+      }
+    },
+    {
+      "version": "3.0",
+      "build": 19,
+      "date": "2026-10-03",
+      "notes": {
+        "en": [
+          "The developers' frame-rate test now shows how long each part of a frame takes and tries one more way of drawing parts together, to find the next speed-ups",
+          "Everything from 2.8: moving the stick or the camera no longer redraws the whole play screen, the map is one picture, and big games draw much faster"
+        ],
+        "ja": [
+          "開発用の速さのテストが、1フレームの中で それぞれの処理に かかる時間を出し、パーツをまとめて描く 別のやり方も ためすようになりました（次に速くする所を見つけるため）",
+          "2.8 の内容もそのまま: スティックやカメラを動かしても プレイ画面ぜんたいを作りなおさず、マップは1枚の絵、大きなゲームの描画が速い"
+        ]
+      }
+    },
+    {
+      "version": "2.9",
+      "build": 18,
+      "date": "2026-10-03",
+      "notes": {
+        "en": [
+          "The frame-rate test the developers run on a Mac now records where the time goes inside the game, to find the next things to make faster",
+          "Everything from 2.8: moving the stick or the camera no longer redraws the whole play screen, and the map is one picture"
+        ],
+        "ja": [
+          "開発用の Mac で動かす速さのテストが、ゲームの中で どこに時間がかかっているかを 記録するようになりました（次に速くする所を見つけるため）",
+          "2.8 の内容もそのまま: スティックやカメラを動かしても プレイ画面ぜんたいを 作りなおさず、マップは1枚の絵"
+        ]
+      }
+    },
+    {
+      "version": "2.8",
+      "build": 17,
+      "date": "2026-10-03",
+      "notes": {
+        "en": [
+          "Smoother while you play: moving the stick or turning the camera no longer redraws the whole play screen many times a second, and neither does holding a controller's stick",
+          "The map draws the world as one picture, made again every couple of seconds, instead of measuring every part and drawing thousands of shapes whenever anything moved",
+          "The compass and a map that turns with the camera follow it smoothly without slowing the game",
+          "Everything from 2.6 and 2.7: big games draw much faster and look the same"
+        ],
+        "ja": [
+          "遊んでいるときが なめらかに: スティックを動かしたり カメラを回したりするたびに プレイ画面ぜんたいを 1秒に何十回も 作りなおしていたのを やめました（コントローラーのスティックも）",
+          "マップは ワールドを1枚の絵として描き、数秒ごとに 作りなおすようにしました（何かが動くたびに 全部のパーツを測って 何千もの形を 描いていました）",
+          "コンパスと カメラといっしょに回るマップは、ゲームを重くせずに カメラについていきます",
+          "2.6・2.7 の内容もそのまま: 大きなゲームの描画が速く、見た目は同じ"
+        ]
+      }
+    },
+    {
+      "version": "2.7",
+      "build": 16,
+      "date": "2026-10-03",
+      "notes": {
+        "en": [
+          "Worlds with moving platforms no longer make a fresh copy of the whole world each time the game changes something",
+          "The frame-rate test the developers run on a Mac now compares drawing parts together and one by one, to find the next things to speed up",
+          "Everything from 2.6: big games draw much faster, look the same, and Auto keeps a smooth 60 fps where it can"
+        ],
+        "ja": [
+          "動く床のあるワールドで、ゲームが何かを変えるたびに ワールドぜんぶを コピーしなおさなくなりました",
+          "開発用の Mac で動かす速さのテストが、まとめて描くとき と 1つずつ描くとき を くらべるようになりました（次に速くする所を見つけるため）",
+          "2.6 の内容もそのまま: 大きなゲームの描画が速く、見た目は同じ。「自動」は できるだけ 60fps をたもちます"
+        ]
+      }
+    },
+    {
+      "version": "2.6",
+      "build": 15,
+      "date": "2026-10-03",
+      "notes": {
+        "en": [
+          "Big games draw much faster: parts that stay put are drawn together as a few pieces — each looks exactly as before — so worlds with thousands of parts and hundreds of characters stay smooth",
+          "On Auto, the game first draws a few fewer pixels to stay at a smooth 60 fps, and only then gives up shadows or smooth shapes",
+          "Games whose world changes many times a second (characters walking, signs counting up) no longer rebuild the whole play screen each time",
+          "Scripts that move many blocks run up to 30 times faster on the host's iPad",
+          "Words over blocks and blocks that move by themselves only take time when they are near"
+        ],
+        "ja": [
+          "大きなゲームの描画が ぐっと速くなりました: 動かないパーツを まとめて描くので（見た目は そのまま）、パーツが数千・キャラクターが数百いても なめらかです",
+          "「自動」のときは、まず 解像度を ほんの少し下げて 60fps をたもち、それでも足りないときだけ 影や形を簡単にします",
+          "ワールドが 1秒に何度も変わるゲーム（歩くキャラクター、数字が増える看板）でも、プレイ画面ぜんたいを 毎回作りなおさなくなりました",
+          "たくさんのブロックを動かすスクリプトが、ホストの iPad で 最大30倍 速く動きます",
+          "ブロックの上の文字や 自分で動くブロックは、近くにあるものだけ 時間を使うようにしました"
+        ]
+      }
+    },
+    {
+      "version": "2.5",
+      "build": 14,
+      "date": "2026-10-02",
+      "notes": {
+        "en": [
+          "New \"Lightest\" graphics (Settings → Graphics): fewer pixels, no shadows and a nearer horizon, for Low Power Mode and older iPads — every part, rule and script plays just the same",
+          "On Auto, Low Power Mode and a hot iPad now start from their lower level straight away, and Auto can go all the way down to Lightest to stay above 30 fps",
+          "Characters keep looking ahead while running and riding, instead of tipping their head toward the ground",
+          "Everything from 2.4: faster games with lots of parts"
+        ],
+        "ja": [
+          "新しい画質「最軽量」（設定 → グラフィック）: 解像度を下げ・影なし・遠くは表示しない。低電力モードや古いiPad向けで、パーツ・ルール・スクリプトの動きはそのまま",
+          "「自動」のとき、低電力モードや iPad が熱いときは すぐに低い画質から始め、30fps 以上をたもつために「最軽量」まで下げられます",
+          "走るときや乗り物に乗るとき、キャラクターが 下を向かずに 前を見るようになりました",
+          "2.4 の内容もそのまま: パーツの多いゲームが速い"
+        ]
+      }
+    },
+    {
+      "version": "2.4",
+      "build": 13,
+      "date": "2026-10-02",
+      "notes": {
+        "en": [
+          "Faster games with lots of parts: building, moving and changing blocks no longer slows the host down (Meme Heist's 300 characters build about 4 times faster)",
+          "Every iPad in the game, not just the host, keeps up with moving blocks more smoothly",
+          "Everything from 2.3: weekly and seasonal events on the right days"
+        ],
+        "ja": [
+          "パーツの多いゲームが 速くなりました: ブロックを作る・動かす・かえるときに ホストのiPadが 重くならない（Meme Heist の 300体のミームが 約4倍 はやく 作れる）",
+          "ホストだけでなく ゲームに入っている どのiPadも、動くブロックに なめらかに ついていけます",
+          "2.3 の内容もそのまま: 曜日や季節のイベントが その日に来る"
+        ]
+      }
+    },
+    {
+      "version": "2.3",
+      "build": 12,
+      "date": "2026-10-01",
+      "notes": {
+        "en": [
+          "Games can tell the date: weekly events and seasons (Halloween, Christmas, New Year…) come on the right days",
+          "Everything from 2.2: words over blocks, linked blocks, blocks that move by themselves"
+        ],
+        "ja": [
+          "ゲームが今日の日付を使えるように: 曜日ごとのイベントや季節のイベント（ハロウィン・クリスマス・お正月…）が その日に来ます",
+          "2.2 の内容もそのまま: ブロックの上の文字・つながるブロック・自分で動くブロック"
+        ]
+      }
+    },
+    {
+      "version": "2.2",
+      "build": 11,
+      "date": "2026-10-01",
+      "notes": {
+        "en": [
+          "Words can float over blocks, always facing you: signs with text, prices, and a pet's name with its rarity and earnings — games choose them",
+          "Blocks can hang from one another, so a whole character made of blocks moves as one",
+          "Blocks can move by themselves — spin, sway, dance, bounce, pulse, wobble — on every iPad, without slowing the game down",
+          "Older iPads can still play together with this one; they just show the blocks without words or movement"
+        ],
+        "ja": [
+          "ブロックの上に文字が浮かぶように（いつもこちらを向く）: 看板の文字、ねだん、キャラの名前・レア度・もうけ など。ゲームが決めます",
+          "ブロックどうしを つなげられるように。ブロックでできたキャラが まとめて動きます",
+          "ブロックが自分で動くように: くるくる・ゆらゆら・ダンス・ぴょんぴょん・ふくらむ・ぐらぐら。どの iPad でも、重くなりません",
+          "前のバージョンの iPad とも いっしょに遊べます（文字や動きが出ないだけです）"
+        ]
+      }
+    },
+    {
+      "version": "2.1",
+      "build": 10,
+      "date": "2026-10-01",
+      "notes": {
+        "en": [
+          "Updating is one tap: choose the Ablox project in Files once, and every new version goes straight into it by itself (only the files that changed). The Update button does it at once",
+          "After an update, stop with ■, close the project and open it again — no need to close Swift Playgrounds completely. If the old version starts again, the app says so and shows the steps",
+          "Downloads try again by themselves when the Wi-Fi drops or GitHub is busy, and what still goes wrong is saved in Problem reports with its error code",
+          "Characters move like they should: arms and legs swing from the shoulders and hips, arms go up when you jump and out when you fall, running leans forward, and each ride has its pose",
+          "Classic blocky proportions: thicker arms, legs as wide as the body"
+        ],
+        "ja": [
+          "アップデートが1タップに: ファイル App で Ablox のプロジェクトを1回えらべば、新しいバージョンは自動でそこに入ります（変わったファイルだけ）。「アップデート」ボタンなら すぐに",
+          "アップデートのあとは ■ で止めて、プロジェクトを閉じて開き直すだけ。Swift Playgrounds を全部閉じなくてOK。古いままなら アプリが教えて、やり方を出します",
+          "Wi-Fi が切れたときや GitHub が混んでいるときは 自動でやり直します。それでもだめなときは、問題のレポートにエラーの番号つきで残ります",
+          "キャラクターの動きが自然に: 手足が肩と腰から動き、ジャンプでは腕を上げ、落ちるときは広げ、走ると前かがみ。乗り物ごとのポーズも",
+          "ブロックらしい体型に: 腕を太く、脚は体の幅いっぱいに"
+        ]
+      }
+    },
+    {
+      "version": "2.0",
+      "build": 9,
+      "date": "2026-10-01",
+      "notes": {
+        "en": [
+          "55 new games in the Games tab (numbers 81–135): obbies, driving and flying, simulators and tycoons — among them Build a Zoo Park, Sword Forge Factory, Fish Farm Tycoon and Egg Heist",
+          "\"Download every game\" at the top of the Games tab brings them all onto this iPad at once"
+        ],
+        "ja": [
+          "ゲームタブに 新しいゲームが55本（81〜135番）: オビー・乗り物・シミュレーター・タイクーン。Build a Zoo Park・Sword Forge Factory・Fish Farm Tycoon・Egg Heist など",
+          "ゲームタブのいちばん上の「ぜんぶダウンロード」で、まとめて この iPad に入れられます"
+        ]
+      }
+    },
+    {
+      "version": "1.9",
+      "build": 8,
+      "date": "2026-09-29",
+      "notes": {
+        "en": [
+          "New: \"Download every game\" at the top of the Games tab, with how many megabytes have come down so far and how many are left. Stop it any time; what came down stays",
+          "Each game shows its size: while it downloads (0.4 / 1.2 MB, with a bar on its page), once it is on this iPad (✓ 1.2 MB), or how big it will be",
+          "Downloading carries on when you leave the Games tab and come back"
+        ],
+        "ja": [
+          "新機能: ゲームタブのいちばん上に「ぜんぶダウンロード」。いま何MBまでダウンロードしたか、のこりが何本・何MBかが見えます。とちゅうで止めても、できた分はそのまま",
+          "ゲームごとに大きさが出ます: ダウンロード中は「0.4 / 1.2 MB」（ゲームのページにはバーも）、入っているゲームは「✓ 1.2 MB」、まだのゲームはダウンロードの大きさ",
+          "ゲームタブからほかの画面に行っても、ダウンロードはつづきます"
+        ]
+      }
+    },
+    {
+      "version": "1.8",
+      "build": 7,
+      "date": "2026-09-29",
+      "notes": {
+        "en": [
+          "New: the suggestion box (Settings → Suggestion box). Send an idea for a game, something to add, or a problem; ideas are read, the ones that can be made are made, and the box shows what became of each one",
+          "Only the kind, the words (phone numbers, emails and links hidden), the app's version and language are sent — no name. One a minute. A grown-up switches sending on in Settings → Family → Internet",
+          "Grown-ups: copy the database rules again (Settings → Family → Internet) and publish them in the Firebase console, so the box has somewhere to go"
+        ],
+        "ja": [
+          "新機能: 意見箱（設定 → 意見箱）。やってみたいゲーム・ほしい機能・こまったことを送れます。意見はぜんぶ読んで、作れるものは作り、どうなったかが意見箱に出ます",
+          "送るのは種類と文（電話番号・メール・リンクは隠します）とアプリの版と言語だけで、名前は送りません。1分に1回まで。送るのをオンにするのは、おうちの人が 設定 → 家族 → インターネット で",
+          "おうちの方へ: 設定 → 家族 → インターネット でデータベースのルールをもう一度コピーして、Firebase コンソールで公開してください（意見箱の場所が入っています）"
+        ]
+      }
+    }
+  ]
+}

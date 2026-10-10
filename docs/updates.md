@@ -97,6 +97,12 @@ protocol). Write what changed in `update.json`'s `notes`, in English and
 Japanese, then commit and push to the default branch. Every iPad with
 automatic updates on finds it within the hour.
 
+Then run `python3 scripts/changelog.py`: it adds the release, notes and all,
+to `changelog.json` beside update.json — every version so far, newest first,
+which the app shows in Settings → Updates → Update history
+(`UpdateHistory`). `scripts/check-release.sh` and a test fail when
+changelog.json does not start with update.json's release.
+
 `scripts/check-release.sh` — run by CI through
 `scripts/check-playgrounds-project.sh` — fails the build if the three places
 disagree, if `update.json` names a different protocol than the code speaks, or

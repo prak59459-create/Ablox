@@ -1,18 +1,20 @@
 {
   "app": "Ablox",
-  "version": "5.8",
-  "build": 47,
+  "version": "5.9",
+  "build": 48,
   "protocol": 8,
   "date": "2026-10-10",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "The sound library (6,056 sounds) is now on the game list's main branch as well, so it works whichever branch Settings → Game list points at",
-      "The sound list is fetched once in the background when the app starts, so the first game that plays a library sound does not wait for it"
+      "Settings → Updates → Update history: every version so far and what each one changed, newest first, with this iPad's version marked",
+      "A game from the list that has been updated is downloaded again before you play it, instead of the old copy on this iPad being played forever (this is why Last Survivor Games' new rounds did not show)",
+      "Download all also fetches games whose newer version is in the list, and the Play button says when a new version will come down first"
     ],
     "ja": [
-      "効果音ライブラリ（6,056 個）がゲーム一覧の main ブランチにも入りました。設定 → ゲーム一覧 のブランチがどちらでも使えます",
-      "アプリを開いたときに効果音の一覧を裏で読みこんでおくので、ライブラリの音を使うゲームでも最初の音から鳴ります"
+      "設定 → アップデート →「アップデートの履歴」で、これまでの版と それぞれで変わったところを 新しい順に見られます（この iPad の版に しるし）",
+      "ゲーム一覧で新しくなったゲームは、遊ぶ前に もう一度ダウンロードするようにしました。前は iPad に入った古いゲームのまま 遊んでいました（Last Survivor Games の新しいゲームが出なかったのは これが原因です）",
+      "「すべてダウンロード」は 新しい版が出たゲームも ダウンロードします。遊ぶボタンは、先に新しい版をダウンロードするときは そう表示します"
     ]
   }
 }

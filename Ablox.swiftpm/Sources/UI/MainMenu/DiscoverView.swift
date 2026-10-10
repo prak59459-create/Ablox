@@ -988,10 +988,7 @@ private struct GameDetailSheet: View {
             Button {
                 Task { await play(hosting: false) }
             } label: {
-                Label(
-                    library.isInstalled(listing) ? L("Play") : L("Download and play"),
-                    systemImage: library.isInstalled(listing) ? "play.fill" : "arrow.down.circle.fill"
-                )
+                Label(playTitle, systemImage: library.isInstalled(listing) && !library.isOutdated(listing) ? "play.fill" : "arrow.down.circle.fill")
                 .frame(maxWidth: .infinity)
             }
             .buttonStyle(NeonButtonStyle(.primary, fullWidth: true))
@@ -1020,20 +1017,21 @@ private struct GameDetailSheet: View {
         }
     }
 
+    /// "Play", or what has to come down first: the game, or its newer version.
+    private var playTitle: String {
+        guard library.isInstalled(listing) else { return L("Download and play") }
+        return library.isOutdated(listing) ? L("Get the new version and play") : L("Play")
+    }
+
     private func play(hosting: Bool, access: RoomAccess = .routerPrivate) async {
         isWorking = true
         defer { isWorking = false }
         problem = nil
 
-        // The cached copy when there is one, so a second play costs nothing
-        // and works with no network at all.
-        // (`??` runs its right side in a closure that cannot `await`, so
-        // the download is a separate step.)
-        var found = library.cachedWorld(for: listing)
-        if found == nil {
-            found = await library.download(listing)
-        }
-        guard let world = found else {
+        // The cached copy when it is still the list's version, so a second
+        // play costs nothing and works with no network at all; a newer
+        // version in the list is downloaded first.
+        guard let world = await library.worldToPlay(for: listing) else {
             if case let .failed(message) = library.status { problem = message }
             return
         }

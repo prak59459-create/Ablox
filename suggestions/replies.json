@@ -72,26 +72,28 @@
     },
     {
       "id": "s1791670294899-B7P75F",
-      "status": "planned",
+      "status": "done",
       "message": {
-        "en": "We're reading your idea — back soon!",
-        "ja": "読んでいます。少し待っててね！"
-      }
+        "en": "Done! Open Settings → Updates → Update history to see every version and what changed.",
+        "ja": "できたよ！ 設定 → アップデート →「アップデートの履歴」で、今までの版と変わったところが見られるよ。"
+      },
+      "version": "5.9"
     },
     {
       "id": "s1791670480343-ZF7FZ5",
-      "status": "planned",
+      "status": "done",
       "message": {
-        "en": "We're reading your idea — back soon!",
-        "ja": "読んでいます。少し待っててね！"
-      }
+        "en": "Thank you for telling us! The app kept playing the old copy of the game. Now it downloads the new version first, so the new rounds are there.",
+        "ja": "教えてくれてありがとう！ アプリが古いゲームのまま遊んでいたのを直したよ。新しい版をダウンロードしてから遊ぶので、新しいゲームが出るよ。"
+      },
+      "version": "5.9"
     },
     {
       "id": "s1791670540936-TA3VNS",
-      "status": "planned",
+      "status": "thanks",
       "message": {
-        "en": "We're reading your idea — back soon!",
-        "ja": "読んでいます。少し待っててね！"
+        "en": "Thank you! How often the box is read is set by the grown-up who runs it, so we've passed your idea on.",
+        "ja": "ありがとう！ 意見箱を見る間かくは 持ち主の大人が決めるので、この意見を伝えたよ。"
       }
     }
   ]

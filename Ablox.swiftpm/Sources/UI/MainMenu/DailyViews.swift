@@ -192,9 +192,7 @@ struct ContinueCard: View {
                 problem = L("Open it from Games.")
                 return
             }
-            var found = library.cachedWorld(for: listing)
-            if found == nil { found = await library.download(listing) }
-            guard let world = found else {
+            guard let world = await library.worldToPlay(for: listing) else {
                 problem = L("Could not download “{}”.", listing.title)
                 return
             }
