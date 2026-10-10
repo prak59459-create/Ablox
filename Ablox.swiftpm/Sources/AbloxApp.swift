@@ -77,6 +77,8 @@ struct AbloxApp: App {
             // Offers Ablox's own keyboard on an iPad where the system one
             // does not come up.
             .onAppear { KeyboardController.shared.startWatching() }
+            // The sound library's list, once, in the background.
+            .task { await SoundLibraryStore.shared.loadIfNeeded() }
             // Going to the background is not a crash.
             .onChange(of: scenePhase) { _, phase in
                 ProblemRecorder.shared.markRunning(phase != .background)
