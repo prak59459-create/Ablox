@@ -1,20 +1,16 @@
 {
   "app": "Ablox",
-  "version": "5.9",
-  "build": 48,
+  "version": "6.0",
+  "build": 49,
   "protocol": 8,
-  "date": "2026-10-10",
+  "date": "2026-10-12",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "Settings → Updates → Update history: every version so far and what each one changed, newest first, with this iPad's version marked",
-      "A game from the list that has been updated is downloaded again before you play it, instead of the old copy on this iPad being played forever (this is why Last Survivor Games' new rounds did not show)",
-      "Download all also fetches games whose newer version is in the list, and the Play button says when a new version will come down first"
+      "Words for Ablox Studio's new test play, in English and Japanese (the game itself is unchanged)"
     ],
     "ja": [
-      "設定 → アップデート →「アップデートの履歴」で、これまでの版と それぞれで変わったところを 新しい順に見られます（この iPad の版に しるし）",
-      "ゲーム一覧で新しくなったゲームは、遊ぶ前に もう一度ダウンロードするようにしました。前は iPad に入った古いゲームのまま 遊んでいました（Last Survivor Games の新しいゲームが出なかったのは これが原因です）",
-      "「すべてダウンロード」は 新しい版が出たゲームも ダウンロードします。遊ぶボタンは、先に新しい版をダウンロードするときは そう表示します"
+      "Ablox Studio の新しいテストプレイの ことば（英語と日本語）を入れました（ゲームの動きは 変わりません）"
     ]
   }
 }

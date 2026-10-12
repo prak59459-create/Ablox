@@ -98,19 +98,20 @@
     },
     {
       "id": "s1791788725498-3TNN57",
-      "status": "planned",
+      "status": "notNow",
       "message": {
-        "en": "We're reading your idea — back soon!",
-        "ja": "読んでいます。少し待っててね！"
+        "en": "Thank you for the exciting idea! That hero belongs to another company, so we can't put him in Ablox — please send us your own hero ideas too!",
+        "ja": "わくわくするアイデアをありがとう！そのヒーローは ほかの会社のキャラクターなので、Ablox には入れられないんだ。きみが考えたヒーローのアイデアも送ってね！"
       }
     },
     {
       "id": "s1791793135553-9W8KGY",
-      "status": "planned",
+      "status": "done",
       "message": {
-        "en": "We're reading your idea — back soon!",
-        "ja": "読んでいます。少し待っててね！"
-      }
+        "en": "Fixed! In Ablox Studio 4.9, Play opens your game so you can walk, jump and try your scripts, just like in Ablox.",
+        "ja": "直したよ！Ablox Studio 4.9 では「プレイ」で ゲームが開いて、歩いたりジャンプしたり スクリプトを ためしたり できるよ。"
+      },
+      "version": "6.0"
     }
   ]
 }

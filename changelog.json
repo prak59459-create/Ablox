@@ -2,6 +2,19 @@
   "app": "Ablox",
   "releases": [
     {
+      "version": "6.0",
+      "build": 49,
+      "date": "2026-10-12",
+      "notes": {
+        "en": [
+          "Words for Ablox Studio's new test play, in English and Japanese (the game itself is unchanged)"
+        ],
+        "ja": [
+          "Ablox Studio の新しいテストプレイの ことば（英語と日本語）を入れました（ゲームの動きは 変わりません）"
+        ]
+      }
+    },
+    {
       "version": "5.9",
       "build": 48,
       "date": "2026-10-10",
