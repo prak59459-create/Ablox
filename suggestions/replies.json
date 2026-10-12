@@ -95,6 +95,22 @@
         "en": "Okay, not every 30 minutes, but we'll look every hour! Only from 8 a.m. to 4 p.m. and at 9 p.m., because there are limits.",
         "ja": "しかたないなぁ、30分ごとじゃないけど 毎時 見てあげるね！ そのかわり 8時から16時のあいだ と 21時だけね。制限があるから。"
       }
+    },
+    {
+      "id": "s1791788725498-3TNN57",
+      "status": "planned",
+      "message": {
+        "en": "We're reading your idea — back soon!",
+        "ja": "読んでいます。少し待っててね！"
+      }
+    },
+    {
+      "id": "s1791793135553-9W8KGY",
+      "status": "planned",
+      "message": {
+        "en": "We're reading your idea — back soon!",
+        "ja": "読んでいます。少し待っててね！"
+      }
     }
   ]
 }
