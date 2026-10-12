@@ -2,6 +2,19 @@
   "app": "Ablox",
   "releases": [
     {
+      "version": "6.2",
+      "build": 51,
+      "date": "2026-10-12",
+      "notes": {
+        "en": [
+          "The app's icon shows in AltStore"
+        ],
+        "ja": [
+          "AltStore にアプリのアイコンが出るようにしました"
+        ]
+      }
+    },
+    {
       "version": "6.1",
       "build": 50,
       "date": "2026-10-12",

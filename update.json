@@ -1,16 +1,16 @@
 {
   "app": "Ablox",
-  "version": "6.1",
-  "build": 50,
+  "version": "6.2",
+  "build": 51,
   "protocol": 8,
   "date": "2026-10-12",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "Every push now also builds an .ipa for AltStore. In AltStore, add the source https://github.com/prak59459-create/Ablox/releases/download/ipa/altstore-source.json once, and new versions appear there as updates"
+      "The app's icon shows in AltStore"
     ],
     "ja": [
-      "プッシュのたびに AltStore 用の .ipa も作るようにしました。AltStore にソース https://github.com/prak59459-create/Ablox/releases/download/ipa/altstore-source.json を1回追加すると、新しいバージョンがアップデートとして出ます"
+      "AltStore にアプリのアイコンが出るようにしました"
     ]
   }
 }
