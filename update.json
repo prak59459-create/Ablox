@@ -1,16 +1,16 @@
 {
   "app": "Ablox",
-  "version": "6.0",
-  "build": 49,
+  "version": "6.1",
+  "build": 50,
   "protocol": 8,
   "date": "2026-10-12",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "Words for Ablox Studio's new test play, in English and Japanese (the game itself is unchanged)"
+      "Every push now also builds an .ipa for AltStore. In AltStore, add the source https://github.com/prak59459-create/Ablox/releases/download/ipa/altstore-source.json once, and new versions appear there as updates"
     ],
     "ja": [
-      "Ablox Studio の新しいテストプレイの ことば（英語と日本語）を入れました（ゲームの動きは 変わりません）"
+      "プッシュのたびに AltStore 用の .ipa も作るようにしました。AltStore にソース https://github.com/prak59459-create/Ablox/releases/download/ipa/altstore-source.json を1回追加すると、新しいバージョンがアップデートとして出ます"
     ]
   }
 }
