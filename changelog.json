@@ -2,6 +2,19 @@
   "app": "Ablox",
   "releases": [
     {
+      "version": "6.5",
+      "build": 54,
+      "date": "2026-10-13",
+      "notes": {
+        "en": [
+          "On an iPhone the menu pages have narrower margins, and the world, game and room cards fit in one column instead of running off the screen"
+        ],
+        "ja": [
+          "iPhone では メニューの各ページの余白をせまくして、ワールド・ゲーム・ルームのカードが 画面からはみ出さずに 1列に入るようにしました"
+        ]
+      }
+    },
+    {
       "version": "6.4",
       "build": 53,
       "date": "2026-10-13",

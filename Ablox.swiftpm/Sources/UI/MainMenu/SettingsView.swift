@@ -8,6 +8,7 @@ struct SettingsView: View {
     @EnvironmentObject private var store: ProjectStore
     @EnvironmentObject private var saves: GameSaves
     @EnvironmentObject private var updater: AppUpdater
+    @Environment(\.screenFit) private var fit
 
     @State private var deletingSave: GameSaveStore.Summary?
     @State private var confirmingDeleteAll = false
@@ -70,7 +71,7 @@ struct SettingsView: View {
                 if shows("move settings file export import another ipad", L("Move my settings")) { SettingsTransferCard() }
                 if shows("about version", L("About")) { aboutCard }
             }
-            .padding(Ablox.Metrics.gutter)
+            .padding(fit.gutter)
             .frame(maxWidth: 780, alignment: .leading)
         }
         .sheet(item: $installing) { install in

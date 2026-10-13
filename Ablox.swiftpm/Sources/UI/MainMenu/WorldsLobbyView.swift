@@ -8,6 +8,7 @@ struct WorldsLobbyView: View {
     @EnvironmentObject private var store: ProjectStore
     @EnvironmentObject private var settings: AppSettings
     @EnvironmentObject private var cloud: CloudService
+    @Environment(\.screenFit) private var fit
 
     var onEnter: (ActiveSession) -> Void
 
@@ -79,14 +80,14 @@ struct WorldsLobbyView: View {
                     }
                 } else {
                     shelfBar
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 280), spacing: 15)], spacing: 15) {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: fit.cardMinimum(280)), spacing: 15)], spacing: 15) {
                         ForEach(shown) { entry in
                             worldCard(entry)
                         }
                     }
                 }
             }
-            .padding(Ablox.Metrics.gutter)
+            .padding(fit.gutter)
         }
         .background(
             Color.clear.fileImporter(isPresented: $importing, allowedContentTypes: [.data, .json], allowsMultipleSelection: true) { result in

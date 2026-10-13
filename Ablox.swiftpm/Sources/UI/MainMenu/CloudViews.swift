@@ -11,6 +11,7 @@ import AbloxCore
 struct InternetRoomsSection: View {
     @EnvironmentObject private var cloud: CloudService
     @EnvironmentObject private var settings: AppSettings
+    @Environment(\.screenFit) private var fit
     var onJoin: (CloudRoom) -> Void
 
     @State private var loading = false
@@ -57,7 +58,7 @@ struct InternetRoomsSection: View {
                                        systemImage: "globe")
                     }
                 } else {
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 260), spacing: 14)], spacing: 14) {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: fit.cardMinimum(260)), spacing: 14)], spacing: 14) {
                         ForEach(cloud.rooms) { room in
                             roomCard(room)
                         }

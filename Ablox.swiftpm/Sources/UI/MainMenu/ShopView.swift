@@ -8,6 +8,7 @@ import AbloxCore
 /// most coins must not also be the fastest. `EconomyTests` asserts it.
 struct ShopView: View {
     @EnvironmentObject private var settings: AppSettings
+    @Environment(\.screenFit) private var fit
 
     @State private var kind: ShopItem.Kind = .bodyColor
     @State private var lastResult: PlayerWallet.PurchaseResult?
@@ -49,7 +50,7 @@ struct ShopView: View {
                 kindPicker
                 itemGrid
             }
-            .padding(Ablox.Metrics.gutter)
+            .padding(fit.gutter)
         }
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: settings.wallet)
         .sheet(item: $tryingOn) { item in

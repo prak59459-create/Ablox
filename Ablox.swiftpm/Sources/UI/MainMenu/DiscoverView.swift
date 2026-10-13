@@ -12,6 +12,7 @@ struct DiscoverView: View {
     @EnvironmentObject private var session: SessionCoordinator
     @EnvironmentObject private var store: ProjectStore
     @EnvironmentObject private var cloud: CloudService
+    @Environment(\.screenFit) private var fit
     @StateObject private var library = GameLibrary()
 
     var onEnter: (ActiveSession) -> Void
@@ -103,7 +104,7 @@ struct DiscoverView: View {
                     grid(ordered(filtered))
                 }
             }
-            .padding(Ablox.Metrics.gutter)
+            .padding(fit.gutter)
             .frame(maxWidth: 1100, alignment: .leading)
         }
         .onChange(of: library.status) { _, status in
@@ -405,7 +406,7 @@ struct DiscoverView: View {
     private func grid(_ games: [GameListing]) -> some View {
         let layout = settings.memory.gamesLayout
         let columns = layout == .list ? [GridItem(.flexible())]
-            : [GridItem(.adaptive(minimum: layout == .smallCards ? 170 : 230, maximum: layout == .smallCards ? 220 : 320), spacing: 16)]
+            : [GridItem(.adaptive(minimum: fit.cardMinimum(layout == .smallCards ? 170 : 230), maximum: layout == .smallCards ? 220 : 320), spacing: 16)]
         return LazyVGrid(columns: columns, spacing: layout == .list ? 8 : 16) {
             ForEach(games) { listing in
                 Button { open(listing) } label: {

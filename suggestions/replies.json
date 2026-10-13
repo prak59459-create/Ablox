@@ -157,18 +157,18 @@
     },
     {
       "id": "s1791858369842-YLJWT9",
-      "status": "planned",
+      "status": "thanks",
       "message": {
-        "en": "We're reading your idea — back soon!",
-        "ja": "読んでいます。少し待っててね！"
+        "en": "Thanks for the idea! An AI helper needs a paid account that grown-ups set up, so we've passed it on to them.",
+        "ja": "アイデアをありがとう！AI の機能は 大人が用意するアカウントが必要なので、持ち主に伝えたよ。"
       }
     },
     {
       "id": "s1791859414315-CV4KEW",
-      "status": "planned",
+      "status": "notNow",
       "message": {
-        "en": "We're reading your idea — back soon!",
-        "ja": "読んでいます。少し待っててね！"
+        "en": "Thank you for the careful plan! Games about betting money aren't a good fit for Ablox, so we'll skip this one.",
+        "ja": "ていねいな計画をありがとう！お金をかけるゲームは Ablox には合わないので、今回は見送りにするね。"
       }
     }
   ]

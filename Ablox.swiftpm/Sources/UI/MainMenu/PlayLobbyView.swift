@@ -7,6 +7,7 @@ struct PlayLobbyView: View {
     @EnvironmentObject private var store: ProjectStore
     @EnvironmentObject private var settings: AppSettings
     @EnvironmentObject private var cloud: CloudService
+    @Environment(\.screenFit) private var fit
 
     var onEnter: (ActiveSession) -> Void
 
@@ -36,7 +37,7 @@ struct PlayLobbyView: View {
                 nearbySection
                 quickPlaySection
             }
-            .padding(Ablox.Metrics.gutter)
+            .padding(fit.gutter)
         }
         .sheet(item: $joiningPeer) { peer in
             JoinSheet(peer: peer, code: $roomCodeEntry) {
@@ -257,7 +258,7 @@ struct PlayLobbyView: View {
                     )
                 }
             } else {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 240), spacing: 13)], spacing: 13) {
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: fit.cardMinimum(240)), spacing: 13)], spacing: 13) {
                     ForEach(store.entries.prefix(6)) { entry in
                         Button {
                             guard let world = store.load(entry) else { return }
