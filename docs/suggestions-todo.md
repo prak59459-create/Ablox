@@ -67,7 +67,7 @@
 第3段階（2026-10-13、Ablox 6.6）: 遊ぶ画面。iPhone の横向きでは ジャンプと となりのボタンを 0.8倍にして はしに よせ（`fit.controlScale`・`fit.controlInset(_:)`）、右上の地図は 高さの 3分の1まで（`fit.cornerMap(_:)`）。
 
 第4段階（2026-10-13、Ablox 6.7、持ち主から「縦画面・横画面に完全対応」）: 遊ぶ画面の パネル（プレイヤーの一覧・エモート・スコア）を `fit.sidePanel` に。「今日のおすすめ」は 横に入らないとき 説明を カードの下に（`fit.pageHas(room:)`）。
-CI の Launch check に iPhone のジョブ: 縦と横で 全部のタブを開いて スクリーンショット（`launch-check-iphone`）。向きは 起動の引数 `-AbloxOrientation`（`UI/Components/LaunchOrientation.swift`）。
+CI の Launch check に iPhone のジョブ: 縦と横で 全部のタブを開いて スクリーンショット（`launch-check-iphone`）。向きは 起動の引数 `-AbloxOrientation`（`MainMenuView` の中）。
 
 次の回から、上から順に:
 

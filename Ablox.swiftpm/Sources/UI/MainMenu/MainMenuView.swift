@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import AbloxCore
 
 public enum MenuTab: String, CaseIterable, Identifiable {
@@ -225,8 +226,17 @@ public struct MainMenuView: View {
             // launch argument (scripts/ios-launch-check.sh). An iPad never
             // passes one.
             if let tab = MenuTab(rawValue: UserDefaults.standard.string(forKey: "AbloxOpenTab") ?? "") { selectedTab = tab }
-            // …and on an iPhone, held upright and on its side.
-            LaunchOrientation.apply()
+            // …and on an iPhone, held upright and on its side
+            // (-AbloxOrientation landscape / portrait). Never passed on a
+            // real device, so nothing changes there.
+            if let turn = UserDefaults.standard.string(forKey: "AbloxOrientation") {
+                let mask: UIInterfaceOrientationMask = turn == "landscape" ? .landscapeRight : .portrait
+                for case let scene as UIWindowScene in UIApplication.shared.connectedScenes {
+                    scene.requestGeometryUpdate(.iOS(interfaceOrientations: mask)) { error in
+                        print("AbloxOrientation: \(error.localizedDescription)")
+                    }
+                }
+            }
             // Its frame-rate run goes straight into a busy world and prints
             // how fast it draws (`RenderBenchmark`).
             if UserDefaults.standard.bool(forKey: "AbloxPlayBenchmark") {
