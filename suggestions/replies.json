@@ -154,6 +154,22 @@
         "en": "Thank you for the detailed idea! Games about betting money aren't a good fit for Ablox, so we'll skip this one.",
         "ja": "くわしいアイデアをありがとう！お金をかけるゲームは Ablox には合わないので、今回は見送りにするね。"
       }
+    },
+    {
+      "id": "s1791858369842-YLJWT9",
+      "status": "planned",
+      "message": {
+        "en": "We're reading your idea — back soon!",
+        "ja": "読んでいます。少し待っててね！"
+      }
+    },
+    {
+      "id": "s1791859414315-CV4KEW",
+      "status": "planned",
+      "message": {
+        "en": "We're reading your idea — back soon!",
+        "ja": "読んでいます。少し待っててね！"
+      }
     }
   ]
 }
