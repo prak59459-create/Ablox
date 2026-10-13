@@ -1,16 +1,16 @@
 {
   "app": "Ablox",
-  "version": "6.3",
-  "build": 52,
+  "version": "6.4",
+  "build": 53,
   "protocol": 8,
   "date": "2026-10-13",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "Backups and saved-game files are sealed: a file changed outside Ablox no longer brings back coins, items or game progress (worlds still come back)"
+      "On an iPhone (and in a small iPad window) the menu's sidebar shows just the icons, and the avatar editor and the big map fit the screen"
     ],
     "ja": [
-      "バックアップとセーブデータのファイルに「封印」をつけました。Ablox の外で書きかえたファイルでは、コイン・アイテム・ゲームのセーブは戻りません（ワールドは戻ります）"
+      "iPhone（と iPad の小さいウィンドウ）では、メニューの横の列をアイコンだけにして、アバターの着がえ画面と大きい地図を画面に合わせました"
     ]
   }
 }

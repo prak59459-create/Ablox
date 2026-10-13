@@ -5,6 +5,8 @@ import AbloxCore
 public struct PlayScreen: View {
     @ObservedObject var session: SessionCoordinator
     @EnvironmentObject private var settings: AppSettings
+    /// On an iPhone the big map shrinks to fit.
+    @Environment(\.screenFit) private var fit
     @EnvironmentObject private var store: ProjectStore
     @EnvironmentObject private var cloud: CloudService
     @Environment(\.scenePhase) private var scenePhase
@@ -1326,7 +1328,7 @@ public struct PlayScreen: View {
                         .onTapGesture { withAnimation { mapExpanded = false } }
                     MiniMapView(footprint: MapFootprint.of(session.world), players: session.roster, localPeerID: session.localPeerID,
                                 expanded: true, friends: friendIDs)
-                        .frame(width: 520, height: 520)
+                        .frame(width: fit.square(520), height: fit.square(520))
                         .onTapGesture { withAnimation { mapExpanded = false } }
                 }
                 .transition(.opacity)

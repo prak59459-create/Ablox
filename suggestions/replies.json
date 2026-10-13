@@ -132,26 +132,27 @@
     },
     {
       "id": "s1791854254725-79W43C",
-      "status": "planned",
+      "status": "done",
       "message": {
-        "en": "We're reading your idea — back soon!",
-        "ja": "読んでいます。少し待っててね！"
-      }
+        "en": "Ablox now fits an iPhone screen better: the menu shows just the icons, and the avatar editor and the map fit. Thanks for the idea!",
+        "ja": "iPhone の画面に合わせて、メニューをアイコンだけにして、着がえ画面と地図も入るようにしたよ。アイデアありがとう！"
+      },
+      "version": "6.4"
     },
     {
       "id": "s1791854284297-MCSSJU",
-      "status": "planned",
+      "status": "done",
       "message": {
-        "en": "We're reading your idea — back soon!",
-        "ja": "読んでいます。少し待っててね！"
+        "en": "In Last Survivor Games, each game now comes up only once in a show. Have fun!",
+        "ja": "Last Survivor Games で、同じゲームは1回のショーで1回だけ出るようにしたよ。楽しんでね！"
       }
     },
     {
       "id": "s1791855232618-3ZTPHU",
-      "status": "planned",
+      "status": "notNow",
       "message": {
-        "en": "We're reading your idea — back soon!",
-        "ja": "読んでいます。少し待っててね！"
+        "en": "Thank you for the detailed idea! Games about betting money aren't a good fit for Ablox, so we'll skip this one.",
+        "ja": "くわしいアイデアをありがとう！お金をかけるゲームは Ablox には合わないので、今回は見送りにするね。"
       }
     }
   ]

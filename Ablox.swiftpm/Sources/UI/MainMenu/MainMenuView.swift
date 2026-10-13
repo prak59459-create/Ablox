@@ -50,6 +50,8 @@ public struct MainMenuView: View {
     @EnvironmentObject private var updater: AppUpdater
     @EnvironmentObject private var cloud: CloudService
     @EnvironmentObject private var notices: NoticeService
+    /// An iPhone gets the icons-only sidebar.
+    @Environment(\.screenFit) private var fit
 
     @State private var selectedTab: MenuTab = .play
     @State private var openedStartTab = false
@@ -99,8 +101,8 @@ public struct MainMenuView: View {
             DynamicBackgroundView()
 
             HStack(spacing: 0) {
-                SidebarView(selectedTab: $selectedTab)
-                    .frame(width: Ablox.Metrics.sidebarWidth)
+                SidebarView(selectedTab: $selectedTab, compact: !fit.showsTabNames)
+                    .frame(width: fit.sidebarWidth)
                     // On the sidebar rather than the screen: one alert per view.
                     .alert(L("Welcome back!"), isPresented: Binding(get: { dailyBonus != nil }, set: { if !$0 { dailyBonus = nil } })) {
                         Button(L("Thanks!"), role: .cancel) { dailyBonus = nil }
@@ -430,6 +432,8 @@ public struct ActiveSession: EqualByID {
 
 struct SidebarView: View {
     @Binding var selectedTab: MenuTab
+    /// On an iPhone: `PhoneSidebarView`, icons alone.
+    var compact = false
     @EnvironmentObject private var session: SessionCoordinator
     @EnvironmentObject private var settings: AppSettings
 
@@ -446,6 +450,14 @@ struct SidebarView: View {
     }
 
     var body: some View {
+        if compact {
+            PhoneSidebarView(selectedTab: $selectedTab, tabs: tabs)
+        } else {
+            wide
+        }
+    }
+
+    private var wide: some View {
         VStack(alignment: .leading, spacing: 22) {
             brandmark
                 .padding(.horizontal, 20)

@@ -2,6 +2,19 @@
   "app": "Ablox",
   "releases": [
     {
+      "version": "6.4",
+      "build": 53,
+      "date": "2026-10-13",
+      "notes": {
+        "en": [
+          "On an iPhone (and in a small iPad window) the menu's sidebar shows just the icons, and the avatar editor and the big map fit the screen"
+        ],
+        "ja": [
+          "iPhone（と iPad の小さいウィンドウ）では、メニューの横の列をアイコンだけにして、アバターの着がえ画面と大きい地図を画面に合わせました"
+        ]
+      }
+    },
+    {
       "version": "6.3",
       "build": 52,
       "date": "2026-10-13",

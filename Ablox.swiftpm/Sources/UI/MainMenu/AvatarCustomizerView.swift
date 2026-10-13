@@ -6,6 +6,8 @@ import AbloxCore
 /// change is visible on the actual rig rather than on a swatch.
 struct AvatarCustomizerView: View {
     @EnvironmentObject private var settings: AppSettings
+    /// On an iPhone the editor leaves room for the avatar beside it.
+    @Environment(\.screenFit) private var fit
     @EnvironmentObject private var session: SessionCoordinator
 
     private enum Slot: String, CaseIterable, Identifiable {
@@ -90,7 +92,7 @@ struct AvatarCustomizerView: View {
                 }
                 .padding(Ablox.Metrics.gutter)
             }
-            .frame(width: 420)
+            .frame(width: fit.sidePanel(420))
             .background(.ultraThinMaterial)
         }
         .onChange(of: settings.profile) { _, newValue in

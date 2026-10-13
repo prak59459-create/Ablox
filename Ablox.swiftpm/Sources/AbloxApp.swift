@@ -57,6 +57,8 @@ struct AbloxApp: App {
             .environmentObject(notices)
             // Settings → Comfort → Text size, for the whole app.
             .dynamicTypeSize(settings.preferences.textSize.dynamicType)
+            // An iPhone (or a small iPad window) gets the compact layout.
+            .fitsScreen()
     }
 
     /// Rebuilds the interface when the language changes.

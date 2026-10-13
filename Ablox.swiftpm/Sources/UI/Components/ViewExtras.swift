@@ -53,3 +53,11 @@ extension View {
                                       onChoose: onChoose))
     }
 }
+
+extension View {
+    /// Gives the views inside the window's size class: the compact layout
+    /// on an iPhone (see `ScreenFit` and `ScreenFitting`).
+    func fitsScreen() -> some View {
+        modifier(ScreenFitting())
+    }
+}
