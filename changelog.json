@@ -2,6 +2,19 @@
   "app": "Ablox",
   "releases": [
     {
+      "version": "6.6",
+      "build": 55,
+      "date": "2026-10-13",
+      "notes": {
+        "en": [
+          "On an iPhone held sideways, the jump button and the buttons beside it are a little smaller and closer to the edge, and the corner map is smaller, so they no longer cover each other"
+        ],
+        "ja": [
+          "iPhone を横にして遊ぶとき、ジャンプと となりのボタンを 少し小さく 画面のはしに よせ、右上の地図も 小さくして、重ならないようにしました"
+        ]
+      }
+    },
+    {
       "version": "6.5",
       "build": 54,
       "date": "2026-10-13",

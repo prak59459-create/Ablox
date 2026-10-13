@@ -738,7 +738,7 @@ public struct PlayScreen: View {
                             Spacer()
                             if stickOnLeft { CombatControls(session: session, isFiring: $isFiring) }
                         }
-                        .padding(.horizontal, 30)
+                        .padding(.horizontal, fit.controlInset(30))
                         .padding(.bottom, 14)
                     }
                     // One-handed: the jump button moves over the stick, so one
@@ -749,8 +749,8 @@ public struct PlayScreen: View {
                         Spacer()
                         if !jumpOnLeft { jumpCluster(onLeft: false) }
                     }
-                    .padding(.horizontal, settings.preferences.oneHanded ? 150 : 44)
-                    .padding(.bottom, settings.preferences.oneHanded ? 150 : 44)
+                    .padding(.horizontal, fit.controlInset(settings.preferences.oneHanded ? 150 : 44))
+                    .padding(.bottom, fit.controlInset(settings.preferences.oneHanded ? 150 : 44))
                 }
                 .opacity(settings.preferences.hud.opacity)
     }
@@ -763,6 +763,8 @@ public struct PlayScreen: View {
             jumpButton
             if onLeft { extraButtons }
         }
+        // On a phone held sideways, a little smaller toward the corner.
+        .scaleEffect(fit.controlScale, anchor: onLeft ? .bottomLeading : .bottomTrailing)
     }
 
     @ViewBuilder private var extraButtons: some View {
@@ -1313,7 +1315,7 @@ public struct PlayScreen: View {
                             Self.smallMap(playing, metresAcross: metres, heading: nil, friends: friends)
                         }
                     }
-                    .frame(width: hud.mapSize.points, height: hud.mapSize.points)
+                    .frame(width: fit.cornerMap(hud.mapSize.points), height: fit.cornerMap(hud.mapSize.points))
                     .opacity(max(0.6, hud.opacity))
                     .onTapGesture { withAnimation { mapExpanded = true } }
                 }
