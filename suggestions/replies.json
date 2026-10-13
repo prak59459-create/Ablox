@@ -112,6 +112,22 @@
         "ja": "直したよ！Ablox Studio 4.9 では「プレイ」で ゲームが開いて、歩いたりジャンプしたり スクリプトを ためしたり できるよ。"
       },
       "version": "6.0"
+    },
+    {
+      "id": "s1791846493415-2UGDGG",
+      "status": "planned",
+      "message": {
+        "en": "We're reading your idea — back soon!",
+        "ja": "読んでいます。少し待っててね！"
+      }
+    },
+    {
+      "id": "s1791846889646-M8WQ92",
+      "status": "planned",
+      "message": {
+        "en": "We're reading your idea — back soon!",
+        "ja": "読んでいます。少し待っててね！"
+      }
     }
   ]
 }
