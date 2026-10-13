@@ -237,6 +237,7 @@ final class ClipRecorder: ObservableObject {
 struct EmotePanel: View {
     let onChoose: (Gesture) -> Void
     @EnvironmentObject private var settings: AppSettings
+    @Environment(\.screenFit) private var fit
 
     var body: some View {
         let favourites = settings.memory.emotes
@@ -279,7 +280,7 @@ struct EmotePanel: View {
             .frame(maxHeight: 330)
         }
         .padding(14)
-        .frame(width: 310)
+        .frame(width: fit.sidePanel(310))
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 

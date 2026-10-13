@@ -10,6 +10,7 @@ struct PlayerListView: View {
     /// For the picture a report keeps.
     var link: ViewportLink?
     @EnvironmentObject private var settings: AppSettings
+    @Environment(\.screenFit) private var fit
 
     @State private var whispering: PlayerSnapshot?
     @State private var reporting: PlayerSnapshot?
@@ -51,7 +52,7 @@ struct PlayerListView: View {
                     .buttonStyle(.plain)
                 }
             }
-            .frame(width: 250)
+            .frame(width: fit.sidePanel(250))
         }
         .sheet(item: $whispering) { player in
             WhisperSheet(session: session, player: player)

@@ -1450,7 +1450,7 @@ public struct PlayScreen: View {
                     }
                 }
             }
-            .frame(width: 220)
+            .frame(width: fit.sidePanel(220))
         }
     }
 

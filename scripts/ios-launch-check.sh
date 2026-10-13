@@ -24,7 +24,8 @@ mkdir -p "$out"
 
 xcodebuild -version
 
-# The newest iPad simulator there is.
+# The newest iPad simulator there is (DEVICE=iPhone: the newest iPhone).
+device="${DEVICE:-iPad}"
 udid="$(xcrun simctl list devices available -j | python3 -c '
 import json, sys
 devices = json.load(sys.stdin)["devices"]
@@ -33,11 +34,11 @@ for runtime in sorted(devices, key=lambda r: [int(p) for p in r.rsplit("iOS-", 1
     if "iOS" not in runtime:
         continue
     for device in devices[runtime]:
-        if "iPad" in device["name"]:
+        if sys.argv[1] in device["name"]:
             chosen = device["udid"]
-print(chosen)')"
+print(chosen)' "$device")"
 if [ -z "$udid" ]; then
-  echo "No iPad simulator available."
+  echo "No $device simulator available."
   xcrun simctl list devices available
   exit 1
 fi
@@ -173,10 +174,15 @@ fi
 
 # Each tab opened straight away (launch argument AbloxOpenTab), so a crash
 # in any tab's first screen shows here too, not only the Play tab's.
+# ORIENTATIONS="portrait landscape" opens every tab held each way too
+# (launch argument AbloxOrientation), with a screenshot of each.
 failed=""
+for turn in ${ORIENTATIONS:--}; do
 for tab in ${TABS-Games Worlds Avatar Shop Settings}; do
+  turned=()
+  [ "$turn" != - ] && { turned=(-AbloxOrientation "$turn"); tab="$tab-$turn"; }
   touch "$out/started-$tab"
-  if ! launch "$tab" -AbloxOpenTab "$tab"; then
+  if ! launch "$tab" -AbloxOpenTab "${tab%-*}" ${turned[@]+"${turned[@]}"}; then
     echo "== $tab: the simulator would not start the app (not a crash of the app)"
     failed="$failed $tab"
     continue
@@ -204,6 +210,7 @@ for t in body.get("threads", []):
 PY
     done
   fi
+done
 done
 
 # The frame-rate run: straight into a busy world (RenderBenchmark: about

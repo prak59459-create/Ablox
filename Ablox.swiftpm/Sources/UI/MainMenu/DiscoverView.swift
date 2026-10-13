@@ -287,9 +287,13 @@ struct DiscoverView: View {
     @ViewBuilder private var shelves: some View {
         if let pick = CatalogueShelf.dailyPick(from: allowed) {
             Button { selected = pick } label: {
-                HStack(spacing: 16) {
+                // Beside the card on an iPad and a phone on its side; under
+                // it on a phone held upright, where there is no room.
+                let beside = fit.pageHas(room: 280 + 16 + 200)
+                let layout = beside ? AnyLayout(HStackLayout(spacing: 16)) : AnyLayout(VStackLayout(alignment: .leading, spacing: 10))
+                layout {
                     GameCard(listing: pick, library: library, badges: badges(for: pick))
-                        .frame(width: 280)
+                        .frame(width: fit.cardMinimum(280))
                     VStack(alignment: .leading, spacing: 8) {
                         Label(L("Today's pick"), systemImage: "sparkles")
                             .font(.headline)

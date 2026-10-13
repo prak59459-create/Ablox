@@ -225,6 +225,8 @@ public struct MainMenuView: View {
             // launch argument (scripts/ios-launch-check.sh). An iPad never
             // passes one.
             if let tab = MenuTab(rawValue: UserDefaults.standard.string(forKey: "AbloxOpenTab") ?? "") { selectedTab = tab }
+            // …and on an iPhone, held upright and on its side.
+            LaunchOrientation.apply()
             // Its frame-rate run goes straight into a busy world and prints
             // how fast it draws (`RenderBenchmark`).
             if UserDefaults.standard.bool(forKey: "AbloxPlayBenchmark") {

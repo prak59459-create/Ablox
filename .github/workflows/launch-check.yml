@@ -36,3 +36,26 @@ jobs:
           name: launch-check
           path: ${{ runner.temp }}/launch
           if-no-files-found: ignore
+
+  iphone:
+    name: Start on an iPhone simulator, upright and on its side
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build, start and open every tab both ways
+        run: scripts/ios-launch-check.sh
+        env:
+          DEVICE: iPhone
+          TABS: Play Games Worlds Avatar Shop Settings
+          ORIENTATIONS: portrait landscape
+          BENCHMARK: "0"
+          WATCH: "20"
+          OUT: ${{ runner.temp }}/launch
+      - name: Keep the logs and the screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: launch-check-iphone
+          path: ${{ runner.temp }}/launch
+          if-no-files-found: ignore

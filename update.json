@@ -1,16 +1,16 @@
 {
   "app": "Ablox",
-  "version": "6.6",
-  "build": 55,
+  "version": "6.7",
+  "build": 56,
   "protocol": 8,
   "date": "2026-10-13",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "On an iPhone held sideways, the jump button and the buttons beside it are a little smaller and closer to the edge, and the corner map is smaller, so they no longer cover each other"
+      "On an iPhone held upright or on its side: the player list, emotes and scores fit beside the game, and Today's pick puts its words under the card when there is no room beside it"
     ],
     "ja": [
-      "iPhone を横にして遊ぶとき、ジャンプと となりのボタンを 少し小さく 画面のはしに よせ、右上の地図も 小さくして、重ならないようにしました"
+      "iPhone を 縦にしても 横にしても: プレイヤーの一覧・エモート・スコアが ゲームの横に 収まり、「今日のおすすめ」は 横に 入らないとき 説明を カードの下に 出します"
     ]
   }
 }
