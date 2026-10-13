@@ -292,7 +292,7 @@ struct SettingsView: View {
     @ViewBuilder private var dataFooter: some View {
         if let kept = saves.keptBackupFiles.first {
             Button {
-                saves.restoreBackup(from: kept, settings: settings, worlds: store)
+                saves.restoreBackup(from: kept, settings: settings, worlds: store, keptHere: true)
             } label: {
                 Label(L("Bring back the backup made before the last update"), systemImage: "clock.arrow.circlepath")
                     .font(.caption.weight(.semibold))

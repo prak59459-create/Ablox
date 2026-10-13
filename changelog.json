@@ -2,6 +2,19 @@
   "app": "Ablox",
   "releases": [
     {
+      "version": "6.3",
+      "build": 52,
+      "date": "2026-10-13",
+      "notes": {
+        "en": [
+          "Backups and saved-game files are sealed: a file changed outside Ablox no longer brings back coins, items or game progress (worlds still come back)"
+        ],
+        "ja": [
+          "バックアップとセーブデータのファイルに「封印」をつけました。Ablox の外で書きかえたファイルでは、コイン・アイテム・ゲームのセーブは戻りません（ワールドは戻ります）"
+        ]
+      }
+    },
+    {
       "version": "6.2",
       "build": 51,
       "date": "2026-10-12",

@@ -115,18 +115,19 @@
     },
     {
       "id": "s1791846493415-2UGDGG",
-      "status": "planned",
+      "status": "done",
       "message": {
-        "en": "We're reading your idea — back soon!",
-        "ja": "読んでいます。少し待っててね！"
-      }
+        "en": "Thanks for telling us! Backups now have a seal, so a changed file can't bring back extra coins or items.",
+        "ja": "教えてくれてありがとう！バックアップに「封印」をつけたので、書きかえたファイルではコインやアイテムがふえなくなったよ。"
+      },
+      "version": "6.3"
     },
     {
       "id": "s1791846889646-M8WQ92",
-      "status": "planned",
+      "status": "notNow",
       "message": {
-        "en": "We're reading your idea — back soon!",
-        "ja": "読んでいます。少し待っててね！"
+        "en": "Thanks for the idea! We can't use characters from real movies or comics, so we're skipping this one for now.",
+        "ja": "アイデアありがとう！本物の映画やまんがのキャラクターは使えないので、今回は見送りにするね。"
       }
     }
   ]

@@ -58,19 +58,23 @@ extension GameSaves {
     /// One game's saved progress as a small file, to send to someone or keep.
     func exportSave(_ summary: GameSaveStore.Summary) -> URL? {
         guard let record = store.record(for: summary.id),
-              let data = try? GameSaveStore.encoder.encode(record) else { return nil }
+              let data = try? FileSeal.sealed(GameSaveStore.encoder.encode(record)) else { return nil }
         let safe = summary.worldName.components(separatedBy: CharacterSet(charactersIn: "/\\:?%*|\"<>")).joined()
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("\(safe).abloxsave")
         return (try? data.write(to: url, options: [.atomic])) != nil ? url : nil
     }
 
-    /// Reads a game's save file and keeps it, unless the one here is newer.
+    /// Reads a game's save file and keeps it, unless the one here is newer
+    /// or its seal does not match (changed by hand).
     func importSave(from url: URL) -> String {
         let scoped = url.startAccessingSecurityScopedResource()
         defer { if scoped { url.stopAccessingSecurityScopedResource() } }
         guard let data = try? Data(contentsOf: url), data.count < 256 * 1024,
               let record = try? GameSaveStore.decoder.decode(GameSaveStore.Record.self, from: data) else {
             return L("That file is not a saved game.")
+        }
+        guard FileSeal.isIntact(data) else {
+            return L("That saved game was changed outside Ablox, so it was not added.")
         }
         let changed = store.merge([record])
         reload()

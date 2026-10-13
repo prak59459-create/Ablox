@@ -95,14 +95,24 @@ public final class GameSaves: ObservableObject {
 
     /// Reads a backup chosen in Files and merges it in: newer saves and
     /// worlds win, coins never go down, the avatar comes back.
-    public func restoreBackup(from url: URL, settings: AppSettings, worlds: ProjectStore) {
+    ///
+    /// A backup whose seal does not match (changed by hand, or made before
+    /// seals) brings back only the worlds — not coins, items, the avatar's
+    /// clothes or game progress. `keptHere` is for the copies the app keeps
+    /// in its own folder, which nothing outside the app can change.
+    public func restoreBackup(from url: URL, settings: AppSettings, worlds: ProjectStore, keptHere: Bool = false) {
         let scoped = url.startAccessingSecurityScopedResource()
         defer { if scoped { url.stopAccessingSecurityScopedResource() } }
         do {
             let data = try Data(contentsOf: url)
             let backup = try AbloxBackup.decoded(from: data)
-            let saves = store.merge(backup.saves)
             let restoredWorlds = worlds.merge(backup.worlds)
+            guard backup.isSealed || keptHere else {
+                reload()
+                lastMessage = L("Restored {} worlds. This backup was changed outside Ablox or made by an older version, so coins, items, the avatar and game progress stay as they are.", restoredWorlds)
+                return
+            }
+            let saves = store.merge(backup.saves)
             settings.wallet = settings.wallet.merged(with: backup.wallet)
             settings.profile = backup.profile
             reload()
