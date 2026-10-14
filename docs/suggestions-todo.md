@@ -74,6 +74,21 @@ CI の Launch check に iPhone のジョブ: 縦と横で 全部のタブを開�
 1. Launch check の iPhone の スクリーンショット（縦・横、全タブ）を見て、はみ出し・重なりを 直す
 2. 設定・ショップ・プロフィールの シートを iPhone の 縦向きで 見直す（横に並べた ボタンが はみ出さないか）
 
+### 複数人で遊ぶゲームに NPC（🤖 BOT）を入れる（2026-10-14 の意見、段階で進める）
+
+第1段階（2026-10-14、abloxgames）: 共通の部品 `lib/kit_bots.absc`（Catalogue の `libs: ["bots"]`）。
+人と BOT あわせて `fill` 人になるまで BOT が入り、人が来たら そのぶん帰る。相手をさがして 近づく・横に動いてよける・うつ（外れる確率つきで 子ども向けに やさしめ）。
+右上の「🤖 BOT オン/オフ」で だれでも 止められる。入れたゲーム: Gun Swap Arena（23、BOT をたおしても 次の武器へ）・Warrior Brawl（24、近くで斬りかかる）・Blade & Revolver（28、チーム戦は人数の少ないチームに入る。BOT が先に目標に着いたら BOT の勝ち）。
+
+次の回から、上から順に 1回に 3〜4本ずつ（ゲームごとに `bots.absc` を足して、そのゲームの on death・on hit・相手さがしに BOT を入れる）:
+
+1. 戦うゲーム: Clash Duels（6、いまは タイマンだけ BOT → チーム戦と乱戦にも）・Battleground Legends・Domain Clash・Style Boxing
+2. 戦うゲームの残り: Crystal Wars（チームで 結晶をまもる BOT）・Deflect Ball（ボールを はじく BOT）・Power Roulette・Shark Attack Bay
+3. レースとスポーツ: Armed Racers（コースの点を順に 走る BOT、`lib/kit_bots.absc` に「道をたどる」を足す）・Chaos Golf・Trap Master Run
+4. パーティ: Smile Outbreak（おに・にげる）・Prop Hide and Seek（かくれる・さがす）・Mega Minigames・Speeding Wall Survival・Runway Star（BOT も投票する）・Mystery Manor（役のある BOT）
+5. チームの RP・サバイバル: Last Squad vs Horde（人間チームの 味方 BOT）・Ridgeport Cops・Metro Response・Academy Days
+6. 全部 終わったら、abloxgames の README に「🤖 BOT が入るゲーム」の一覧を1行ずつ
+
 ### 持ち主が決めること
 
 - **AI の機能（操作の案内など）** → 持ち主が「入れてよい」（2026-10-13）。作り方: キーは リポジトリに入れない（公開なので 見つかると 使われ、Groq も 自動で 無効にする）。設定 → 家族 で 持ち主が キーを入れて キーチェーンに保存、最初は オフ。モデルは llama-4-scout、短い答え（max_tokens 小さめ、会話は 直前の数回だけ）。名前・電話などは 送る前に 隠す。次の回で作る。
@@ -88,6 +103,8 @@ CI の Launch check に iPhone のジョブ: 縦と横で 全部のタブを開�
 
 
 ## できたもの
+
+- 複数人で遊ぶゲームに NPC を入れて（2026-10-14）→ abloxgames で 第1段階（上の「複数人で遊ぶゲームに NPC」）: 共通の 🤖 BOT と、Gun Swap Arena・Warrior Brawl・Blade & Revolver。
 
 - AI の機能を作ってほしい（2026-10-13、2回目）→ 前と同じく「ありがとう」（上の「持ち主が決めること」）。意見の中の APIキーは 使わず、どこにも 書いていません。
 - （意見箱の回で）iPhone の画面に合わせる 第3段階 → Ablox 6.6: 遊ぶ画面の ボタンと 右上の地図。
