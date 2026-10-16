@@ -93,6 +93,27 @@ surface.
 `AbloxLockup` pairs the mark with the wordmark, and is used by both apps so
 they present one brand rather than two near-misses.
 
+## The drawn icons (Ablox NEXT)
+
+The 56 icons drawn for the new menus — the dock (`home`, `play`, `me`,
+`create`), the closet (`me-hat`, `me-face`, `me-shirt`, `me-pet`, `me-emote`,
+`me-trail`, `me-aura`, `me-trophies`), the game categories (`cat-*`), the play
+screen (`hud-*`), Studio's tools (`tool-*`, `create-*`), `coin`, `level`,
+`mission` and the rest — are pictures rather than shapes, so they cannot be
+drawn in code the way the mark is.
+
+They are kept the way the cue recordings are (`scripts/cue-recordings.py`):
+as text inside the app. `design/icons/` holds the art (128 px WebP, which
+iOS decodes since 14); `python3 -I scripts/icon-art.py` writes
+`Sources/Engine/IconArt.swift` from it — `DrawnIcon`, one case per file, and
+`DrawnIconImage(.home, size: 42)` to show one. No resource bundle, no change
+to the Playgrounds manifest, and an update carries them like any other
+source file. Each icon names an SF Symbol of the same idea
+(`fallbackSymbol`), shown if its picture ever cannot be read.
+
+`--check` fails when the Swift is older than the art. The browser version
+uses the same pictures (`web/public/icons` in AbloxGames).
+
 ## The app icon
 
 The one genuine binary in each bundle: `Sources/Resources/Assets.xcassets`.

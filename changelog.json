@@ -2,6 +2,25 @@
   "app": "Ablox",
   "releases": [
     {
+      "version": "7.0",
+      "build": 59,
+      "date": "2026-10-16",
+      "notes": {
+        "en": [
+          "A new look: a dock of four tabs along the bottom — Home, Play, Me, Create — with your level and coins along the top",
+          "Home: your avatar, today’s missions, the streak, the badges you are nearest to and where you left off, all in one place",
+          "Me: the closet, the shop and your profile together; tap your coins or level at the top for a quick look",
+          "The icons drawn for Ablox are in the app, and the menus have chunky block buttons with little sounds (Settings → Menu sounds)"
+        ],
+        "ja": [
+          "新しい 見た目に なりました：下に 4つの タブ（ホーム・プレイ・じぶん・つくる）、上に レベルと コイン",
+          "ホーム：じぶんの アバター、今日の ミッション、連続ログイン、もうすぐ 取れる バッジ、続きから 遊ぶ を 1つの 画面に",
+          "じぶん：クローゼット・ショップ・プロフィールが いっしょに。上の コインや レベルを タップすると すぐ 見られます",
+          "Ablox のために 描いた アイコンを 使うように なり、ボタンは ブロックの ような 形と 小さな 音つきに（設定 → メニューの音）"
+        ]
+      }
+    },
+    {
       "version": "6.9",
       "build": 58,
       "date": "2026-10-16",

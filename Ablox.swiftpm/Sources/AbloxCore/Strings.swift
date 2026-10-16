@@ -36,7 +36,7 @@ public enum Strings {
     /// Exposed so the tests can see duplicates, which the dictionary hides.
     public static let entries: [(String, String)] = [
         coreEntries, clientEntries, studioEntries, guideEntries, catalogueEntries, scriptEntries, updateEntries, updateEntries2,
-        featureEntries, featureEntries2, featureEntries3, featureEntries4, featureEntries5, featureEntries6, featureEntries7, featureEntries8, featureEntries9, featureEntries10, featureEntries11, featureEntries12, featureEntries13, featureEntries14, featureEntries15
+        featureEntries, featureEntries2, featureEntries3, featureEntries4, featureEntries5, featureEntries6, featureEntries7, featureEntries8, featureEntries9, featureEntries10, featureEntries11, featureEntries12, featureEntries13, featureEntries14, featureEntries15, nextEntries
     ].flatMap { $0 }
 
     // MARK: - Shared vocabulary
@@ -168,7 +168,7 @@ public enum Strings {
 
         // Shared between both apps' lobbies
         ("Cancel", "キャンセル"),
-        ("Create", "作成"),
+        ("Create", "つくる"),
         ("Delete", "削除"),
         ("Duplicate", "複製"),
         ("Done", "完了"),
@@ -3423,5 +3423,22 @@ public enum Strings {
         ("Getting the update history…", "アップデートの履歴を読みこみ中…"),
         ("Could not read the whole history. Check the internet and try again.", "履歴を全部は読めませんでした。インターネットを確かめて、もう一度ためしてね。"),
         ("Get the new version and play", "新しい版をダウンロードして遊ぶ"),
+    ]
+
+    // MARK: - Ablox NEXT: the dock, Home, Me, the Plaza
+
+    static let nextEntries: [(String, String)] = [
+        ("Home", "ホーム"),
+        ("Me", "じぶん"),
+        ("Rooms", "ルーム"),
+        ("Closet", "クローゼット"),
+        ("Good morning, {}!", "おはよう、{}！"),
+        ("Good afternoon, {}!", "こんにちは、{}！"),
+        ("Good evening, {}!", "こんばんは、{}！"),
+        ("Change my look", "見た目を変える"),
+        ("Go to the Plaza", "プラザへ行く"),
+        ("{} waiting", "{}個まってるよ"),
+        ("Menu sounds", "メニューの音"),
+        ("A little sound for every button in the menus.", "メニューのボタンをおすと、小さな音が鳴ります。"),
     ]
 }

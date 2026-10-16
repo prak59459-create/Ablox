@@ -178,7 +178,7 @@ fi
 # (launch argument AbloxOrientation), with a screenshot of each.
 failed=""
 for turn in ${ORIENTATIONS:--}; do
-for tab in ${TABS-Games Worlds Avatar Shop Settings}; do
+for tab in ${TABS-Play Rooms Me Shop Create Settings}; do
   turned=()
   [ "$turn" != - ] && { turned=(-AbloxOrientation "$turn"); tab="$tab-$turn"; }
   touch "$out/started-$tab"

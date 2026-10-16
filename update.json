@@ -1,20 +1,22 @@
 {
   "app": "Ablox",
-  "version": "6.9",
-  "build": 58,
+  "version": "7.0",
+  "build": 59,
   "protocol": 8,
   "date": "2026-10-16",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "In rooms of three or more, everyone’s movement reaches everyone again (someone who joined later could seem to stand still)",
-      "When the host closes a room, everyone is told, instead of trying to reconnect to it",
-      "Internet rooms: the last messages from a host who leaves now arrive"
+      "A new look: a dock of four tabs along the bottom — Home, Play, Me, Create — with your level and coins along the top",
+      "Home: your avatar, today’s missions, the streak, the badges you are nearest to and where you left off, all in one place",
+      "Me: the closet, the shop and your profile together; tap your coins or level at the top for a quick look",
+      "The icons drawn for Ablox are in the app, and the menus have chunky block buttons with little sounds (Settings → Menu sounds)"
     ],
     "ja": [
-      "3人 以上の ルームで、あとから 入った 人が ほかの 人の 画面で とまって 見えることが あったのを 直しました",
-      "ホストが ルームを 閉じたとき、つなぎ直そうと せずに みんなに 知らせるように しました",
-      "インターネットルームで、ホストが ぬける ときの 最後の メッセージが ちゃんと 届くように しました"
+      "新しい 見た目に なりました：下に 4つの タブ（ホーム・プレイ・じぶん・つくる）、上に レベルと コイン",
+      "ホーム：じぶんの アバター、今日の ミッション、連続ログイン、もうすぐ 取れる バッジ、続きから 遊ぶ を 1つの 画面に",
+      "じぶん：クローゼット・ショップ・プロフィールが いっしょに。上の コインや レベルを タップすると すぐ 見られます",
+      "Ablox のために 描いた アイコンを 使うように なり、ボタンは ブロックの ような 形と 小さな 音つきに（設定 → メニューの音）"
     ]
   }
 }

@@ -20,6 +20,9 @@ struct ProfileSheet: View {
         }
     }
 
+    /// Inside Me rather than over it: no Done, no title bar.
+    var embedded = false
+
     @State private var tab: Tab = .badges
     @State private var pictures: [URL] = []
 
@@ -45,12 +48,13 @@ struct ProfileSheet: View {
                 }
             }
             .padding(.top, 12)
-            .background(Ablox.Palette.surface)
+            .background(embedded ? Color.clear : Ablox.Palette.surface)
             .navigationTitle(settings.profile.displayName)
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar(embedded ? .hidden : .automatic, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(L("Done")) { dismiss() }
+                    if !embedded { Button(L("Done")) { dismiss() } }
                 }
             }
         }

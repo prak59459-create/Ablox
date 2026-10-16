@@ -62,7 +62,7 @@ struct AccessOptionsSection: View {
             }
             Toggle(L("Ask before leaving a game"), isOn: access.confirmLeaving)
             Picker(L("Open Ablox on"), selection: Binding(
-                get: { MenuTab(rawValue: settings.preferences.access.startTab ?? "") ?? .play },
+                get: { MenuTab.named(settings.preferences.access.startTab ?? "") ?? .home },
                 set: { settings.preferences.access.startTab = $0.rawValue })) {
                 ForEach(MenuTab.allCases) { Text($0.displayName).tag($0) }
             }

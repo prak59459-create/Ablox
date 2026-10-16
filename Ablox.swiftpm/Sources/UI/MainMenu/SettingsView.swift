@@ -3,6 +3,8 @@ import UniformTypeIdentifiers
 import AbloxCore
 
 struct SettingsView: View {
+    /// Settings → Sound → Menu sounds (MenuSounds).
+    @AppStorage(MenuSounds.enabledKey) private var menuSounds = true
     @EnvironmentObject private var settings: AppSettings
     @EnvironmentObject private var session: SessionCoordinator
     @EnvironmentObject private var store: ProjectStore
@@ -466,6 +468,11 @@ struct SettingsView: View {
 
                 Toggle(isOn: $settings.hapticsEnabled) {
                     settingLabel(L("Haptics"), L("A tap when you collect something or hit a checkpoint."))
+                }
+                .tint(Ablox.Palette.accent)
+
+                Toggle(isOn: $menuSounds) {
+                    settingLabel(L("Menu sounds"), L("A little sound for every button in the menus."))
                 }
                 .tint(Ablox.Palette.accent)
             }

@@ -1,7 +1,7 @@
 import SwiftUI
 import AbloxCore
 
-/// Find and join nearby worlds.
+/// Find and join rooms: on the internet, nearby, by code or invitation (Play → Rooms).
 struct PlayLobbyView: View {
     @EnvironmentObject private var session: SessionCoordinator
     @EnvironmentObject private var store: ProjectStore
@@ -20,17 +20,9 @@ struct PlayLobbyView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 26) {
+                // The day's cards are on Home now (HomeView); this is the rooms.
                 hero
                 FamilyNoteBanner()
-                PlayTimeLeftChip()
-                BirthdayBanner()
-                EventBanner()
-                ContinueCard(onEnter: onEnter)
-                MissionsCard()
-                WeeklyMissionsCard()
-                StreakCard()
-                WeekSummaryCard()
-                CoinJarCard()
                 if cloud.allowsInternetPlay {
                     InternetRoomsSection { room in onEnter(ActiveSession(mode: .cloud(room))) }
                 }

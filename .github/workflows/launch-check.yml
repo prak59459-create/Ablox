@@ -47,7 +47,7 @@ jobs:
         run: scripts/ios-launch-check.sh
         env:
           DEVICE: iPhone
-          TABS: Play Games Worlds Avatar Shop Settings
+          TABS: Home Play Rooms Me Shop Create Settings
           ORIENTATIONS: portrait landscape
           BENCHMARK: "0"
           WATCH: "20"

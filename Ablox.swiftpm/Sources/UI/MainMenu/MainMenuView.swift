@@ -3,46 +3,65 @@ import UIKit
 import AbloxCore
 
 public enum MenuTab: String, CaseIterable, Identifiable {
+    case home = "Home"
     case play = "Play"
-    case games = "Games"
-    case worlds = "Worlds"
-    case avatar = "Avatar"
-    case shop = "Shop"
+    case me = "Me"
+    case create = "Create"
     case settings = "Settings"
 
     public var id: String { rawValue }
 
-    /// The sidebar label. `rawValue` is the tab's identity and must not follow
+    /// The tab's name. `rawValue` is the tab's identity and must not follow
     /// the interface language.
     var displayName: String {
         switch self {
+        case .home: return L("Home")
         case .play: return L("Play")
-        case .games: return L("Games")
-        case .worlds: return L("Worlds")
-        case .avatar: return L("Avatar")
-        case .shop: return L("Shop")
+        case .me: return L("Me")
+        case .create: return L("Create")
         case .settings: return L("Settings")
         }
     }
 
     var icon: AbloxIcon {
         switch self {
+        case .home: return .homeFilled
         case .play: return .gamepad
-        case .games: return .compass
-        case .worlds: return .stack
-        case .avatar: return .person
-        case .shop: return .cart
+        case .me: return .person
+        case .create: return .hammer
         case .settings: return .gearCog
+        }
+    }
+
+    /// The drawn icon on the dock.
+    var drawnIcon: DrawnIcon {
+        switch self {
+        case .home: return .home
+        case .play: return .play
+        case .me: return .me
+        case .create: return .create
+        case .settings: return .settings
+        }
+    }
+
+    /// Along the bottom; Settings is the gear at the top.
+    static let dockTabs: [MenuTab] = [.home, .play, .me, .create]
+
+    /// A tab by its name, including the names from before the dock (a saved
+    /// "Open Ablox on", the launch check): the tab that has that screen now.
+    static func named(_ raw: String) -> MenuTab? {
+        switch raw {
+        case "Games", "Rooms": return .play
+        case "Worlds": return .create
+        case "Avatar", "Shop": return .me
+        default: return MenuTab(rawValue: raw)
         }
     }
 }
 
-/// The app's hub. Sidebar on the left, tab content on the right.
-///
-/// Fixed two-pane rather than `NavigationSplitView` because the sidebar is
-/// always visible on iPad in landscape and never collapses — the lobby is the
-/// point of the screen, and a collapsible sidebar would hide the connection
-/// status that tells you whether anything is findable.
+/// The app's hub (Ablox NEXT): a bar along the top with your level, coins
+/// and Settings, the tab in the middle, and a dock of four tabs along the
+/// bottom — Home, Play, Me, Create — the same as the browser version.
 public struct MainMenuView: View {
     @EnvironmentObject private var session: SessionCoordinator
     @EnvironmentObject private var store: ProjectStore
@@ -51,10 +70,11 @@ public struct MainMenuView: View {
     @EnvironmentObject private var updater: AppUpdater
     @EnvironmentObject private var cloud: CloudService
     @EnvironmentObject private var notices: NoticeService
-    /// An iPhone gets the icons-only sidebar.
     @Environment(\.screenFit) private var fit
 
-    @State private var selectedTab: MenuTab = .play
+    @State private var selectedTab: MenuTab = .home
+    @State private var meSection: MeSection = .closet
+    @State private var playSection: PlaySection = .games
     @State private var openedStartTab = false
     /// Set when the player enters a world; drives the full-screen cover.
     @State private var activeSession: ActiveSession?
@@ -90,10 +110,8 @@ public struct MainMenuView: View {
                 if settings.preferences.access.readTabsAloud { LineReader.shared.speak(tab.displayName) }
             }
             .onChange(of: settings.parental) { _, parental in
-                // A tab put away while open: back to Play.
-                if (selectedTab == .shop && !parental.family.shopAllowed) || (selectedTab == .worlds && !parental.family.buildingAllowed) {
-                    selectedTab = .play
-                }
+                // A tab put away while open: back Home.
+                if selectedTab == .create && !parental.family.buildingAllowed { selectedTab = .home }
             }
     }
 
@@ -101,32 +119,30 @@ public struct MainMenuView: View {
         ZStack {
             DynamicBackgroundView()
 
-            HStack(spacing: 0) {
-                SidebarView(selectedTab: $selectedTab, compact: !fit.showsTabNames)
-                    .frame(width: fit.sidebarWidth)
-                    // On the sidebar rather than the screen: one alert per view.
+            VStack(spacing: 0) {
+                MenuTopBar(tab: $selectedTab, onMe: openMe)
+                    // On the bar rather than the screen: one alert per view.
                     .alert(L("Welcome back!"), isPresented: Binding(get: { dailyBonus != nil }, set: { if !$0 { dailyBonus = nil } })) {
                         Button(L("Thanks!"), role: .cancel) { dailyBonus = nil }
                     } message: {
                         Text(verbatim: bonusMessage)
                     }
-
-                Divider().background(Ablox.Palette.line)
-
-                VStack(spacing: 0) {
-                    UpdateBanner(updater: updater) { beginInstall() }
-                    OfflineBanner(monitor: connectivity)
-                    NoticeBanner(service: notices)
-                    if let friendNearby {
-                        FriendNearbyBanner(name: friendNearby.name, world: friendNearby.peer.worldName,
-                                           onJoin: { joinFriend(friendNearby.peer) },
-                                           onClose: { withAnimation { self.friendNearby = nil } })
-                            .transition(.move(edge: .top).combined(with: .opacity))
-                    }
-                    tabContent
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .transition(AnyTransition.opacity)
+                UpdateBanner(updater: updater) { beginInstall() }
+                OfflineBanner(monitor: connectivity)
+                NoticeBanner(service: notices)
+                if let friendNearby {
+                    FriendNearbyBanner(name: friendNearby.name, world: friendNearby.peer.worldName,
+                                       onJoin: { joinFriend(friendNearby.peer) },
+                                       onClose: { withAnimation { self.friendNearby = nil } })
+                        .transition(.move(edge: .top).combined(with: .opacity))
                 }
+                tabContent
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .transition(AnyTransition.opacity)
+                    // Scrolled content goes under the dock, and stops above it at the end.
+                    .safeAreaInset(edge: .bottom, spacing: 0) {
+                        MenuDock(tab: $selectedTab)
+                    }
             }
         }
         .abloxColorScheme()
@@ -135,19 +151,23 @@ public struct MainMenuView: View {
 
     @ViewBuilder private var tabContent: some View {
         switch selectedTab {
+        case .home:
+            HomeView(onEnter: enter, onOpen: { tab in withAnimation { selectedTab = tab } }, onPlaza: nil)
         case .play:
-            PlayLobbyView(onEnter: enter)
-        case .games:
-            DiscoverView(onEnter: enter)
-        case .worlds:
+            PlayTabView(onEnter: enter, section: $playSection)
+        case .me:
+            MeTabView(section: $meSection)
+        case .create:
             WorldsLobbyView(onEnter: enter)
-        case .avatar:
-            AvatarCustomizerView()
-        case .shop:
-            ShopView()
         case .settings:
             SettingsView()
         }
+    }
+
+    /// A part of Me, from the bar at the top.
+    private func openMe(_ section: MeSection) {
+        meSection = section
+        withAnimation { selectedTab = .me }
     }
 
     private func presenting<Content: View>(_ content: Content) -> some View {
@@ -221,11 +241,14 @@ public struct MainMenuView: View {
         // Access: the tab chosen to open first, once per launch.
         if !openedStartTab {
             openedStartTab = true
-            if let tab = MenuTab(rawValue: settings.preferences.access.startTab ?? "") { selectedTab = tab }
+            if let tab = MenuTab.named(settings.preferences.access.startTab ?? "") { selectedTab = tab }
             // The launch check on a simulator opens each tab in turn with a
             // launch argument (scripts/ios-launch-check.sh). An iPad never
-            // passes one.
-            if let tab = MenuTab(rawValue: UserDefaults.standard.string(forKey: "AbloxOpenTab") ?? "") { selectedTab = tab }
+            // passes one. "Shop" and "Rooms" open those parts of Me and Play.
+            let opened = UserDefaults.standard.string(forKey: "AbloxOpenTab") ?? ""
+            if let tab = MenuTab.named(opened) { selectedTab = tab }
+            if opened == "Shop" { meSection = .shop }
+            if opened == "Rooms" { playSection = .rooms }
             // …and on an iPhone, held upright and on its side
             // (-AbloxOrientation landscape / portrait). Never passed on a
             // real device, so nothing changes there.
@@ -368,12 +391,13 @@ extension MainMenuView {
     }
 
     /// Straight in to a public room; a private one needs its code, typed on
-    /// the Play tab.
+    /// Play → Rooms.
     private func joinFriend(_ peer: DiscoveredPeer) {
         friendNearby = nil
         if let code = peer.publicCode {
             enter(ActiveSession(mode: .joining(peer, code: code)))
         } else {
+            playSection = .rooms
             selectedTab = .play
         }
     }
@@ -437,126 +461,5 @@ public struct ActiveSession: EqualByID {
 
     public init(mode: Mode) {
         self.mode = mode
-    }
-}
-
-// MARK: - Sidebar
-
-struct SidebarView: View {
-    @Binding var selectedTab: MenuTab
-    /// On an iPhone: `PhoneSidebarView`, icons alone.
-    var compact = false
-    @EnvironmentObject private var session: SessionCoordinator
-    @EnvironmentObject private var settings: AppSettings
-
-    /// Tabs a grown-up has put away do not show.
-    private var tabs: [MenuTab] {
-        let family = settings.parental.family
-        return MenuTab.allCases.filter { tab in
-            switch tab {
-            case .shop: return family.shopAllowed
-            case .worlds: return family.buildingAllowed
-            default: return true
-            }
-        }
-    }
-
-    var body: some View {
-        if compact {
-            PhoneSidebarView(selectedTab: $selectedTab, tabs: tabs)
-        } else {
-            wide
-        }
-    }
-
-    private var wide: some View {
-        VStack(alignment: .leading, spacing: 22) {
-            brandmark
-                .padding(.horizontal, 20)
-                .padding(.top, 28)
-
-            VStack(spacing: 6) {
-                ForEach(tabs) { tab in
-                    tabButton(tab)
-                }
-            }
-            .padding(.horizontal, 12)
-
-            Spacer()
-
-            connectionStatus
-                .padding(.horizontal, 16)
-                .padding(.bottom, 20)
-        }
-        .background(.ultraThinMaterial)
-    }
-
-    private var brandmark: some View {
-        // The drawn cube rather than a stock SF Symbol, so the sidebar shows
-        // the actual brand mark — see `AbloxMark`.
-        AbloxLockup(subtitle: L("iPad Edition"), markSize: 44)
-    }
-
-    private func tabButton(_ tab: MenuTab) -> some View {
-        let isSelected = selectedTab == tab
-        return Button {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
-                selectedTab = tab
-            }
-        } label: {
-            HStack(spacing: 15) {
-                Image(icon: tab.icon)
-                    .font(.title3)
-                    .frame(width: 26)
-                Text(tab.displayName)
-                    .font(.body.weight(.semibold))
-                Spacer()
-            }
-            .padding(.horizontal, 15)
-            .padding(.vertical, 13)
-            .contentShape(Rectangle())
-            .background {
-                if isSelected {
-                    RoundedRectangle(cornerRadius: 15, style: .continuous)
-                        .fill(
-                            LinearGradient(
-                                colors: [Ablox.Palette.accent.opacity(0.26), Ablox.Palette.accentDeep.opacity(0.18)],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 15, style: .continuous)
-                                .strokeBorder(Ablox.Palette.accent.opacity(0.45), lineWidth: 1)
-                        )
-                }
-            }
-            .foregroundStyle(isSelected ? Ablox.Palette.accent : Ablox.Palette.inkMuted)
-        }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : .isButton)
-    }
-
-    @ViewBuilder private var connectionStatus: some View {
-        let unavailable = session.browserUnavailableReason
-
-        VStack(alignment: .leading, spacing: 7) {
-            HStack(spacing: 7) {
-                Circle()
-                    .fill(unavailable == nil ? Ablox.Palette.success : Ablox.Palette.warning)
-                    .frame(width: 8, height: 8)
-                Text(unavailable == nil ? L("TLS 1.3 local mesh") : L("Discovery paused"))
-                    .font(.caption2.weight(.bold))
-                    .foregroundStyle(unavailable == nil ? Ablox.Palette.success : Ablox.Palette.warning)
-            }
-
-            Text(unavailable ?? L("Searching for nearby iPads over Bonjour."))
-                .font(.system(size: 10))
-                .foregroundStyle(Ablox.Palette.inkFaint)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .padding(13)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
     }
 }
