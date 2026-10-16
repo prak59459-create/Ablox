@@ -2,6 +2,19 @@
   "app": "Ablox",
   "releases": [
     {
+      "version": "7.8",
+      "build": 67,
+      "date": "2026-10-16",
+      "notes": {
+        "en": [
+          "Rooms over Bluetooth: turn it on in Settings → Network, and play with iPads and iPhones right next to you even with no Wi-Fi. A room you host is then nearby over Bluetooth too, and Play → Rooms shows the rooms nearby. The iPad asks before Bluetooth is first used"
+        ],
+        "ja": [
+          "Bluetooth の ルーム：設定 → ネットワーク で オンに すると、Wi-Fi が なくても すぐ 近くの iPad や iPhone と 遊べます。開いた ルームが Bluetooth でも 見えるように なり、プレイ → ルーム に 近くの ルームが ならびます。はじめて 使うときに iPad が 確認します"
+        ]
+      }
+    },
+    {
       "version": "7.7",
       "build": 66,
       "date": "2026-10-16",

@@ -25,8 +25,8 @@ let package = Package(
             targets: ["AbloxApp"],
             bundleIdentifier: "com.ablox.client",
             teamIdentifier: "",
-            displayVersion: "7.7",
-            bundleVersion: "66",
+            displayVersion: "7.8",
+            bundleVersion: "67",
             // No `appIcon:` on purpose. The parameter is optional, and two
             // guesses at `PlaceholderIcon`'s member names (`.hammer`, then
             // `.cube`) were both rejected on device — a wrong one does not
@@ -58,7 +58,12 @@ let package = Package(
                 ),
                 // Only for reading a room's QR code (Play → Join with an
                 // invitation). Asked for the first time the camera is used.
-                .camera(purposeString: "Ablox uses the camera only to read a friend's room QR code. Nothing is recorded or kept.")
+                .camera(purposeString: "Ablox uses the camera only to read a friend's room QR code. Nothing is recorded or kept."),
+                // Rooms over Bluetooth (Settings → Network), off until turned
+                // on; asked the first time. The name is Xcode's own
+                // (IOSAppInfo.Capability, printed by scripts/mac-check.sh):
+                // a wrong one stops the project opening.
+                .bluetoothAlways(purposeString: "Ablox uses Bluetooth only to play with iPads and iPhones right next to you when there is no Wi-Fi. Nothing is recorded or kept.")
             ]
         )
     ],

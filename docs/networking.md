@@ -337,10 +337,10 @@ over Bluetooth. Nothing in a game changes, and one room takes guests on the
 router, over the internet and over Bluetooth at once.
 
 `BluetoothService` hosts, finds and joins, and follows a party (the same
-host, a new salt). It stays off until `BluetoothService.isReady` — Bluetooth
-must first be declared in Package.swift, or iOS stops the app the moment
-Bluetooth is touched — and then until Settings → Network → Rooms over
-Bluetooth is turned on.
+host, a new salt). Package.swift declares Bluetooth (`.bluetoothAlways`; without
+it iOS stops the app the moment Bluetooth is touched, which is what
+`BluetoothService.isReady` is tied to), and it stays off until Settings →
+Network → Rooms over Bluetooth is turned on; the iPad asks the first time.
 
 ## Failure messages
 

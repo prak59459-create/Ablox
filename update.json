@@ -1,16 +1,16 @@
 {
   "app": "Ablox",
-  "version": "7.7",
-  "build": 66,
+  "version": "7.8",
+  "build": 67,
   "protocol": 8,
   "date": "2026-10-16",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "Ablox now builds and starts on a Mac too (checked every time), and rooms over Bluetooth are nearly ready"
+      "Rooms over Bluetooth: turn it on in Settings → Network, and play with iPads and iPhones right next to you even with no Wi-Fi. A room you host is then nearby over Bluetooth too, and Play → Rooms shows the rooms nearby. The iPad asks before Bluetooth is first used"
     ],
     "ja": [
-      "Ablox が Mac でも ビルドして 動くように なりました（毎回 チェック）。Bluetooth の ルームも もうすぐです"
+      "Bluetooth の ルーム：設定 → ネットワーク で オンに すると、Wi-Fi が なくても すぐ 近くの iPad や iPhone と 遊べます。開いた ルームが Bluetooth でも 見えるように なり、プレイ → ルーム に 近くの ルームが ならびます。はじめて 使うときに iPad が 確認します"
     ]
   }
 }
