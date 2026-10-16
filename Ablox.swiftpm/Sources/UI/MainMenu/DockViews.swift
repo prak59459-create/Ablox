@@ -234,6 +234,8 @@ struct PlayTabView: View {
     @Environment(\.screenFit) private var fit
     var onEnter: (ActiveSession) -> Void
     @Binding var section: PlaySection
+    /// A game whose page should open (a door in the Plaza).
+    var opening: Binding<String?>?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -245,7 +247,7 @@ struct PlayTabView: View {
             .padding(.horizontal, fit.gutter)
             .padding(.top, 12)
             switch section {
-            case .games: DiscoverView(onEnter: onEnter)
+            case .games: DiscoverView(onEnter: onEnter, opening: opening)
             case .rooms: PlayLobbyView(onEnter: onEnter)
             }
         }

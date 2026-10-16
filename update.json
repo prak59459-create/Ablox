@@ -1,18 +1,16 @@
 {
   "app": "Ablox",
-  "version": "7.1",
-  "build": 60,
+  "version": "7.2",
+  "build": 61,
   "protocol": 8,
   "date": "2026-10-16",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "Three ready-made play screens in Settings → Play screen: Easy (big buttons, a stick that stays in the corner, today’s mission on screen), Normal, and Pro (smaller buttons, where you are, how fast you go and the first-person button)",
-      "The words for Ablox Studio’s new building levels"
+      "The Plaza: from Home, “Go to the Plaza” opens a square to walk around, with a fountain in the middle and doors to today’s pick, the games you played last and the most popular ones, each with the game’s cover, plus doors to your closet and to every game. Walk into a door to open what is behind it"
     ],
     "ja": [
-      "設定 → プレイ画面 に 3つの 画面：かんたん（大きな ボタン、すみに 止まった スティック、画面に 今日の ミッション）、ふつう、プロ（小さめの ボタンに、いる 場所・はやさ・一人称 ボタン）",
-      "Ablox Studio の 新しい つくるレベルの ことば"
+      "プラザ：ホームの「プラザへ行く」で、歩き回れる 広場へ。まん中に ふんすい、まわりに とびら。今日の おすすめ・さいきん 遊んだ ゲーム・人気の ゲームの とびらには 表紙が ついていて、クローゼットと ぜんぶの ゲームへの とびらも あります。とびらに 入ると、その 先の ページが 開きます"
     ]
   }
 }

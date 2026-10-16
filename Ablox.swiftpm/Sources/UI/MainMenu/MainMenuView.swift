@@ -96,6 +96,10 @@ public struct MainMenuView: View {
     @State private var blockedMessage: String?
     /// Today's coins for coming back, to say so.
     @State private var dailyBonus: Int?
+    /// The Plaza, and the door walked into there.
+    @StateObject private var plaza = PlazaTrip()
+    /// A game whose page the Games tab should open.
+    @State private var openingGame: String?
 
     public init() {}
 
@@ -152,9 +156,9 @@ public struct MainMenuView: View {
     @ViewBuilder private var tabContent: some View {
         switch selectedTab {
         case .home:
-            HomeView(onEnter: enter, onOpen: { tab in withAnimation { selectedTab = tab } }, onPlaza: nil)
+            HomeView(onEnter: enter, onOpen: { tab in withAnimation { selectedTab = tab } }, onPlaza: openPlaza)
         case .play:
-            PlayTabView(onEnter: enter, section: $playSection)
+            PlayTabView(onEnter: enter, section: $playSection, opening: $openingGame)
         case .me:
             MeTabView(section: $meSection)
         case .create:
@@ -170,14 +174,52 @@ public struct MainMenuView: View {
         withAnimation { selectedTab = .me }
     }
 
+    private func leaveSession() {
+        lastGameName = session.world.name
+        session.localTouch = nil
+        session.leave()
+        activeSession = nil
+    }
+
+    /// The Plaza: a world to walk around, with a door to each of a few games.
+    private func openPlaza() {
+        Task {
+            guard let world = await plaza.build(settings: settings) else { return }
+            let trip = plaza
+            session.localTouch = { blockID in
+                guard trip.isDoor(blockID) else { return false }
+                // Not in the middle of the frame that noticed the touch.
+                if trip.walkThrough(blockID) { Task { @MainActor in leaveSession() } }
+                return true
+            }
+            enter(ActiveSession(mode: .solo(world)))
+            // Only a walk: no card afterwards.
+            summaryStart = nil
+        }
+    }
+
+    /// Once the play screen has gone: the card about the game, or the page
+    /// behind the Plaza door walked into.
+    private func afterSession() {
+        showSummary()
+        guard let door = plaza.takeDoor() else { return }
+        switch door {
+        case let .game(id):
+            playSection = .games
+            openingGame = id
+            withAnimation { selectedTab = .play }
+        case .closet:
+            openMe(.closet)
+        case .allGames:
+            playSection = .games
+            withAnimation { selectedTab = .play }
+        }
+    }
+
     private func presenting<Content: View>(_ content: Content) -> some View {
         content
-            .fullScreenCover(item: $activeSession, onDismiss: showSummary) { active in
-                PlayScreen(session: session, activeSession: active) {
-                    lastGameName = session.world.name
-                    session.leave()
-                    activeSession = nil
-                }
+            .fullScreenCover(item: $activeSession, onDismiss: afterSession) { active in
+                PlayScreen(session: session, activeSession: active, onExit: leaveSession)
                 .environmentObject(settings)
                 .environmentObject(store)
                 .environmentObject(saves)

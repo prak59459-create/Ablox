@@ -16,6 +16,8 @@ struct DiscoverView: View {
     @StateObject private var library = GameLibrary()
 
     var onEnter: (ActiveSession) -> Void
+    /// A game whose page should open, by listing id: a door in the Plaza.
+    var opening: Binding<String?>?
 
     @State private var selected: GameListing?
     @State private var search = ""
@@ -29,6 +31,13 @@ struct DiscoverView: View {
     @State private var creatingList: GameListing?
     @State private var showingLists = false
     @State private var showingHistory = false
+
+    /// The page asked for from outside, once the list has it.
+    private func openRequested() {
+        guard let id = opening?.wrappedValue, let listing = allowed.first(where: { $0.id == id }) else { return }
+        opening?.wrappedValue = nil
+        selected = listing
+    }
 
     /// Everything the list may show: Settings → Family can keep scary games
     /// out, and the player can put games out of sight.
@@ -114,8 +123,11 @@ struct DiscoverView: View {
             // The cache has already been shown by the time this runs, so a
             // slow or absent network delays nothing the player can see.
             library.source = settings.catalogueSource
+            openRequested()
             await library.refreshIfStale()
+            openRequested()
         }
+        .onChange(of: opening?.wrappedValue) { _, _ in openRequested() }
         .refreshable { await library.refresh() }
         .sheet(item: $selected) { listing in
             GameDetailSheet(listing: listing, library: library, onEnter: onEnter, allowed: allowed) { other in
