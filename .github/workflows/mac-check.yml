@@ -1,0 +1,34 @@
+name: Mac check
+
+# Ablox on a Mac: the same app, run as an iPad app on an Apple silicon Mac
+# ("Designed for iPad"). Builds it for the Mac, starts it on the runner (a
+# Mac) and takes a screenshot (scripts/mac-check.sh). Not required yet: it
+# shows what works on a Mac while the Mac version is being made.
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "Ablox.swiftpm/**"
+      - "scripts/mac-check.sh"
+      - ".github/workflows/mac-check.yml"
+  workflow_dispatch:
+
+jobs:
+  mac:
+    name: Build and start on a Mac
+    runs-on: macos-15
+    timeout-minutes: 45
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build, start and watch
+        run: scripts/mac-check.sh
+        env:
+          OUT: ${{ runner.temp }}/mac
+      - name: Keep the logs and the screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mac-check
+          path: ${{ runner.temp }}/mac
+          if-no-files-found: ignore
