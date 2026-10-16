@@ -100,6 +100,8 @@ public struct MainMenuView: View {
     @StateObject private var plaza = PlazaTrip()
     /// A game whose page the Games tab should open.
     @State private var openingGame: String?
+    /// The first time Ablox opens: hello, a name and a look.
+    @State private var showingWelcome = false
 
     public init() {}
 
@@ -109,6 +111,10 @@ public struct MainMenuView: View {
     public var body: some View {
         watching(presenting(layout))
             .abloxAccess(settings.preferences.access)
+            .sheet(isPresented: $showingWelcome) {
+                WelcomeSheet { showingWelcome = false }
+                    .environmentObject(settings)
+            }
             .onChange(of: selectedTab) { _, tab in
                 // Access: each tab's name read aloud.
                 if settings.preferences.access.readTabsAloud { LineReader.shared.speak(tab.displayName) }
@@ -172,6 +178,18 @@ public struct MainMenuView: View {
     private func openMe(_ section: MeSection) {
         meSection = section
         withAnimation { selectedTab = .me }
+    }
+
+    /// The welcome, for someone new: not for an iPad that has played or
+    /// built already (it is marked seen), nor for the launch check.
+    private func welcomeIfNew(checking: Bool) {
+        let defaults = UserDefaults.standard
+        guard checking, !defaults.bool(forKey: WelcomeSheet.seenKey) else { return }
+        if settings.memory.recentGames.isEmpty, store.entries.isEmpty, settings.wallet.lifetimeEarned == 0 {
+            showingWelcome = true
+        } else {
+            defaults.set(true, forKey: WelcomeSheet.seenKey)
+        }
     }
 
     private func leaveSession() {
@@ -307,6 +325,7 @@ public struct MainMenuView: View {
             if UserDefaults.standard.bool(forKey: "AbloxPlayBenchmark") {
                 enter(ActiveSession(mode: .solo(RenderBenchmark.world())))
             }
+            welcomeIfNew(checking: opened.isEmpty && !UserDefaults.standard.bool(forKey: "AbloxPlayBenchmark"))
         }
         updater.start()
         let remembered = settings

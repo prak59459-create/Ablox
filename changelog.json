@@ -2,6 +2,19 @@
   "app": "Ablox",
   "releases": [
     {
+      "version": "7.3",
+      "build": 62,
+      "date": "2026-10-16",
+      "notes": {
+        "en": [
+          "A welcome the first time Ablox opens: the language, a name to go by (a made-up one, not your real name), your colours, and where everything is"
+        ],
+        "ja": [
+          "はじめて Ablox を 開いたときの 「ようこそ」：ことば、よばれたい 名前（本当の 名前じゃなくて 考えた 名前）、色、どこに 何が あるか"
+        ]
+      }
+    },
+    {
       "version": "7.2",
       "build": 61,
       "date": "2026-10-16",
