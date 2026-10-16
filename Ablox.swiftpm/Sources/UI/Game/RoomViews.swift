@@ -160,10 +160,12 @@ struct PollCard: View {
 struct RoomMenuTab: View {
     @ObservedObject var session: SessionCoordinator
     @EnvironmentObject private var settings: AppSettings
+    @EnvironmentObject private var cloud: CloudService
 
     @State private var choosingTeams = false
     @State private var composingPoll = false
     @State private var inviting = false
+    @State private var choosingNextGame = false
 
     private var isHost: Bool { session.role == .hosting }
 
@@ -186,6 +188,12 @@ struct RoomMenuTab: View {
                     session.startNewRound()
                 } label: {
                     Label(L("Start a new round for everyone"), systemImage: "flag.checkered")
+                }
+                .buttonStyle(NeonButtonStyle(.secondary))
+                Button {
+                    choosingNextGame = true
+                } label: {
+                    Label(L("Take everyone to another game"), systemImage: "arrow.triangle.turn.up.right.circle.fill")
                 }
                 .buttonStyle(NeonButtonStyle(.secondary))
 
@@ -216,6 +224,11 @@ struct RoomMenuTab: View {
         }
         .sheet(isPresented: $inviting) {
             InviteSheet(session: session)
+        }
+        .sheet(isPresented: $choosingNextGame) {
+            NextGameSheet(session: session)
+                .environmentObject(settings)
+                .environmentObject(cloud)
         }
     }
 }

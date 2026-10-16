@@ -1,16 +1,16 @@
 {
   "app": "Ablox",
-  "version": "7.3",
-  "build": 62,
+  "version": "7.4",
+  "build": 63,
   "protocol": 8,
   "date": "2026-10-16",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "A welcome the first time Ablox opens: the language, a name to go by (a made-up one, not your real name), your colours, and where everything is"
+      "A party: the host can take everyone in the room on to another game together (Menu → Room → Take everyone to another game). Friends on iPads and in the browser all come along, on the same Wi-Fi or over the internet"
     ],
     "ja": [
-      "はじめて Ablox を 開いたときの 「ようこそ」：ことば、よばれたい 名前（本当の 名前じゃなくて 考えた 名前）、色、どこに 何が あるか"
+      "パーティー：ホストは、ルームの みんなを いっしょに 別の ゲームへ つれて いけます（メニュー → ルーム → みんなで 別の ゲームへ 行く）。iPad の 友だちも ブラウザの 友だちも、同じ Wi-Fi でも インターネットでも いっしょに 行けます"
     ]
   }
 }

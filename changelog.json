@@ -2,6 +2,19 @@
   "app": "Ablox",
   "releases": [
     {
+      "version": "7.4",
+      "build": 63,
+      "date": "2026-10-16",
+      "notes": {
+        "en": [
+          "A party: the host can take everyone in the room on to another game together (Menu → Room → Take everyone to another game). Friends on iPads and in the browser all come along, on the same Wi-Fi or over the internet"
+        ],
+        "ja": [
+          "パーティー：ホストは、ルームの みんなを いっしょに 別の ゲームへ つれて いけます（メニュー → ルーム → みんなで 別の ゲームへ 行く）。iPad の 友だちも ブラウザの 友だちも、同じ Wi-Fi でも インターネットでも いっしょに 行けます"
+        ]
+      }
+    },
+    {
       "version": "7.3",
       "build": 62,
       "date": "2026-10-16",
