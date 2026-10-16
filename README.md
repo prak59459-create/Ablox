@@ -18,6 +18,13 @@ Two apps make up the platform:
 Open `Ablox.swiftpm` in Swift Playgrounds on iPad (iPadOS 17 or later) and
 press Run. It also opens in Xcode 15+.
 
+The same project runs on an **iPhone** (upright and on its side) and on a
+**Mac** with Apple silicon: in Xcode pick **My Mac (Mac Catalyst)** as the
+destination. On a Mac the room's QR code is not read with the camera — type
+the room code instead. CI builds and starts it on a Mac every time
+(`scripts/mac-check.sh`), and on iPad and iPhone simulators
+(`scripts/ios-launch-check.sh`).
+
 On first launch iPadOS asks for **Local Network** permission. Say yes — without
 it, Ablox cannot see other iPads and the Play tab stays empty.
 

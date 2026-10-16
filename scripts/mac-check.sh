@@ -34,14 +34,16 @@ if [ -n "$interface" ]; then
   cp "$interface" "$out/AppleProductTypes.swiftinterface"
   grep -nE "case [a-zA-Z]+|static (func|var|let) [a-zA-Z]+" "$interface" | grep -iE "bluetooth|mac|pad|phone|network|connection|family|capabilit" | head -60
 fi
-# The capabilities themselves (IOSAppInfo.Capability) are in PackageDescription.
-echo "== PackageDescription: app capabilities and device families"
-described="$(find "$(xcode-select -p)/.." -path '*ManifestAPI/PackageDescription.swiftmodule/*' -name '*.swiftinterface' 2>/dev/null | head -1)"
-echo "$described"
-if [ -n "$described" ]; then
-  cp "$described" "$out/PackageDescription.swiftinterface"
-  grep -nE "Capability|DeviceFamily" "$described" | grep -E "static func|static var|static let|case " | head -80
-fi
+# The capabilities themselves (IOSAppInfo.Capability): in whichever
+# interface declares IOSAppInfo (Xcode keeps more than one PackageDescription).
+echo "== IOSAppInfo: app capabilities and device families"
+{ find "$(xcode-select -p)/../SharedFrameworks/SwiftPM.framework" -name '*.swiftinterface' 2>/dev/null
+  find "$(xcode-select -p)/.." -name '*.swiftinterface' -path '*ManifestAPI*' 2>/dev/null; } | sort -u | while read -r described; do
+  grep -q "IOSAppInfo" "$described" || continue
+  echo "-- $described"
+  grep -nE "static func [a-zA-Z]+\(|static var [a-zA-Z]+|case [a-zA-Z]+" "$described" \
+    | grep -iE "purposeString|bluetooth|network|camera|family|pad|phone|mac|capabilit" | head -80
+done
 
 cd "$app_dir"
 echo "== Where it can be built"

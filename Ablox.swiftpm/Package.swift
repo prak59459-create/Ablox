@@ -25,8 +25,8 @@ let package = Package(
             targets: ["AbloxApp"],
             bundleIdentifier: "com.ablox.client",
             teamIdentifier: "",
-            displayVersion: "7.6",
-            bundleVersion: "65",
+            displayVersion: "7.7",
+            bundleVersion: "66",
             // No `appIcon:` on purpose. The parameter is optional, and two
             // guesses at `PlaceholderIcon`'s member names (`.hammer`, then
             // `.cube`) were both rejected on device — a wrong one does not

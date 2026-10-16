@@ -1,16 +1,16 @@
 {
   "app": "Ablox",
-  "version": "7.6",
-  "build": 65,
+  "version": "7.7",
+  "build": 66,
   "protocol": 8,
   "date": "2026-10-16",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "More getting ready for rooms over Bluetooth, and a check that Ablox starts on a Mac (nothing changes on your iPad yet)"
+      "Ablox now builds and starts on a Mac too (checked every time), and rooms over Bluetooth are nearly ready"
     ],
     "ja": [
-      "Bluetooth の ルームの じゅんびの つづきと、Mac で Ablox が 動くかの チェック（iPad では まだ 何も かわりません）"
+      "Ablox が Mac でも ビルドして 動くように なりました（毎回 チェック）。Bluetooth の ルームも もうすぐです"
     ]
   }
 }
