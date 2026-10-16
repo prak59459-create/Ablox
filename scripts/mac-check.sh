@@ -23,6 +23,18 @@ xcodebuild -version
 uname -m
 sw_vers
 
+# The names AppleProductTypes really has (capabilities, device families):
+# a wrong guess in Package.swift stops the project opening on an iPad, so
+# they are read here before they are used.
+echo "== AppleProductTypes"
+interface="$(find "$(xcode-select -p)/.." -name 'AppleProductTypes.swiftinterface' -path '*arm64*' 2>/dev/null | head -1)"
+[ -n "$interface" ] || interface="$(find "$(xcode-select -p)/.." -name '*.swiftinterface' -path '*AppleProductTypes*' 2>/dev/null | head -1)"
+echo "$interface"
+if [ -n "$interface" ]; then
+  cp "$interface" "$out/AppleProductTypes.swiftinterface"
+  grep -nE "case [a-zA-Z]+|static (func|var|let) [a-zA-Z]+" "$interface" | grep -iE "bluetooth|mac|pad|phone|network|connection|family|capabilit" | head -60
+fi
+
 cd "$app_dir"
 echo "== Where it can be built"
 xcodebuild -showdestinations -scheme "$scheme" 2>&1 | tee "$out/destinations.txt" | sed -n '1,40p'
