@@ -1,16 +1,20 @@
 {
   "app": "Ablox",
-  "version": "6.8",
-  "build": 57,
+  "version": "6.9",
+  "build": 58,
   "protocol": 8,
-  "date": "2026-10-13",
+  "date": "2026-10-16",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "Fixes 6.7 not opening after an update with “cannot find LaunchOrientation”"
+      "In rooms of three or more, everyone’s movement reaches everyone again (someone who joined later could seem to stand still)",
+      "When the host closes a room, everyone is told, instead of trying to reconnect to it",
+      "Internet rooms: the last messages from a host who leaves now arrive"
     ],
     "ja": [
-      "6.7 に アップデートしたあと「LaunchOrientation が見つからない」で 開けなかったのを 直しました"
+      "3人 以上の ルームで、あとから 入った 人が ほかの 人の 画面で とまって 見えることが あったのを 直しました",
+      "ホストが ルームを 閉じたとき、つなぎ直そうと せずに みんなに 知らせるように しました",
+      "インターネットルームで、ホストが ぬける ときの 最後の メッセージが ちゃんと 届くように しました"
     ]
   }
 }
