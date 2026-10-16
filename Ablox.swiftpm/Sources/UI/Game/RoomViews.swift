@@ -163,6 +163,7 @@ struct RoomMenuTab: View {
     @ObservedObject var session: SessionCoordinator
     @EnvironmentObject private var settings: AppSettings
     @EnvironmentObject private var cloud: CloudService
+    @EnvironmentObject private var bluetooth: BluetoothService
 
     @State private var choosingTeams = false
     @State private var composingPoll = false
@@ -231,6 +232,7 @@ struct RoomMenuTab: View {
             NextGameSheet(session: session)
                 .environmentObject(settings)
                 .environmentObject(cloud)
+                .environmentObject(bluetooth)
         }
     }
 }

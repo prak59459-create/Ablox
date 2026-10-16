@@ -5,6 +5,8 @@ import AbloxCore
 struct SettingsView: View {
     /// Settings → Sound → Menu sounds (MenuSounds).
     @AppStorage(MenuSounds.enabledKey) private var menuSounds = true
+    /// Settings → Network → Rooms over Bluetooth (BluetoothService).
+    @AppStorage(BluetoothService.enabledKey) private var bluetoothRooms = false
     @EnvironmentObject private var settings: AppSettings
     @EnvironmentObject private var session: SessionCoordinator
     @EnvironmentObject private var store: ProjectStore
@@ -530,6 +532,14 @@ struct SettingsView: View {
                 infoRow(L("Discovery"), L("Bonjour, plus direct peer-to-peer"), symbol: "antenna.radiowaves.left.and.right")
                 infoRow(L("Protocol version"), String(AbloxProtocol.version), symbol: "number")
                 infoRow(L("This iPad"), session.localPeerID.description, symbol: "ipad")
+
+                if BluetoothService.isReady {
+                    Toggle(isOn: $bluetoothRooms) {
+                        settingLabel(L("Rooms over Bluetooth"),
+                                     L("Play with iPads and iPhones right next to you, even with no Wi-Fi. The iPad asks the first time."))
+                    }
+                    .tint(Ablox.Palette.accent)
+                }
 
                 Divider().background(Ablox.Palette.line)
 

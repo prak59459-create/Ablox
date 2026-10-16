@@ -304,6 +304,44 @@ a fast shooter. `AttemptLimiter` does not count loopback addresses: every
 internet guest arrives from `127.0.0.1`, and one guest's failures must not
 lock the rest out (an internet room's code is in its listing anyway).
 
+## Moving on together (a party)
+
+The host can take the whole room on to another game (Menu → Room → Take
+everyone to another game; `SessionCoordinator.moveRoom`). It sends the
+room's own `moving` message — the one a host handing the room over sends —
+naming *itself* as the new host, with a new room code and everyone in the
+room let straight back in, then hosts the next game at once. Guests follow
+as they follow a hand-over:
+
+- On the router, a guest looks for the same host's short id, and takes the
+  entry whose key salt is not the old room's: every listener has a new
+  salt, so the room that is closing cannot be joined by mistake.
+- In an internet room, `CloudService` finds the host's new listing by its
+  uid and the new code (`findMovedRoom`); the host lists the next room again
+  (the old listing pointed at the old listener).
+- Browsers already understand the same message (web/src/play/session.ts).
+
+The host's callbacks answer only for the room that is still current, so the
+old room's last state change as it closes cannot take the next one offline.
+
+## Rooms over Bluetooth
+
+Bluetooth is a third way into the same room, built like the internet relay
+(`Net/BluetoothRelay.swift`). The host's room goes in the air as a small
+description (`BluetoothRoomInfo`: the L2CAP channel, world, host, how full,
+the key salt, and the code only for a public room) and an L2CAP channel;
+each channel a guest opens is handed to the room's own listener on
+127.0.0.1. A guest connects its usual `AbloxClient` to a door on its own
+iPad, and the bytes — the room's TLS stream, keyed by the code — travel
+over Bluetooth. Nothing in a game changes, and one room takes guests on the
+router, over the internet and over Bluetooth at once.
+
+`BluetoothService` hosts, finds and joins, and follows a party (the same
+host, a new salt). It stays off until `BluetoothService.isReady` — Bluetooth
+must first be declared in Package.swift, or iOS stops the app the moment
+Bluetooth is touched — and then until Settings → Network → Rooms over
+Bluetooth is turned on.
+
 ## Failure messages
 
 `-9836` tells a twelve-year-old nothing. `PeerConnection.describe(_:)` maps

@@ -69,6 +69,7 @@ public struct MainMenuView: View {
     @EnvironmentObject private var saves: GameSaves
     @EnvironmentObject private var updater: AppUpdater
     @EnvironmentObject private var cloud: CloudService
+    @EnvironmentObject private var bluetooth: BluetoothService
     @EnvironmentObject private var notices: NoticeService
     @Environment(\.screenFit) private var fit
 
@@ -242,6 +243,7 @@ public struct MainMenuView: View {
                 .environmentObject(store)
                 .environmentObject(saves)
                 .environmentObject(cloud)
+                .environmentObject(bluetooth)
             }
             .alert(L("Not now"), isPresented: Binding(get: { blockedMessage != nil }, set: { if !$0 { blockedMessage = nil } })) {
                 Button(L("OK"), role: .cancel) { blockedMessage = nil }
@@ -363,7 +365,8 @@ extension MainMenuView {
             return
         }
         switch active.mode {
-        case .joining where !settings.parental.allowJoiningRooms, .direct where !settings.parental.allowJoiningRooms:
+        case .joining where !settings.parental.allowJoiningRooms, .direct where !settings.parental.allowJoiningRooms,
+             .bluetooth where !settings.parental.allowJoiningRooms:
             refuse(L("Joining other people's rooms is turned off in Settings → Family."))
         case let .hosting(world, access) where access != .routerPrivate && !settings.parental.allowPublicRooms:
             start(ActiveSession(mode: .hosting(world, access: .routerPrivate)))
@@ -515,6 +518,8 @@ public struct ActiveSession: EqualByID {
         /// An invitation (a QR code or text from the host), straight to
         /// the host's address.
         case direct(JoinTicket)
+        /// A room nearby over Bluetooth, with its code.
+        case bluetooth(BluetoothRoom, code: String)
     }
 
     public let id = UUID()

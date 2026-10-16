@@ -9,6 +9,7 @@ public struct PlayScreen: View {
     @Environment(\.screenFit) private var fit
     @EnvironmentObject private var store: ProjectStore
     @EnvironmentObject private var cloud: CloudService
+    @EnvironmentObject private var bluetooth: BluetoothService
     @Environment(\.scenePhase) private var scenePhase
 
     let activeSession: ActiveSession
@@ -610,6 +611,8 @@ public struct PlayScreen: View {
         case let .hosting(world, access):
             session.startHosting(world: world, isPublic: access.isPublicOnRouter)
             if access == .internet { cloud.hostRoom(session: session) }
+            // Settings → Rooms over Bluetooth: friends nearby come in without Wi-Fi.
+            if BluetoothService.isTurnedOn { bluetooth.hostRoom(session: session) }
             if let coins = settings.hostBonus() { showToast(L("Hosting a room: +{} coins", coins)) }
         case let .cloud(room):
             Task { await cloud.join(room, session: session) }
@@ -617,6 +620,8 @@ public struct PlayScreen: View {
             session.join(peer, roomCode: code)
         case let .direct(ticket):
             session.join(ticket: ticket)
+        case let .bluetooth(room, code):
+            Task { await bluetooth.join(room, code: code, session: session) }
         }
     }
 

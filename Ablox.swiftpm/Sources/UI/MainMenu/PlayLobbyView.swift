@@ -7,7 +7,9 @@ struct PlayLobbyView: View {
     @EnvironmentObject private var store: ProjectStore
     @EnvironmentObject private var settings: AppSettings
     @EnvironmentObject private var cloud: CloudService
+    @EnvironmentObject private var bluetooth: BluetoothService
     @Environment(\.screenFit) private var fit
+    @AppStorage(BluetoothService.enabledKey) private var bluetoothRooms = false
 
     var onEnter: (ActiveSession) -> Void
 
@@ -27,6 +29,11 @@ struct PlayLobbyView: View {
                     InternetRoomsSection { room in onEnter(ActiveSession(mode: .cloud(room))) }
                 }
                 nearbySection
+                if bluetoothRooms && BluetoothService.isReady {
+                    BluetoothRoomsSection(bluetooth: bluetooth) { room, code in
+                        onEnter(ActiveSession(mode: .bluetooth(room, code: code)))
+                    }
+                }
                 quickPlaySection
             }
             .padding(fit.gutter)
@@ -362,6 +369,85 @@ private struct JoinSheet: View {
             // all — and where it cannot, the pad above is already on screen.
             try? await Task.sleep(nanoseconds: 600_000_000)
             if !usesAbloxKeyboard { codeFocused = true }
+        }
+    }
+}
+
+/// Rooms nearby over Bluetooth (Settings → Network → Rooms over Bluetooth):
+/// the same rooms as on the router, reached without Wi-Fi.
+private struct BluetoothRoomsSection: View {
+    @ObservedObject var bluetooth: BluetoothService
+    var onJoin: (BluetoothRoom, String) -> Void
+
+    @State private var asking: BluetoothRoom?
+    @State private var code = ""
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            SectionHeader(L("Nearby over Bluetooth"), systemImage: "dot.radiowaves.left.and.right") {
+                if bluetooth.rooms.isEmpty && bluetooth.problem == nil {
+                    ProgressView().controlSize(.small).tint(Ablox.Palette.accent)
+                }
+            }
+            if let problem = bluetooth.problem {
+                GlassCard {
+                    Label(problem, systemImage: "exclamationmark.triangle.fill")
+                        .font(.subheadline)
+                        .foregroundStyle(Ablox.Palette.warning)
+                }
+            } else if bluetooth.rooms.isEmpty {
+                GlassCard {
+                    Text(L("Looking for rooms nearby… The host needs Rooms over Bluetooth turned on too."))
+                        .font(.subheadline)
+                        .foregroundStyle(Ablox.Palette.inkMuted)
+                }
+            } else {
+                VStack(spacing: 11) {
+                    ForEach(bluetooth.rooms) { room in row(room) }
+                }
+            }
+        }
+        .onAppear { bluetooth.startLooking() }
+        .onDisappear { bluetooth.stopLooking() }
+        .sheet(item: $asking) { room in
+            TextPromptSheet(title: room.info.world, message: L("Ask the host for the room code."), placeholder: "ABC DEF",
+                            confirm: L("Join"), text: $code) {
+                onJoin(room, code)
+            }
+        }
+    }
+
+    private func row(_ room: BluetoothRoom) -> some View {
+        GlassCard(padding: 16) {
+            HStack(spacing: 14) {
+                Image(systemName: "dot.radiowaves.left.and.right")
+                    .frame(width: 46, height: 46)
+                    .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Ablox.Palette.accent.opacity(0.18)))
+                    .foregroundStyle(Ablox.Palette.accent)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(verbatim: room.info.world).font(.headline)
+                    Text(L("{} · {}/{} players", room.info.hostName, room.info.players, room.info.capacity))
+                        .font(.caption)
+                        .foregroundStyle(Ablox.Palette.inkMuted)
+                }
+                Spacer()
+                if !room.info.isCompatible {
+                    Badge(L("Update needed"), color: Ablox.Palette.warning)
+                } else if room.info.isFull {
+                    Badge(L("Full"), color: Ablox.Palette.inkFaint)
+                } else if let code = room.info.publicCode {
+                    Button(L("Join")) { onJoin(room, code) }
+                        .buttonStyle(NeonButtonStyle(.primary))
+                } else {
+                    Button {
+                        code = ""
+                        asking = room
+                    } label: {
+                        Label(L("Enter code"), systemImage: "lock.fill")
+                    }
+                    .buttonStyle(NeonButtonStyle(.secondary))
+                }
+            }
         }
     }
 }

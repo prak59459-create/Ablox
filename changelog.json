@@ -2,6 +2,19 @@
   "app": "Ablox",
   "releases": [
     {
+      "version": "7.6",
+      "build": 65,
+      "date": "2026-10-16",
+      "notes": {
+        "en": [
+          "More getting ready for rooms over Bluetooth, and a check that Ablox starts on a Mac (nothing changes on your iPad yet)"
+        ],
+        "ja": [
+          "Bluetooth の ルームの じゅんびの つづきと、Mac で Ablox が 動くかの チェック（iPad では まだ 何も かわりません）"
+        ]
+      }
+    },
+    {
       "version": "7.5",
       "build": 64,
       "date": "2026-10-16",

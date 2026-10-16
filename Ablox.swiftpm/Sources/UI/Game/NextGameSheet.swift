@@ -9,6 +9,7 @@ struct NextGameSheet: View {
     @ObservedObject var session: SessionCoordinator
     @EnvironmentObject private var settings: AppSettings
     @EnvironmentObject private var cloud: CloudService
+    @EnvironmentObject private var bluetooth: BluetoothService
     @Environment(\.dismiss) private var dismiss
     @StateObject private var library = GameLibrary()
 
@@ -100,11 +101,13 @@ struct NextGameSheet: View {
         // An internet room's listing points at the old listener: the next
         // room goes on the internet the same way, under its new code.
         let onInternet = cloud.isHostingRoom
+        let overBluetooth = bluetooth.isHosting
         guard session.moveRoom(to: world) else {
             problem = L("Only the host can do that.")
             return
         }
         if onInternet { cloud.hostRoom(session: session) }
+        if overBluetooth { bluetooth.hostRoom(session: session) }
         MenuSounds.fanfare()
         dismiss()
     }

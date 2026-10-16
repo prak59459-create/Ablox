@@ -11,6 +11,7 @@ struct AbloxApp: App {
     /// Friends, chat and rooms over the internet — off until a grown-up
     /// allows it (Settings → Family → Internet).
     @StateObject private var cloud = CloudService()
+    @StateObject private var bluetooth = BluetoothService()
     /// Messages for the main menu from the repository (`notices.json`).
     @StateObject private var notices = NoticeService(release: AppRelease.current)
     /// Settings → Look: the accent colour, which also rebuilds the views.
@@ -54,6 +55,7 @@ struct AbloxApp: App {
             .environmentObject(saves)
             .environmentObject(updater)
             .environmentObject(cloud)
+            .environmentObject(bluetooth)
             .environmentObject(notices)
             // Settings → Comfort → Text size, for the whole app.
             .dynamicTypeSize(settings.preferences.textSize.dynamicType)
