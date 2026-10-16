@@ -1,6 +1,8 @@
 import SwiftUI
 import CoreImage.CIFilterBuiltins
+#if !targetEnvironment(macCatalyst)
 import VisionKit
+#endif
 import AbloxCore
 
 // The room, on the play screen: people at the door, the vote, who is ready,
@@ -580,6 +582,17 @@ struct InviteSheet: View {
     }
 }
 
+#if targetEnvironment(macCatalyst)
+/// A Mac has no camera scanner (VisionKit's is for iPads and iPhones): the
+/// room's code is typed in instead.
+struct QRScannerView: View {
+    let onFound: (JoinTicket) -> Void
+
+    @MainActor static var isAvailable: Bool { false }
+
+    var body: some View { EmptyView() }
+}
+#else
 /// Reads a room's QR code with the camera.
 struct QRScannerView: UIViewControllerRepresentable {
     let onFound: (JoinTicket) -> Void
@@ -631,3 +644,4 @@ struct QRScannerView: UIViewControllerRepresentable {
         }
     }
 }
+#endif

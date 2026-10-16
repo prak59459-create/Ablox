@@ -39,9 +39,10 @@ cd "$app_dir"
 echo "== Where it can be built"
 xcodebuild -showdestinations -scheme "$scheme" 2>&1 | tee "$out/destinations.txt" | sed -n '1,40p'
 
-# "Designed for iPad" first; Mac Catalyst if the package ever offers it.
+# Mac Catalyst: the same app, built for the Mac. ("Designed for iPad" is
+# the other way, but it needs a real signing certificate, which CI has not.)
 built=""
-for destination in "platform=macOS,arch=arm64,variant=Designed for iPad" "platform=macOS,variant=Designed for iPad" "platform=macOS,variant=Mac Catalyst"; do
+for destination in "platform=macOS,arch=arm64,variant=Mac Catalyst"; do
   echo "== Building for: $destination"
   if xcodebuild build -scheme "$scheme" -destination "$destination" -derivedDataPath "$derived" \
        CODE_SIGN_IDENTITY="-" CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM="" PROVISIONING_PROFILE_SPECIFIER="" \
@@ -50,7 +51,7 @@ for destination in "platform=macOS,arch=arm64,variant=Designed for iPad" "platfo
     break
   fi
   echo "That did not build:"
-  grep -E "error:" "$out/build.log" | head -15
+  grep -E "error:" "$out/build.log" | sort -u | head -60
 done
 if [ -z "$built" ]; then
   tail -40 "$out/build.log"
