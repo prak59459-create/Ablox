@@ -366,6 +366,7 @@ struct PlayScreenOptionsView: View {
     var body: some View {
         NavigationStack {
             Form {
+                layoutSection
                 showingSection
                 chipsSection
                 buttonsSection
@@ -388,6 +389,15 @@ struct PlayScreenOptionsView: View {
     }
 
     private var hud: Binding<HUDOptions> { $settings.preferences.hud }
+
+    /// Easy, normal or pro, all at once; any change below makes it the player's own.
+    private var layoutSection: some View {
+        Section {
+            HUDLayoutPicker()
+        } header: {
+            Text(L("Screen layout"))
+        }
+    }
 
     private var showingSection: some View {
         Section {
@@ -506,6 +516,7 @@ struct PlayScreenOptionsCard: View {
                     .font(.subheadline)
                     .foregroundStyle(Ablox.Palette.inkMuted)
                     .fixedSize(horizontal: false, vertical: true)
+                HUDLayoutPicker()
                 Button {
                     showing = true
                 } label: {
@@ -587,6 +598,36 @@ extension DeviceHeat {
         case .serious: return .serious
         case .critical: return .critical
         @unknown default: return .fair
+        }
+    }
+}
+
+/// Easy, normal, pro (HUDLayout): the play screen's three ready-made layouts,
+/// and what the one chosen does. "My own" once anything is changed by hand.
+struct HUDLayoutPicker: View {
+    @EnvironmentObject private var settings: AppSettings
+
+    var body: some View {
+        let current = HUDLayout.current(settings.preferences)
+        VStack(alignment: .leading, spacing: 8) {
+            Picker(L("Screen layout"), selection: Binding(
+                get: { current },
+                set: { layout in
+                    if let layout {
+                        layout.apply(to: &settings.preferences)
+                        MenuSounds.page()
+                    }
+                })) {
+                ForEach(HUDLayout.allCases) { Text($0.displayName).tag(Optional($0)) }
+                if current == nil {
+                    Text(L("My own")).tag(HUDLayout?.none)
+                }
+            }
+            .pickerStyle(.segmented)
+            Text(current?.detail ?? L("Changed by hand: your own play screen."))
+                .font(.caption)
+                .foregroundStyle(Ablox.Palette.inkMuted)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 }

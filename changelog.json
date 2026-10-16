@@ -2,6 +2,21 @@
   "app": "Ablox",
   "releases": [
     {
+      "version": "7.1",
+      "build": 60,
+      "date": "2026-10-16",
+      "notes": {
+        "en": [
+          "Three ready-made play screens in Settings → Play screen: Easy (big buttons, a stick that stays in the corner, today’s mission on screen), Normal, and Pro (smaller buttons, where you are, how fast you go and the first-person button)",
+          "The words for Ablox Studio’s new building levels"
+        ],
+        "ja": [
+          "設定 → プレイ画面 に 3つの 画面：かんたん（大きな ボタン、すみに 止まった スティック、画面に 今日の ミッション）、ふつう、プロ（小さめの ボタンに、いる 場所・はやさ・一人称 ボタン）",
+          "Ablox Studio の 新しい つくるレベルの ことば"
+        ]
+      }
+    },
+    {
       "version": "7.0",
       "build": 59,
       "date": "2026-10-16",

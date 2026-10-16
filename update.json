@@ -1,22 +1,18 @@
 {
   "app": "Ablox",
-  "version": "7.0",
-  "build": 59,
+  "version": "7.1",
+  "build": 60,
   "protocol": 8,
   "date": "2026-10-16",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "A new look: a dock of four tabs along the bottom — Home, Play, Me, Create — with your level and coins along the top",
-      "Home: your avatar, today’s missions, the streak, the badges you are nearest to and where you left off, all in one place",
-      "Me: the closet, the shop and your profile together; tap your coins or level at the top for a quick look",
-      "The icons drawn for Ablox are in the app, and the menus have chunky block buttons with little sounds (Settings → Menu sounds)"
+      "Three ready-made play screens in Settings → Play screen: Easy (big buttons, a stick that stays in the corner, today’s mission on screen), Normal, and Pro (smaller buttons, where you are, how fast you go and the first-person button)",
+      "The words for Ablox Studio’s new building levels"
     ],
     "ja": [
-      "新しい 見た目に なりました：下に 4つの タブ（ホーム・プレイ・じぶん・つくる）、上に レベルと コイン",
-      "ホーム：じぶんの アバター、今日の ミッション、連続ログイン、もうすぐ 取れる バッジ、続きから 遊ぶ を 1つの 画面に",
-      "じぶん：クローゼット・ショップ・プロフィールが いっしょに。上の コインや レベルを タップすると すぐ 見られます",
-      "Ablox のために 描いた アイコンを 使うように なり、ボタンは ブロックの ような 形と 小さな 音つきに（設定 → メニューの音）"
+      "設定 → プレイ画面 に 3つの 画面：かんたん（大きな ボタン、すみに 止まった スティック、画面に 今日の ミッション）、ふつう、プロ（小さめの ボタンに、いる 場所・はやさ・一人称 ボタン）",
+      "Ablox Studio の 新しい つくるレベルの ことば"
     ]
   }
 }
