@@ -18,9 +18,9 @@ playing with friends, coins, the closet, Studio, controls, problems. Added in
    here.
 3. **The AI**, only when a grown-up has switched it on in Family settings *and*
    saved a key there. The request is OpenAI-compatible chat completions to Groq
-   with `llama-3.1-8b-instant` (the free tier's most generous limits; if the provider answers 404 for it, `llama-3.3-70b-versatile` is tried): a short guide as the
+   with `qwen/qwen3.8-27b` (Groq retired its Llama models in October 2026; when a model answers 404 the next of `openai/gpt-oss-20b`, `openai/gpt-oss-120b`, `llama-3.1-8b-instant` is tried, then a chat model is picked from the account's own `/models` list, and the one that answered is tried first next time): a short guide as the
    system prompt (under 1,600 characters), the last two turns, the question,
-   `max_tokens` 260, temperature 0.3. The answer goes through the chat filter;
+   `max_tokens` 400, temperature 0.3. The answer goes through the chat filter;
    Markdown and links are taken out.
 
 If the AI cannot be reached, the key is refused or the day's questions are

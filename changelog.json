@@ -2,6 +2,19 @@
   "app": "Ablox",
   "releases": [
     {
+      "version": "8.1",
+      "build": 70,
+      "date": "2026-10-17",
+      "notes": {
+        "en": [
+          "AI helper fixed (the \"404\" error): Groq retired the Llama models. It now uses Qwen 3.8, tries other models when one is gone, and if all are gone picks one from the key's own model list, so it keeps working when models change"
+        ],
+        "ja": [
+          "AI ヘルパーを 直しました（「404」の エラー）：Groq の Llama が なくなっていました。いまは Qwen 3.8 を 使い、モデルが ない ときは ほかの モデルを ためし、それでも だめなら カギで 使える モデルの 一覧から 自動で えらびます。モデルが かわっても 動きつづけます"
+        ]
+      }
+    },
+    {
       "version": "8.0",
       "build": 69,
       "date": "2026-10-17",

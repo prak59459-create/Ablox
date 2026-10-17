@@ -1,16 +1,16 @@
 {
   "app": "Ablox",
-  "version": "8.0",
-  "build": 69,
+  "version": "8.1",
+  "build": 70,
   "protocol": 8,
   "date": "2026-10-17",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "AI helper: now uses Llama 3.1 8B Instant, which every free key can use with the most generous limits. If the provider no longer has a model (the \"404\" error), the next one is tried by itself"
+      "AI helper fixed (the \"404\" error): Groq retired the Llama models. It now uses Qwen 3.8, tries other models when one is gone, and if all are gone picks one from the key's own model list, so it keeps working when models change"
     ],
     "ja": [
-      "AI ヘルパー：AI の モデルを Llama 3.1 8B Instant に かえました。むりょうの カギで だれでも 使えて、回数の 上限も いちばん ゆるい モデルです。もし「404」（モデルが ない）と 言われたら、自動で つぎの モデルに かわります"
+      "AI ヘルパーを 直しました（「404」の エラー）：Groq の Llama が なくなっていました。いまは Qwen 3.8 を 使い、モデルが ない ときは ほかの モデルを ためし、それでも だめなら カギで 使える モデルの 一覧から 自動で えらびます。モデルが かわっても 動きつづけます"
     ]
   }
 }
