@@ -18,7 +18,7 @@ playing with friends, coins, the closet, Studio, controls, problems. Added in
    here.
 3. **The AI**, only when a grown-up has switched it on in Family settings *and*
    saved a key there. The request is OpenAI-compatible chat completions to Groq
-   with `meta-llama/llama-4-scout-17b-16e-instruct`: a short guide as the
+   with `llama-3.1-8b-instant` (the free tier's most generous limits; if the provider answers 404 for it, `llama-3.3-70b-versatile` is tried): a short guide as the
    system prompt (under 1,600 characters), the last two turns, the question,
    `max_tokens` 260, temperature 0.3. The answer goes through the chat filter;
    Markdown and links are taken out.

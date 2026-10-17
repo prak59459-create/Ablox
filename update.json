@@ -1,18 +1,16 @@
 {
   "app": "Ablox",
-  "version": "7.9",
-  "build": 68,
+  "version": "8.0",
+  "build": 69,
   "protocol": 8,
   "date": "2026-10-17",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "AI helper: Settings → AI helper (Ablobo) answers questions about using Ablox. Common questions are answered on the iPad, free. A grown-up can also turn on an AI (Llama 4 Scout) in Family settings with their own key, kept in the keychain; questions stay short, have a daily limit, and nothing personal is sent",
-      "New games in the game list: Lucky Chip Party (a game show for four, with chips that stay in the game) and Sky Thread City (swing and climb through a 1,000 m city); four more games in Last Survivor Games; NPC friends in 45 more games when few people play"
+      "AI helper: now uses Llama 3.1 8B Instant, which every free key can use with the most generous limits. If the provider no longer has a model (the \"404\" error), the next one is tried by itself"
     ],
     "ja": [
-      "AIヘルパー：設定 → AIヘルパー（アブロボ）が Ablox の 使いかたに 答えます。よくある しつもんは iPad の中で 答えるので むりょう です。おうちの人が 家族設定で 自分の キーを 入れると AI（Llama 4 Scout）も 使えます。キーは キーチェーンに しまわれ、しつもんは みじかく、1日の 回数も きめられ、個人の ことは 送りません",
-      "ゲーム一覧に 新しい ゲーム：Lucky Chip Party（4人の ゲームショー。チップは ゲームの 中だけ）と Sky Thread City（1000m の 街を スイングと かべのぼりで かけまわる）。Last Survivor Games に 4つの ゲームが ふえ、人が 少ないとき NPC の なかまが 来る ゲームが 45こ ふえました"
+      "AI ヘルパー：AI の モデルを Llama 3.1 8B Instant に かえました。むりょうの カギで だれでも 使えて、回数の 上限も いちばん ゆるい モデルです。もし「404」（モデルが ない）と 言われたら、自動で つぎの モデルに かわります"
     ]
   }
 }

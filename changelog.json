@@ -2,6 +2,19 @@
   "app": "Ablox",
   "releases": [
     {
+      "version": "8.0",
+      "build": 69,
+      "date": "2026-10-17",
+      "notes": {
+        "en": [
+          "AI helper: now uses Llama 3.1 8B Instant, which every free key can use with the most generous limits. If the provider no longer has a model (the \"404\" error), the next one is tried by itself"
+        ],
+        "ja": [
+          "AI ヘルパー：AI の モデルを Llama 3.1 8B Instant に かえました。むりょうの カギで だれでも 使えて、回数の 上限も いちばん ゆるい モデルです。もし「404」（モデルが ない）と 言われたら、自動で つぎの モデルに かわります"
+        ]
+      }
+    },
+    {
       "version": "7.9",
       "build": 68,
       "date": "2026-10-17",
