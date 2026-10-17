@@ -63,14 +63,6 @@
       "version": "5.5"
     },
     {
-      "id": "s1791539092096-SMUE3E",
-      "status": "done",
-      "message": {
-        "en": "Last Survivor Games now has 100 players, games in random order, candy carving, marbles and a final push-out ring! The five-player relay race comes next.",
-        "ja": "Last Survivor Games が 100人になって、ゲームの順番が ランダムに！ 型ぬき・ビー玉あて・さいごの決戦リング（おし出しバトル）も 入ったよ。5人6脚レースは つぎに 作るね。"
-      }
-    },
-    {
       "id": "s1791670294899-B7P75F",
       "status": "done",
       "message": {
@@ -97,14 +89,6 @@
       }
     },
     {
-      "id": "s1791788725498-3TNN57",
-      "status": "notNow",
-      "message": {
-        "en": "Thank you for the exciting idea! That hero belongs to another company, so we can't put him in Ablox — please send us your own hero ideas too!",
-        "ja": "わくわくするアイデアをありがとう！そのヒーローは ほかの会社のキャラクターなので、Ablox には入れられないんだ。きみが考えたヒーローのアイデアも送ってね！"
-      }
-    },
-    {
       "id": "s1791793135553-9W8KGY",
       "status": "done",
       "message": {
@@ -121,14 +105,6 @@
         "ja": "教えてくれてありがとう！バックアップに「封印」をつけたので、書きかえたファイルではコインやアイテムがふえなくなったよ。"
       },
       "version": "6.3"
-    },
-    {
-      "id": "s1791846889646-M8WQ92",
-      "status": "notNow",
-      "message": {
-        "en": "Thanks for the idea! We can't use characters from real movies or comics, so we're skipping this one for now.",
-        "ja": "アイデアありがとう！本物の映画やまんがのキャラクターは使えないので、今回は見送りにするね。"
-      }
     },
     {
       "id": "s1791854254725-79W43C",
@@ -148,51 +124,77 @@
       }
     },
     {
-      "id": "s1791855232618-3ZTPHU",
-      "status": "notNow",
+      "id": "s1791788725498-3TNN57",
+      "status": "done",
       "message": {
-        "en": "Thank you for the detailed idea! Games about betting money aren't a good fit for Ablox, so we'll skip this one.",
-        "ja": "くわしいアイデアをありがとう！お金をかけるゲームは Ablox には合わないので、今回は見送りにするね。"
+        "en": "We made it as our own hero! Sky Thread City (#232): swing, climb walls and zip through a city 1,000 m long, catch robber robots, rescue people on roofs and race. Open it in the Games tab.",
+        "ja": "オリジナルの ヒーローで 作ったよ！ Sky Thread City（#232）。1000m の 街を 🕸 スイング・🧗 かべのぼり・⚡ ジップで かけまわって、どろぼうロボを つかまえたり、屋上の 人を たすけたり、レースも できるよ。ゲームタブから あそんでね。"
       }
     },
     {
-      "id": "s1791858369842-YLJWT9",
-      "status": "thanks",
+      "id": "s1791846889646-M8WQ92",
+      "status": "done",
       "message": {
-        "en": "Thanks for the idea! An AI helper needs a paid account that grown-ups set up, so we've passed it on to them.",
-        "ja": "アイデアをありがとう！AI の機能は 大人が用意するアカウントが必要なので、持ち主に伝えたよ。"
+        "en": "Made, with our own thread hero: Sky Thread City (#232) — a huge city with skyscrapers, a 200 m tower, parking lots, swinging and wall climbing.",
+        "ja": "オリジナルの 糸の ヒーローで 作ったよ！ Sky Thread City（#232）。超高層ビル・200m の タワー・駐車場の ある 大きな 街で、スイングと かべのぼりが できるよ。"
+      }
+    },
+    {
+      "id": "s1791855232618-3ZTPHU",
+      "status": "done",
+      "message": {
+        "en": "Made! Lucky Chip Party (#231): four at a table, nine kinds of rounds (dice, cards, roulette, races, coins, bluff cards with raises, boxes, bombs, share or steal), secret hints, out at 0 chips. Bots fill empty seats. The chips stay inside the game.",
+        "ja": "作ったよ！ Lucky Chip Party（#231）。4人で テーブルを かこんで、サイコロ・カード・ルーレット・レース・コイン・レイズと ブラフの カード・箱・ばくだん・わける？ひとりじめ？の 9しゅるい。ひみつの ヒントも あって、0まいで OUT。あいた 席には BOT。チップは ゲームの中だけの ものだよ。"
       }
     },
     {
       "id": "s1791859414315-CV4KEW",
-      "status": "notNow",
+      "status": "done",
       "message": {
-        "en": "Thank you for the careful plan! Games about betting money aren't a good fit for Ablox, so we'll skip this one.",
-        "ja": "ていねいな計画をありがとう！お金をかけるゲームは Ablox には合わないので、今回は見送りにするね。"
+        "en": "Made as Lucky Chip Party (#231): bet and reveal phases, risk and return choices, blind hints, raises and bluffing, elimination at 0 and most chips wins.",
+        "ja": "Lucky Chip Party（#231）として 作ったよ。かける時間と 結果の時間、リスクと 倍率の えらびかた、ひみつの ヒント、レイズと ブラフ、0まいで 脱落、いちばん多い人が 優勝！"
       }
     },
     {
-      "id": "s1791862765406-VZEL3E",
-      "status": "thanks",
+      "id": "s1791858369842-YLJWT9",
+      "status": "done",
       "message": {
-        "en": "Thank you for the idea! An AI helper needs a grown-up's own account to work safely, so we've passed it on to the owner.",
-        "ja": "アイデアをありがとう！AIのお手伝いは、大人の人のアカウントがないと安全に使えないので、持ち主に伝えたよ。"
-      }
+        "en": "Made in 7.9! Settings → AI helper (Ablobo) answers how to use Ablox. Common questions are answered on the iPad for free; the AI (Llama 4 Scout) is used only when a grown-up turns it on and types their own key in Family settings. The key in the message was not used — please never send keys in messages.",
+        "ja": "7.9 で 作ったよ！ 設定 → AIヘルパー（アブロボ）が Ablox の 使いかたを 答えるよ。よくある しつもんは iPad の中で 答えるので むりょう。AI（Llama 4 Scout）は、おうちの人が 家族設定で オンにして 自分の キーを 入れたときだけ 使うよ。メッセージの キーは 使っていないよ。キーは メッセージに 書かないでね。"
+      },
+      "version": "7.9"
+    },
+    {
+      "id": "s1791862765406-VZEL3E",
+      "status": "done",
+      "message": {
+        "en": "The AI helper is in 7.9, with the questions kept short to save tokens. For safety each family types its own key in Family settings (the key from the message was not used and should be replaced).",
+        "ja": "AIヘルパーは 7.9 に 入ったよ。トークンを せつやくするように みじかく 聞くよ。あんぜんのため、キーは 家族ごとに 家族設定で 入れてね（メッセージの キーは 使っていないので、新しい キーに かえてね）。"
+      },
+      "version": "7.9"
     },
     {
       "id": "s1791940693355-JYDDAV",
       "status": "done",
       "message": {
-        "en": "Great idea! Robot players now join when only a few people are playing — first in Gun Swap Arena, Warrior Brawl and Blade & Revolver, and more games are coming next.",
-        "ja": "いいアイデア！ 人が少ないときに ロボットのプレイヤー（BOT）が入るようにしたよ。まずは Gun Swap Arena・Warrior Brawl・Blade & Revolver から。ほかのゲームにも 順番に入れていくね。"
+        "en": "Done for every multiplayer game: 45 more games now get NPC friends when few people play — in obbies they try the course stage by stage, elsewhere they explore and chat. Say /npc to turn them on or off.",
+        "ja": "ぜんぶの 多人数ゲームに 入れたよ！ あと 45こ の ゲームでも、人が 少ないと NPC の なかまが 来るよ。オビーでは ステージを 1つずつ ちょうせんして、ほかの ゲームでは 歩きまわって おしゃべり。チャットで /npc で オン／オフ。"
       }
     },
     {
       "id": "s1792017488923-RTY4RR",
       "status": "done",
       "message": {
-        "en": "Great plan! Last Survivor Games now runs six games in order, with a choice of two in some rounds — hide-and-seek, the jump-rope bridge and the sky towers are coming next.",
-        "ja": "すてきな計画をありがとう！ Last Survivor Games を 第1〜第6ゲームの順番に作り直したよ。かくれんぼ・大なわとびの橋・空のタワーも 順番に作っていくね。"
+        "en": "All made, in your order: stage 2 candy or 5-person relay, 4 marbles or hide-and-seek (two floors, night sky, keys and exit, three touches), 5 glass bridge or jump-rope bridge, 6 the ring or the sky towers.",
+        "ja": "ぜんぶ 作ったよ、その順番で！ 第2は 型ぬき か 5人6脚、第4は ビー玉 か かくれんぼ（2かいだて・夜空・カギと 出口・3回タッチ）、第5は ガラスの橋 か 大なわとびの橋、第6は 決戦リング か 空のタワー。"
+      }
+    },
+    {
+      "id": "s1791539092096-SMUE3E",
+      "status": "done",
+      "message": {
+        "en": "The five-person relay (5人6脚) is in Last Survivor Games now, with hide-and-seek, the jump-rope bridge and the sky towers.",
+        "ja": "5人6脚も Last Survivor Games に 入ったよ！ かくれんぼ・大なわとびの橋・空のタワーも いっしょに。"
       }
     }
   ]

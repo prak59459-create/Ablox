@@ -34,6 +34,8 @@ public final class AppSettings: ObservableObject {
         static let memory = "ablox.menuMemory"
         static let social = "ablox.social"
         static let cloud = "ablox.cloud"
+        static let aiHelper = "ablox.aiHelper"
+        static let aiUsage = "ablox.aiUsage"
     }
 
     private let defaults: UserDefaults
@@ -176,6 +178,16 @@ public final class AppSettings: ObservableObject {
         didSet { persist(cloud, forKey: Key.cloud) }
     }
 
+    /// Settings → Family → AI helper (the key is in the keychain, not here).
+    @Published public var aiHelper: AIHelperSettings {
+        didSet { persist(aiHelper, forKey: Key.aiHelper) }
+    }
+
+    /// How many questions went to the AI today.
+    @Published public var aiUsage: AIHelperUsage {
+        didSet { persist(aiUsage, forKey: Key.aiUsage) }
+    }
+
     /// The validated source, falling back to the built-in list if someone has
     /// typed something unusable into Settings.
     public var catalogueSource: CatalogueSource {
@@ -226,6 +238,8 @@ public final class AppSettings: ObservableObject {
         self.memory = AppSettings.decode(MenuMemory.self, from: defaults, key: Key.memory) ?? MenuMemory()
         self.social = AppSettings.decode(SocialBook.self, from: defaults, key: Key.social) ?? SocialBook()
         self.cloud = AppSettings.decode(CloudSettings.self, from: defaults, key: Key.cloud) ?? CloudSettings()
+        self.aiHelper = AppSettings.decode(AIHelperSettings.self, from: defaults, key: Key.aiHelper) ?? AIHelperSettings()
+        self.aiUsage = AppSettings.decode(AIHelperUsage.self, from: defaults, key: Key.aiUsage) ?? AIHelperUsage()
 
         if let stored = defaults.string(forKey: Key.peerID), let uuid = UUID(uuidString: stored) {
             self.peerID = PeerID(uuid)

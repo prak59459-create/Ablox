@@ -156,6 +156,7 @@ struct FamilySettingsSheet: View {
                 playTimeSection
                 othersSection
                 InternetFamilySection()
+                AIHelperFamilySection()
                 coinsSection
                 Section(L("What was played")) {
                     ActivitySummary(log: settings.playtime)

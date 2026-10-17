@@ -1,16 +1,18 @@
 {
   "app": "Ablox",
-  "version": "7.8",
-  "build": 67,
+  "version": "7.9",
+  "build": 68,
   "protocol": 8,
-  "date": "2026-10-16",
+  "date": "2026-10-17",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "Rooms over Bluetooth: turn it on in Settings → Network, and play with iPads and iPhones right next to you even with no Wi-Fi. A room you host is then nearby over Bluetooth too, and Play → Rooms shows the rooms nearby. The iPad asks before Bluetooth is first used"
+      "AI helper: Settings → AI helper (Ablobo) answers questions about using Ablox. Common questions are answered on the iPad, free. A grown-up can also turn on an AI (Llama 4 Scout) in Family settings with their own key, kept in the keychain; questions stay short, have a daily limit, and nothing personal is sent",
+      "New games in the game list: Lucky Chip Party (a game show for four, with chips that stay in the game) and Sky Thread City (swing and climb through a 1,000 m city); four more games in Last Survivor Games; NPC friends in 45 more games when few people play"
     ],
     "ja": [
-      "Bluetooth の ルーム：設定 → ネットワーク で オンに すると、Wi-Fi が なくても すぐ 近くの iPad や iPhone と 遊べます。開いた ルームが Bluetooth でも 見えるように なり、プレイ → ルーム に 近くの ルームが ならびます。はじめて 使うときに iPad が 確認します"
+      "AIヘルパー：設定 → AIヘルパー（アブロボ）が Ablox の 使いかたに 答えます。よくある しつもんは iPad の中で 答えるので むりょう です。おうちの人が 家族設定で 自分の キーを 入れると AI（Llama 4 Scout）も 使えます。キーは キーチェーンに しまわれ、しつもんは みじかく、1日の 回数も きめられ、個人の ことは 送りません",
+      "ゲーム一覧に 新しい ゲーム：Lucky Chip Party（4人の ゲームショー。チップは ゲームの 中だけ）と Sky Thread City（1000m の 街を スイングと かべのぼりで かけまわる）。Last Survivor Games に 4つの ゲームが ふえ、人が 少ないとき NPC の なかまが 来る ゲームが 45こ ふえました"
     ]
   }
 }

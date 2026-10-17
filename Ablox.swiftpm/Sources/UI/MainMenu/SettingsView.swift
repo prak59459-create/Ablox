@@ -71,6 +71,7 @@ struct SettingsView: View {
                 if shows("network wifi internet", L("Network")) { networkCard }
                 if shows("problem report error crash", L("Problem reports")) { ProblemReportsCard() }
                 if shows("suggestion box idea opinion feedback request bug", L("Suggestion box")) { SuggestionBoxCard() }
+                if shows("ai helper help question robot ablobo how", L("AI helper")) { AIHelperCard() }
                 if shows("tips shortcuts keyboard help", L("Tips")) { SettingsHelpCard() }
                 if shows("move settings file export import another ipad", L("Move my settings")) { SettingsTransferCard() }
                 if shows("about version", L("About")) { aboutCard }
