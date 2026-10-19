@@ -173,8 +173,8 @@ off) — in `p.ride_color`. It is only the look: set `p.speed` as well.
 back, feet first, and keeps going the way they were moving, slowing a little,
 with the eyes at half height; the stick does not steer it, jump still works.
 Set it back to `"none"` to stand up. A host that has not updated does not
-know it, so check first: `p.rides` lists the kinds this iPad knows and is
-nothing on an older one — `if p.rides != nil and contains(p.rides, "slide")`.
+know it, so check first: `p.ride_kinds` lists the kinds this iPad knows and is
+nothing on an older one — `if p.ride_kinds != nil and contains(p.ride_kinds, "slide")`.
 
 **Blocks**: `name id position x y z size rotation color material shape visible
 solid tags opacity behavior label label_height label_size label_range animation

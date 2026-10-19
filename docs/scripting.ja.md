@@ -170,7 +170,7 @@ p.size = 3        p.hat = "crown"            p.visible = false    p.name = "ボ�
 p.speed = 2       p.jump = 1.5               p.gravity = 0.3      p.frozen = true
 p.ride = "car"    p.ride_color = "red"       -- 乗り物の見た目（car sports truck kart bike scooter jetpack hoverboard / none）
 p.ride = "slide"                             -- スライディング: あおむけで 足から すべる。進んでいた向きのまま 少しずつ おそくなり、目の高さは半分（8.3〜）
-if p.rides != nil and contains(p.rides, "slide") then … end   -- この iPad が slide を知っているか（更新していない iPad では p.rides は nil）
+if p.ride_kinds != nil and contains(p.ride_kinds, "slide") then … end   -- この iPad が slide を知っているか（更新していない iPad では p.ride_kinds は nil）
 p.position = {x: 0, y: 10, z: 0}             -- 瞬間移動
 p.launch(0, 20, 0)                           -- 吹き飛ばす
 p.look_at(block("Goal"))                     -- 向かせる
