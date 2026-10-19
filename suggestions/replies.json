@@ -208,34 +208,36 @@
     },
     {
       "id": "s1792409112853-4X77QE",
-      "status": "planned",
+      "status": "done",
       "message": {
-        "en": "We're reading your idea — back soon!",
-        "ja": "読んでいます。少し待っててね！"
-      }
+        "en": "Real mode is here! Turn it on in the pause menu to see the game through your character's eyes, moving like a real head. More detailed games are on the way, a few at a time.",
+        "ja": "リアルモードが できたよ！一時停止メニューで オンにすると、キャラクターの目で 本物みたいに ゆれて 見えるよ。ゲームを こまかくするのも 少しずつ 進めているね。"
+      },
+      "version": "8.3"
     },
     {
       "id": "s1792409544065-B23GEN",
-      "status": "planned",
+      "status": "done",
       "message": {
-        "en": "We're reading your idea — back soon!",
-        "ja": "読んでいます。少し待っててね！"
-      }
+        "en": "Done! In Clash Duels the weapon buttons are now small and in the middle at the bottom, shots spread less, and the new 🛝 button lets you slide.",
+        "ja": "できたよ！Clash Duels の 武器の ボタンを 下のまん中に 小さく ならべて、弾の ブレを 弱くして、🛝 ボタンで スライディング できるように したよ。"
+      },
+      "version": "8.3"
     },
     {
       "id": "s1792409778359-JS43XD",
-      "status": "planned",
+      "status": "notNow",
       "message": {
-        "en": "We're reading your idea — back soon!",
-        "ja": "読んでいます。少し待っててね！"
+        "en": "Thank you for the idea! We can't make a copy of another game, so we'll skip this one — but Lucky Chip Party will keep getting new mini-games.",
+        "ja": "アイデアありがとう！ほかのゲームと そっくりには 作れないので、今回は 見送りにするね。Lucky Chip Party の ミニゲームは これからも ふやしていくよ。"
       }
     },
     {
       "id": "s1792409992434-ZNDFAP",
       "status": "planned",
       "message": {
-        "en": "We're reading your idea — back soon!",
-        "ja": "読んでいます。少し待っててね！"
+        "en": "Bots that play like real players are coming! They're now in Clash Duels' free-for-all, counted just like everyone else, and more games will get them step by step.",
+        "ja": "本物のプレイヤーみたいに 遊ぶ BOT を 作っているよ！まず Clash Duels の 乱戦に 入れて、みんなと 同じように 数えるように したよ。ほかのゲームにも 順番に 入れていくね。"
       }
     }
   ]

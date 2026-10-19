@@ -169,6 +169,12 @@ chat under the NPC's name.
 `p.ride = "car"` draws the character riding something — `car`, `sports`,
 `truck`, `kart`, `bike`, `scooter`, `jetpack` or `hoverboard` (`none` to get
 off) — in `p.ride_color`. It is only the look: set `p.speed` as well.
+`p.ride = "slide"` (8.3) is a move rather than a ride: the character lies
+back, feet first, and keeps going the way they were moving, slowing a little,
+with the eyes at half height; the stick does not steer it, jump still works.
+Set it back to `"none"` to stand up. A host that has not updated does not
+know it, so check first: `p.rides` lists the kinds this iPad knows and is
+nothing on an older one — `if p.rides != nil and contains(p.rides, "slide")`.
 
 **Blocks**: `name id position x y z size rotation color material shape visible
 solid tags opacity behavior label label_height label_size label_range animation

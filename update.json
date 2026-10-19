@@ -1,16 +1,18 @@
 {
   "app": "Ablox",
-  "version": "8.2",
-  "build": 71,
+  "version": "8.3",
+  "build": 72,
   "protocol": 8,
   "date": "2026-10-19",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "Fixed: a room on the router (public or private) stayed in everyone's list after the host left it, until the app was closed. Leaving now closes the room right away, and a guest who leaves is let go at once"
+      "New: Real mode (pause menu → Controls). First person, with the view moving like your head: it bobs as you walk and run, tips as you turn and dips when you land. Gentler with less motion or camera shake off",
+      "New for game makers: p.ride = \"slide\" lies a character back, feet first, sliding the way they were going with the eyes at half height. Clash Duels uses it for its new slide button"
     ],
     "ja": [
-      "直しました：ルーターの ルーム（公開・非公開）が、ホストが ぬけたあとも アプリを とじるまで みんなの 一覧に のこっていました。いまは ぬけると すぐに ルームが とじて、一覧から きえます。ゲストが ぬけたときも すぐに ルームから はなれます"
+      "新しく：リアルモード（一時停止メニュー → 操作）。一人称で、画面が 頭のように うごきます。歩く・走ると ゆれて、曲がると かたむき、着地で しずみます。「動きを へらす」や 画面のゆれ オフのときは ひかえめ",
+      "ゲームを作る人へ：p.ride = \"slide\" で、あおむけで 足から すべる体勢に（進んでいた向きのまま、目の高さは 半分）。Clash Duels の 新しい スライディングで 使っています"
     ]
   }
 }

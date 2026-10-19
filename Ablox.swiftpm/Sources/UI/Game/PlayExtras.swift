@@ -667,6 +667,15 @@ struct PauseMenu: View {
                 Toggle(L("First-person camera"), isOn: $preferFirstPerson)
                     .tint(Ablox.Palette.accent)
             }
+            Toggle(isOn: $settings.preferences.realMode) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(L("Real mode"))
+                    Text(L("First person, with the view moving like your head: steps, turns and landings."))
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.7))
+                }
+            }
+            .tint(Ablox.Palette.accent)
             VStack(alignment: .leading, spacing: 4) {
                 Text(L("Camera distance"))
                     .font(.subheadline.weight(.medium))

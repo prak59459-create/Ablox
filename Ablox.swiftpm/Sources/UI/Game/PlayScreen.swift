@@ -97,7 +97,7 @@ public struct PlayScreen: View {
 
     private var isFirstPerson: Bool {
         session.scripted.camera.mode == .firstPerson
-            || (session.scripted.camera.mode == .thirdPerson && preferFirstPerson && spectating == nil)
+            || (session.scripted.camera.mode == .thirdPerson && (preferFirstPerson || settings.preferences.realMode) && spectating == nil)
     }
 
     // In pieces, each type-checked on its own: as one expression the play
@@ -1245,7 +1245,7 @@ public struct PlayScreen: View {
                 }
             }
 
-            if hud.showShiftLockButton, session.scripted.camera.mode == .thirdPerson, !preferFirstPerson, spectating == nil {
+            if hud.showShiftLockButton, session.scripted.camera.mode == .thirdPerson, !isFirstPerson, spectating == nil {
                 ShiftLockButton(isOn: $settings.preferences.hud.shiftLock)
             }
 

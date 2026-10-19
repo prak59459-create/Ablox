@@ -2,6 +2,21 @@
   "app": "Ablox",
   "releases": [
     {
+      "version": "8.3",
+      "build": 72,
+      "date": "2026-10-19",
+      "notes": {
+        "en": [
+          "New: Real mode (pause menu → Controls). First person, with the view moving like your head: it bobs as you walk and run, tips as you turn and dips when you land. Gentler with less motion or camera shake off",
+          "New for game makers: p.ride = \"slide\" lies a character back, feet first, sliding the way they were going with the eyes at half height. Clash Duels uses it for its new slide button"
+        ],
+        "ja": [
+          "新しく：リアルモード（一時停止メニュー → 操作）。一人称で、画面が 頭のように うごきます。歩く・走ると ゆれて、曲がると かたむき、着地で しずみます。「動きを へらす」や 画面のゆれ オフのときは ひかえめ",
+          "ゲームを作る人へ：p.ride = \"slide\" で、あおむけで 足から すべる体勢に（進んでいた向きのまま、目の高さは 半分）。Clash Duels の 新しい スライディングで 使っています"
+        ]
+      }
+    },
+    {
       "version": "8.2",
       "build": 71,
       "date": "2026-10-19",
