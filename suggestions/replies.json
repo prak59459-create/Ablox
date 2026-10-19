@@ -241,27 +241,29 @@
       }
     },
     {
-      "id": "s1792448568432-CMMV4X",
-      "status": "planned",
-      "message": {
-        "en": "We're reading your idea — back soon!",
-        "ja": "読んでいます。少し待っててね！"
-      }
-    },
-    {
       "id": "s1792448714264-4MZ7WK",
-      "status": "planned",
+      "status": "done",
       "message": {
-        "en": "We're reading your idea — back soon!",
-        "ja": "読んでいます。少し待っててね！"
-      }
+        "en": "Done! People and NPCs now bump into each other, and you can even stand on someone's head.",
+        "ja": "できました！人と NPC が ぶつかるようになって、頭の上にも 乗れます。"
+      },
+      "version": "8.4"
     },
     {
       "id": "s1792448878561-5ZTAN3",
-      "status": "planned",
+      "status": "done",
       "message": {
-        "en": "We're reading your idea — back soon!",
-        "ja": "読んでいます。少し待っててね！"
+        "en": "Avatars now have shoes, hands, sleeves, a belt and more parts! Game maps are getting more parts step by step too.",
+        "ja": "アバターに くつ・手・そで・ベルトなど パーツが ふえました！ゲームのマップも 少しずつ こまかくしています。"
+      },
+      "version": "8.4"
+    },
+    {
+      "id": "s1792448568432-CMMV4X",
+      "status": "notNow",
+      "message": {
+        "en": "Thank you for the big idea! A casino room is not something we'll make, but Lucky Chip Party keeps getting new mini-games.",
+        "ja": "大きなアイデアを ありがとう！カジノの部屋は 作らないことにしたけど、Lucky Chip Party の ミニゲームは これからも ふえます。"
       }
     }
   ]

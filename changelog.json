@@ -2,6 +2,21 @@
   "app": "Ablox",
   "releases": [
     {
+      "version": "8.4",
+      "build": 73,
+      "date": "2026-10-19",
+      "notes": {
+        "en": [
+          "New: people and NPCs bump into each other instead of walking through, and you can stand on someone's head. Characters sent to the same spot walk apart, and an NPC held up for a second gets through, so games never get stuck. A game can turn it off with world.solid_players = false",
+          "New: avatars look more detailed, with shoes and soles, hands, short sleeves, a belt and buckle, buttons, a pocket, a neck, ears and a nose. The parts are merged so rooms stay fast, and the lowest two graphics levels leave them off"
+        ],
+        "ja": [
+          "新しく：人と NPC が すりぬけずに ぶつかるように。頭の上にも 乗れます。同じ場所に 送られた人は はなれて歩けて、1秒 止められた NPC は 通りぬけるので、ゲームが 止まりません。ゲームは world.solid_players = false で 切れます",
+          "新しく：アバターが こまかく。くつと くつぞこ、手、半そで、ベルトと バックル、ボタン、ポケット、首、耳、鼻。パーツは まとめて えがくので 重くならず、画質が いちばん下の2つでは つけません"
+        ]
+      }
+    },
+    {
       "version": "8.3",
       "build": 72,
       "date": "2026-10-19",

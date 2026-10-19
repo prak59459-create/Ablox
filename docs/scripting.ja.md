@@ -279,6 +279,7 @@ end
 - **パーティクル**：`fire smoke sparkles confetti rain snow bubbles hearts stars leaves magic dust`。`b.particles = "fire"` でずっと燃えるブロックになります。
 - **speak(文)** は「キャラクターのセリフを読み上げる」をオンにした人に声で読み上げます。会話の吹き出しも読み上げます。
 - **ワールド**：`world.weather`（`clear rain snow fog storm`）、`world.time`（時刻）、`world.day_length`（1日が何分か。0 で止まる）、`world.sky_style`（`gradient clouds sunset stars aurora space`）、`world.effect`（`none bloom vivid warm cool noir retro dream`）、`world.shadows`。
+- **人と ぶつかる**（8.4）：人と NPC は おたがいに ぶつかり、頭の上に 乗れます。はじめから 重なっている人（同じスタート地点）は はなれて歩けて、だれかに 1秒 止められた NPC は すりぬけるので、`move_to` は かならず とどきます。みんなが すりぬけるゲームは `world.solid_players = false`。
 
 スクリプトなしでも、ブロックに **はしご**・**ドア**・**動く床**・**乗り物**・**押せるブロック** の動きや、`wood stone brick grass sand ice water`（水は泳げる）の素材を付けられます。これらを使ったワールドは形式 2 で保存され、アップデートしていない iPad では開けません。
 

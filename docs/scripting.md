@@ -214,7 +214,7 @@ jump to the end (5.4).
 
 **World**: `gravity sky sky_top sky_bottom light sun sun_yaw ground
 ground_color fall_height weather time day_length sky_style effect shadows
-music`. Blocks also have `particles` (a kind, or nil) and `image` (the name of
+music solid_players`. Blocks also have `particles` (a kind, or nil) and `image` (the name of
 one of the world's pictures). **Game**: `respawn_time friendly_fire time
 round_over`.
 
@@ -336,6 +336,11 @@ end
   `world.effect` (`none bloom vivid warm cool noir retro dream`) and
   `world.shadows`. The day is counted on every iPad's own clock from when it
   started, so everyone sees the same sky without it being sent.
+- **Bumping into people** (8.4): people and NPCs are solid to each other — you
+  stop when you walk into someone and can stand on their head. Characters
+  already overlapping (everyone sent to one spawn) walk apart, and an NPC held
+  up by someone for a second walks through, so `move_to` always arrives. A game
+  where everyone should pass through sets `world.solid_players = false`.
 
 Blocks can do more without a script too: **ladders** (climb), **doors** (open
 when walked into), **moving platforms** (carry whoever stands on them),
