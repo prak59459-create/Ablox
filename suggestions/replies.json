@@ -199,11 +199,12 @@
     },
     {
       "id": "s1792379808059-9NZNG2",
-      "status": "planned",
+      "status": "done",
       "message": {
-        "en": "We're reading your idea — back soon!",
-        "ja": "読んでいます。少し待っててね！"
-      }
+        "en": "Fixed in 8.2: a room you leave now disappears from the list right away! Lucky Chip Party now has 25 mini-games, and more are on the way to reach 40.",
+        "ja": "8.2 で なおしたよ：ぬけた ルームは すぐ 一覧から きえるよ！ Lucky Chip Party は 25しゅるいに ふえて、40しゅるいまで まだまだ ふえるよ。"
+      },
+      "version": "8.2"
     }
   ]
 }

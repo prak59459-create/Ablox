@@ -1,16 +1,16 @@
 {
   "app": "Ablox",
-  "version": "8.1",
-  "build": 70,
+  "version": "8.2",
+  "build": 71,
   "protocol": 8,
-  "date": "2026-10-17",
+  "date": "2026-10-19",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "AI helper fixed (the \"404\" error): Groq retired the Llama models. It now uses Qwen 3.8, tries other models when one is gone, and if all are gone picks one from the key's own model list, so it keeps working when models change"
+      "Fixed: a room on the router (public or private) stayed in everyone's list after the host left it, until the app was closed. Leaving now closes the room right away, and a guest who leaves is let go at once"
     ],
     "ja": [
-      "AI ヘルパーを 直しました（「404」の エラー）：Groq の Llama が なくなっていました。いまは Qwen 3.8 を 使い、モデルが ない ときは ほかの モデルを ためし、それでも だめなら カギで 使える モデルの 一覧から 自動で えらびます。モデルが かわっても 動きつづけます"
+      "直しました：ルーターの ルーム（公開・非公開）が、ホストが ぬけたあとも アプリを とじるまで みんなの 一覧に のこっていました。いまは ぬけると すぐに ルームが とじて、一覧から きえます。ゲストが ぬけたときも すぐに ルームから はなれます"
     ]
   }
 }

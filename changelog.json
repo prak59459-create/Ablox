@@ -2,6 +2,19 @@
   "app": "Ablox",
   "releases": [
     {
+      "version": "8.2",
+      "build": 71,
+      "date": "2026-10-19",
+      "notes": {
+        "en": [
+          "Fixed: a room on the router (public or private) stayed in everyone's list after the host left it, until the app was closed. Leaving now closes the room right away, and a guest who leaves is let go at once"
+        ],
+        "ja": [
+          "直しました：ルーターの ルーム（公開・非公開）が、ホストが ぬけたあとも アプリを とじるまで みんなの 一覧に のこっていました。いまは ぬけると すぐに ルームが とじて、一覧から きえます。ゲストが ぬけたときも すぐに ルームから はなれます"
+        ]
+      }
+    },
+    {
       "version": "8.1",
       "build": 70,
       "date": "2026-10-17",
