@@ -1,18 +1,22 @@
 {
   "app": "Ablox",
-  "version": "8.4",
-  "build": 73,
+  "version": "8.5",
+  "build": 74,
   "protocol": 8,
-  "date": "2026-10-19",
+  "date": "2026-10-20",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "New: people and NPCs bump into each other instead of walking through, and you can stand on someone's head. Characters sent to the same spot walk apart, and an NPC held up for a second gets through, so games never get stuck. A game can turn it off with world.solid_players = false",
-      "New: avatars look more detailed, with shoes and soles, hands, short sleeves, a belt and buckle, buttons, a pocket, a neck, ears and a nose. The parts are merged so rooms stay fast, and the lowest two graphics levels leave them off"
+      "New: a ⇩ slide button in every game, beside the jump button where the run button was. Tap it to slide on your back for a second, the way you were going and half as fast again (C on a keyboard). Everyone sees you slide. Games with their own slide button keep theirs, and the run button is still in the play screen options",
+      "The jump button is a little bigger",
+      "New: My music (Settings). Add songs you made from the Files app and play them in the Plaza, or in games in place of their music. Only you hear them",
+      "Characters are plain blocks again, so the detail can go into the worlds. Settings → Graphics → Detailed characters brings back the shoes, hands and belts"
     ],
     "ja": [
-      "新しく：人と NPC が すりぬけずに ぶつかるように。頭の上にも 乗れます。同じ場所に 送られた人は はなれて歩けて、1秒 止められた NPC は 通りぬけるので、ゲームが 止まりません。ゲームは world.solid_players = false で 切れます",
-      "新しく：アバターが こまかく。くつと くつぞこ、手、半そで、ベルトと バックル、ボタン、ポケット、首、耳、鼻。パーツは まとめて えがくので 重くならず、画質が いちばん下の2つでは つけません"
+      "新しく：どのゲームでも ⇩ の スライディングボタン（ジャンプの となり、走るボタンが あった場所）。押すと 進んでいた向きに 1秒 あおむけで すべります（1.5倍の はやさ。キーボードは C）。ほかの人にも すべるのが 見えます。自分の スライディングボタンが あるゲームは そのまま。走るボタンは プレイ画面の 設定に あります",
+      "ジャンプボタンを 少し 大きく",
+      "新しく：マイ ミュージック（設定）。自分で作った曲を「ファイル」から入れて、広場や ゲームで 流せます。聞こえるのは 自分だけ",
+      "キャラクターを シンプルな ブロックに もどしました（そのぶん ワールドを こまかく）。設定 → グラフィック →「こまかいキャラクター」で くつ・手・ベルトが もどります"
     ]
   }
 }

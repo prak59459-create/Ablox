@@ -437,6 +437,7 @@ struct PlayScreenOptionsView: View {
     private var buttonsSection: some View {
         Section {
             Toggle(L("Zoom buttons"), isOn: hud.showZoomButtons)
+            Toggle(L("Slide button"), isOn: hud.showSlideButton)
             Toggle(L("Run button"), isOn: hud.showRunButton)
             Toggle(L("Keep walking button"), isOn: hud.showWalkButton)
             Toggle(L("First-person button"), isOn: hud.showViewButton)

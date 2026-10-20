@@ -268,27 +268,30 @@
     },
     {
       "id": "s1792457542905-24AQ83",
-      "status": "planned",
+      "status": "done",
       "message": {
-        "en": "We're reading your idea — back soon!",
-        "ja": "読んでいます。少し待っててね！"
-      }
+        "en": "Now you can add your own songs in Settings → My music and play them in the Plaza or in games! Links can't reach us, so add the song from your own iPad.",
+        "ja": "設定の「マイ ミュージック」で 自分の曲を 入れて、広場や ゲームで 流せるように したよ！リンクは とどかないので、曲は 自分の iPad から 入れてね。"
+      },
+      "version": "8.5"
     },
     {
       "id": "s1792457615140-28R2QU",
-      "status": "planned",
+      "status": "done",
       "message": {
-        "en": "We're reading your idea — back soon!",
-        "ja": "読んでいます。少し待っててね！"
-      }
+        "en": "Every game now has a ⇩ slide button where the run button was, and the jump button is bigger. Have fun sliding!",
+        "ja": "どのゲームでも 走るボタンの 場所に ⇩ の スライディングボタンが できて、ジャンプボタンも 大きく なったよ。すべってみてね！"
+      },
+      "version": "8.5"
     },
     {
       "id": "s1792457721866-A25RTH",
-      "status": "planned",
+      "status": "done",
       "message": {
-        "en": "We're reading your idea — back soon!",
-        "ja": "読んでいます。少し待っててね！"
-      }
+        "en": "Characters are simple blocks again, and Reel Legends and Clash Duels got lots of new details. More worlds are coming next!",
+        "ja": "キャラクターを シンプルに もどして、Reel Legends と Clash Duels の ワールドを こまかく したよ。ほかの ワールドも つづけて 作るね！"
+      },
+      "version": "8.5"
     }
   ]
 }

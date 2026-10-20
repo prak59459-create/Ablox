@@ -583,6 +583,7 @@ public final class AppSettings: ObservableObject {
         switch gesture {
         case .emote: memory.counters.emotes += 1
         case .stamp: memory.counters.stamps += 1
+        case .slide: break
         }
     }
 

@@ -13,7 +13,7 @@ import AbloxCore
 ///   look, Esc or Tab pauses, 1 to 4 play the favourite emotes (Y or △ on a
 ///   controller plays them in turn). T chats, M opens the map, P takes a
 ///   picture, V switches first and third person, R puts the camera behind,
-///   H hides the buttons and K lists all of this (`PlayShortcuts`).
+///   C slides, H hides the buttons and K lists all of this (`PlayShortcuts`).
 /// - Controller extras: pressing the right stick puts the camera behind, the
 ///   D-pad's left and right change who is being watched.
 /// - While a text box has the keyboard, keys type and nothing else.
@@ -160,7 +160,7 @@ final class HardwareInput: NSObject, ObservableObject {
             menu = menu || down(.escape) || down(.tab)
             for (slot, code) in [GCKeyCode.one, .two, .three, .four].enumerated() where down(code) { emote = slot }
             let keyed: [(GCKeyCode, PlayKeyAction)] = [(.keyT, .chat), (.returnOrEnter, .chat), (.keyM, .map), (.keyP, .picture),
-                                                       (.keyV, .view), (.keyR, .cameraBehind), (.keyH, .hideButtons),
+                                                       (.keyV, .view), (.keyR, .cameraBehind), (.keyC, .slide), (.keyH, .hideButtons),
                                                        (.keyK, .shortcuts), (.slash, .shortcuts)]
             for (code, action) in keyed where down(code) { actions.insert(action) }
             let turn: Float = (down(.rightArrow) ? 1 : 0) - (down(.leftArrow) ? 1 : 0)
@@ -194,7 +194,7 @@ final class HardwareInput: NSObject, ObservableObject {
 
 /// A key or button that does one thing each time it is pressed.
 enum PlayKeyAction: Hashable {
-    case chat, map, picture, view, cameraBehind, hideButtons, shortcuts, watchNext, watchPrevious
+    case chat, map, picture, view, cameraBehind, slide, hideButtons, shortcuts, watchNext, watchPrevious
 }
 
 /// How far the mouse moved and scrolled between frames. Written by

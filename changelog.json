@@ -2,6 +2,25 @@
   "app": "Ablox",
   "releases": [
     {
+      "version": "8.5",
+      "build": 74,
+      "date": "2026-10-20",
+      "notes": {
+        "en": [
+          "New: a ⇩ slide button in every game, beside the jump button where the run button was. Tap it to slide on your back for a second, the way you were going and half as fast again (C on a keyboard). Everyone sees you slide. Games with their own slide button keep theirs, and the run button is still in the play screen options",
+          "The jump button is a little bigger",
+          "New: My music (Settings). Add songs you made from the Files app and play them in the Plaza, or in games in place of their music. Only you hear them",
+          "Characters are plain blocks again, so the detail can go into the worlds. Settings → Graphics → Detailed characters brings back the shoes, hands and belts"
+        ],
+        "ja": [
+          "新しく：どのゲームでも ⇩ の スライディングボタン（ジャンプの となり、走るボタンが あった場所）。押すと 進んでいた向きに 1秒 あおむけで すべります（1.5倍の はやさ。キーボードは C）。ほかの人にも すべるのが 見えます。自分の スライディングボタンが あるゲームは そのまま。走るボタンは プレイ画面の 設定に あります",
+          "ジャンプボタンを 少し 大きく",
+          "新しく：マイ ミュージック（設定）。自分で作った曲を「ファイル」から入れて、広場や ゲームで 流せます。聞こえるのは 自分だけ",
+          "キャラクターを シンプルな ブロックに もどしました（そのぶん ワールドを こまかく）。設定 → グラフィック →「こまかいキャラクター」で くつ・手・ベルトが もどります"
+        ]
+      }
+    },
+    {
       "version": "8.4",
       "build": 73,
       "date": "2026-10-19",

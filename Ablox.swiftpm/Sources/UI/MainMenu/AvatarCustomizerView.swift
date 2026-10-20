@@ -31,7 +31,8 @@ struct AvatarCustomizerView: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            AvatarPreview(profile: settings.profile, link: previewLink, still: boothOpen)
+            AvatarPreview(profile: settings.profile, link: previewLink, still: boothOpen,
+                          detailed: settings.preferences.detailedAvatars)
                 .frame(maxWidth: .infinity)
                 .overlay(alignment: .bottom) {
                     if boothOpen { photoBooth }
@@ -505,11 +506,14 @@ struct AvatarPreview: UIViewRepresentable {
     var link: AvatarPreviewLink?
     /// Stop turning (the photo booth faces the camera).
     var still = false
+    /// Shoes, hands and the other small parts, as in the game (Settings → Graphics).
+    var detailed = false
 
     func makeUIView(context: Context) -> ARView {
         let view = ARView(frame: .zero, cameraMode: .nonAR, automaticallyConfigureSession: false)
         view.environment.background = .color(.clear)
         context.coordinator.attach(to: view, profile: profile)
+        context.coordinator.detailed = detailed
         link?.view = view
         link?.coordinator = context.coordinator
         return view
@@ -518,6 +522,7 @@ struct AvatarPreview: UIViewRepresentable {
     func updateUIView(_ view: ARView, context: Context) {
         context.coordinator.update(profile: profile)
         context.coordinator.still = still
+        context.coordinator.detailed = detailed
         link?.view = view
         link?.coordinator = context.coordinator
     }
@@ -534,6 +539,9 @@ struct AvatarPreview: UIViewRepresentable {
         private var subscription: Cancellable?
         private var spin: Float = 0
         var still = false
+        var detailed = false {
+            didSet { avatar?.detailed = detailed }
+        }
 
         func play(_ emote: Emote) {
             avatar?.play(emote)

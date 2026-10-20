@@ -57,6 +57,7 @@ struct SettingsView: View {
                 if shows("family parent passcode limit time chat rooms coins", L("Family")) { FamilyCard() }
                 if shows("games list catalogue", L("Games")) { gamesCard }
                 if shows("sound library effects sfx download listen", L("Sound library")) { SoundLibraryCard() }
+                if shows("my music song songs bgm plaza lobby", L("My music")) { MyMusicCard() }
                 if shows("data backup save restore", L("Data")) { dataCard }
                 if shows("storage space delete", L("Storage")) { StorageCard() }
                 if shows("comfort shake field of view warm dim battery", L("Comfort")) { ComfortCard() }
@@ -429,6 +430,11 @@ struct SettingsView: View {
 
                 Toggle(isOn: $settings.showFrameRate) {
                     settingLabel(L("Show frame rate"), L("A small counter at the top of the screen while you play."))
+                }
+                .tint(Ablox.Palette.accent)
+
+                Toggle(isOn: $settings.preferences.detailedAvatars) {
+                    settingLabel(L("Detailed characters"), L("Shoes, hands, a belt and other small parts on everyone. Off keeps the plain block characters."))
                 }
                 .tint(Ablox.Palette.accent)
             }

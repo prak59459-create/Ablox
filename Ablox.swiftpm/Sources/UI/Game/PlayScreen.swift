@@ -661,6 +661,8 @@ public struct PlayScreen: View {
             if session.scripted.camera.mode == .thirdPerson { preferFirstPerson.toggle() }
         case .cameraBehind:
             cameraBehind()
+        case .slide:
+            slide()
         case .hideButtons:
             withAnimation { buttonsHidden.toggle() }
         case .shortcuts:
@@ -774,7 +776,8 @@ public struct PlayScreen: View {
 
     @ViewBuilder private var extraButtons: some View {
         let hud = settings.preferences.hud
-        if hud.showZoomButtons || hud.showWalkButton || hud.showRunButton {
+        let slides = showsSlideButton
+        if hud.showZoomButtons || hud.showWalkButton || hud.showRunButton || slides {
             VStack(spacing: 12) {
                 if hud.showZoomButtons {
                     ZoomButtons { zoom(by: $0) }
@@ -786,7 +789,30 @@ public struct PlayScreen: View {
                 if hud.showRunButton {
                     RunButton(isPressed: $holdingRun, haptics: hud.buttonHaptics)
                 }
+                if slides {
+                    SlideButton(haptics: hud.buttonHaptics) { slide() }
+                }
             }
+        }
+    }
+
+    /// The ⇩ button, unless the options hide it or the game has its own
+    /// slide button (Clash Duels).
+    private var showsSlideButton: Bool {
+        settings.preferences.hud.showSlideButton && !gameHasItsOwnSlide
+    }
+
+    private var gameHasItsOwnSlide: Bool {
+        session.scripted.ui.contains { $0.kind == .button && $0.id == QuickSlide.gameButtonID }
+    }
+
+    /// The ⇩ button or the C key: the game's own slide when it has one,
+    /// otherwise the one every game has.
+    private func slide() {
+        if gameHasItsOwnSlide {
+            session.send(input: .button(id: QuickSlide.gameButtonID))
+        } else {
+            controls.slideRequested = true
         }
     }
 
