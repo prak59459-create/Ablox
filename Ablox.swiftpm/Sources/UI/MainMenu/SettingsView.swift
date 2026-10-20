@@ -25,14 +25,59 @@ struct SettingsView: View {
     @State private var moving = false
     @State private var search = ""
 
-    /// Whether a card matches the search: its words or its title.
-    private func shows(_ words: String, _ title: String) -> Bool {
-        SearchText.matches(search, in: [words, title])
+    /// The group picked in the side list, kept for next time.
+    @AppStorage("ablox.settings.pane") private var paneName = SettingsPane.general.rawValue
+
+    private var pane: Binding<SettingsPane> {
+        Binding(get: { SettingsPane(rawValue: paneName) ?? .general },
+                set: { paneName = $0.rawValue })
     }
 
     var body: some View {
+        Group {
+            if fit.isCompact {
+                compactLayout
+            } else {
+                wideLayout
+            }
+        }
+        .sheet(item: $installing) { install in
+            UpdateInstallSheet(updater: updater, backup: install.backup)
+        }
+    }
+
+    // MARK: Layout
+
+    /// Like a Mac's System Settings: the groups down the side, the picked
+    /// group's cards beside them.
+    private var wideLayout: some View {
+        HStack(alignment: .top, spacing: 0) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    Text(L("Settings"))
+                        .font(.system(size: 30, weight: .bold, design: .rounded))
+                    SettingsSearchField(search: $search)
+                    SettingsSidebar(selection: pane, search: $search)
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, fit.gutter)
+            }
+            .frame(width: 250)
+            .background(Ablox.Palette.wash)
+
+            ScrollView {
+                cards
+                    .padding(fit.gutter)
+                    .frame(maxWidth: 780, alignment: .leading)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    /// On a narrow screen: the groups as chips over the cards.
+    private var compactLayout: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
+            VStack(alignment: .leading, spacing: 16) {
                 VStack(alignment: .leading, spacing: 5) {
                     Text(L("Settings"))
                         .font(.system(size: 34, weight: .bold, design: .rounded))
@@ -40,48 +85,56 @@ struct SettingsView: View {
                         .font(.subheadline)
                         .foregroundStyle(Ablox.Palette.inkMuted)
                 }
-
-                // Finds a card by what it is about, in either language.
-                AbloxTextField(L("Search settings"), text: $search)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 10)
-                    .background(Ablox.Palette.wash, in: Capsule())
-                    .frame(maxWidth: 420)
-                if shows("language", L("Language")) { languageCard }
-                if shows("look theme colour accent light dark", L("Look")) { LookCard() }
-                if shows("update version", L("Updates")) {
-                    UpdateSettingsCard(updater: updater) {
-                        installing = UpdateInstall(backup: saves.makeBackupBeforeUpdate(settings: settings, worlds: store))
-                    }
-                }
-                if shows("family parent passcode limit time chat rooms coins", L("Family")) { FamilyCard() }
-                if shows("games list catalogue", L("Games")) { gamesCard }
-                if shows("sound library effects sfx download listen", L("Sound library")) { SoundLibraryCard() }
-                if shows("my music song songs bgm plaza lobby", L("My music")) { MyMusicCard() }
-                if shows("data backup save restore", L("Data")) { dataCard }
-                if shows("storage space delete", L("Storage")) { StorageCard() }
-                if shows("comfort shake field of view warm dim battery", L("Comfort")) { ComfortCard() }
-                if shows("seeing hearing colour vision bold motion captions speed accessibility", L("Seeing and hearing")) { AccessibilityCard() }
-                if shows("graphics quality frame rate", L("Graphics")) { graphicsCard }
-                if shows("controls joystick camera sensitivity invert", L("Controls")) { controlsCard }
-                if shows("play screen buttons compass map stick", L("Play screen")) { PlayScreenOptionsCard() }
-                if shows("chat bubbles names emoji", L("Chat and names")) { ChatOptionsCard() }
-                if shows("crosshair hidden games searches birthday", L("Aiming and searching")) { MoreSettingsCard() }
-                if shows("controller keyboard mouse", L("Controllers")) { ControllersCard() }
-                if shows("movement walk run jump", L("Movement")) { movementCard }
-                if shows("network wifi internet", L("Network")) { networkCard }
-                if shows("problem report error crash", L("Problem reports")) { ProblemReportsCard() }
-                if shows("suggestion box idea opinion feedback request bug", L("Suggestion box")) { SuggestionBoxCard() }
-                if shows("ai helper help question robot ablobo how", L("AI helper")) { AIHelperCard() }
-                if shows("tips shortcuts keyboard help", L("Tips")) { SettingsHelpCard() }
-                if shows("move settings file export import another ipad", L("Move my settings")) { SettingsTransferCard() }
-                if shows("about version", L("About")) { aboutCard }
+                SettingsSearchField(search: $search)
+                SettingsPaneChips(selection: pane, search: $search)
+                cards
             }
             .padding(fit.gutter)
             .frame(maxWidth: 780, alignment: .leading)
         }
-        .sheet(item: $installing) { install in
-            UpdateInstallSheet(updater: updater, backup: install.backup)
+    }
+
+    /// The picked group's cards, or every card the search finds.
+    private var cards: some View {
+        let shown = SettingsPane.shown(pane: pane.wrappedValue, search: search)
+        return VStack(alignment: .leading, spacing: 24) {
+            SettingsPaneHeading(pane: pane.wrappedValue, search: search, count: shown.count)
+            ForEach(shown, id: \.self) { item in
+                card(item)
+            }
+        }
+    }
+
+    @ViewBuilder private func card(_ item: SettingsCard) -> some View {
+        switch item {
+        case .language: languageCard
+        case .look: LookCard()
+        case .updates:
+            UpdateSettingsCard(updater: updater) {
+                installing = UpdateInstall(backup: saves.makeBackupBeforeUpdate(settings: settings, worlds: store))
+            }
+        case .family: FamilyCard()
+        case .games: gamesCard
+        case .soundLibrary: SoundLibraryCard()
+        case .myMusic: MyMusicCard()
+        case .data: dataCard
+        case .storage: StorageCard()
+        case .comfort: ComfortCard()
+        case .seeingAndHearing: AccessibilityCard()
+        case .graphics: graphicsCard
+        case .controls: controlsCard
+        case .playScreen: PlayScreenOptionsCard()
+        case .chat: ChatOptionsCard()
+        case .aimingAndSearching: MoreSettingsCard()
+        case .controllers: ControllersCard()
+        case .movement: movementCard
+        case .network: networkCard
+        case .problemReports: ProblemReportsCard()
+        case .suggestionBox: SuggestionBoxCard()
+        case .aiHelper: AIHelperCard()
+        case .tips: SettingsHelpCard()
+        case .moveSettings: SettingsTransferCard()
+        case .about: aboutCard
         }
     }
 

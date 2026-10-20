@@ -2,6 +2,21 @@
   "app": "Ablox",
   "releases": [
     {
+      "version": "8.6",
+      "build": 75,
+      "date": "2026-10-20",
+      "notes": {
+        "en": [
+          "Fixed: the app froze when a game brought in a lot of characters at once (like the 100 players of Last Survivor Games). Characters now share their parts and appear a few at a time",
+          "Settings are in groups down the side, like a Mac's System Settings: General, Appearance, Family, Games, Sound and more, each with its own icon. Search still looks through everything"
+        ],
+        "ja": [
+          "直しました：たくさんの キャラクターが 一度に 来る ゲーム（Last Survivor Games の 100人 など）で アプリが 止まっていました。キャラクターの 部品を 使い回して、少しずつ 出すように しました",
+          "設定を Mac の「システム設定」のように 左に グループで ならべました（一般・見た目・家族・ゲーム・サウンド など、それぞれ アイコンつき）。検索では いままでどおり 全部から さがせます"
+        ]
+      }
+    },
+    {
       "version": "8.5",
       "build": 74,
       "date": "2026-10-20",

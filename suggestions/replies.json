@@ -295,27 +295,29 @@
     },
     {
       "id": "s1792464536756-FFS397",
-      "status": "planned",
+      "status": "done",
       "message": {
-        "en": "We're reading your idea — back soon!",
-        "ja": "読んでいます。少し待っててね！"
-      }
+        "en": "Thanks for telling us! The freeze when 100 players arrive is fixed — now they come in a few at a time.",
+        "ja": "教えてくれてありがとう！ 100人が来たときに止まるのを直したよ。少しずつ入ってくるようになったよ。"
+      },
+      "version": "8.6"
     },
     {
       "id": "s1792465139716-68CWLU",
-      "status": "planned",
+      "status": "done",
       "message": {
-        "en": "We're reading your idea — back soon!",
-        "ja": "読んでいます。少し待っててね！"
+        "en": "You can now be the 👑 Game Master for 50,000 coins! Pick the next game, be the doll, call the tug-of-war heave and more. More powers are on the way.",
+        "ja": "50,000コインで 👑ゲームマスターになれるよ！ 次のゲームや 人形の「ころんだ！」、つなひきの「せーの！」などを決められるよ。ほかの力も これから足していくね。"
       }
     },
     {
       "id": "s1792465225934-G8MR2Q",
-      "status": "planned",
+      "status": "done",
       "message": {
-        "en": "We're reading your idea — back soon!",
-        "ja": "読んでいます。少し待っててね！"
-      }
+        "en": "Settings now have groups down the side, like on a Mac, so things are easier to find.",
+        "ja": "設定を Mac みたいに、左のグループからえらべるようにしたよ。さがしやすくなったよ。"
+      },
+      "version": "8.6"
     }
   ]
 }
