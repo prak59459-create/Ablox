@@ -292,6 +292,30 @@
         "ja": "キャラクターを シンプルに もどして、Reel Legends と Clash Duels の ワールドを こまかく したよ。ほかの ワールドも つづけて 作るね！"
       },
       "version": "8.5"
+    },
+    {
+      "id": "s1792464536756-FFS397",
+      "status": "planned",
+      "message": {
+        "en": "We're reading your idea — back soon!",
+        "ja": "読んでいます。少し待っててね！"
+      }
+    },
+    {
+      "id": "s1792465139716-68CWLU",
+      "status": "planned",
+      "message": {
+        "en": "We're reading your idea — back soon!",
+        "ja": "読んでいます。少し待っててね！"
+      }
+    },
+    {
+      "id": "s1792465225934-G8MR2Q",
+      "status": "planned",
+      "message": {
+        "en": "We're reading your idea — back soon!",
+        "ja": "読んでいます。少し待っててね！"
+      }
     }
   ]
 }
