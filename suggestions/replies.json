@@ -318,6 +318,14 @@
         "ja": "設定を Mac みたいに、左のグループからえらべるようにしたよ。さがしやすくなったよ。"
       },
       "version": "8.6"
+    },
+    {
+      "id": "s1792537806043-GXWG63",
+      "status": "planned",
+      "message": {
+        "en": "We're reading your idea — back soon!",
+        "ja": "読んでいます。少し待っててね！"
+      }
     }
   ]
 }
