@@ -2,6 +2,19 @@
   "app": "Ablox",
   "releases": [
     {
+      "version": "8.7",
+      "build": 76,
+      "date": "2026-10-20",
+      "notes": {
+        "en": [
+          "Fixed: Last Survivor Games was so slow with 100 players that you could hardly move. Far-away characters now take turns moving their arms and legs, only the nearest 30 names show, NPCs only check the people right next to them, and if a crowd holds you up for half a second you slip through it"
+        ],
+        "ja": [
+          "直しました：Last Survivor Games が 100人だと とても重くて、ほとんど 動けませんでした。遠くの キャラクターは 手足を 交代で 動かし、名前は 近くの 30人だけ 出し、NPC は すぐ となりの人だけを 見るように しました。人ごみに 0.5秒 止められたら すりぬけて 進めます"
+        ]
+      }
+    },
+    {
       "version": "8.6",
       "build": 75,
       "date": "2026-10-20",

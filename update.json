@@ -1,18 +1,16 @@
 {
   "app": "Ablox",
-  "version": "8.6",
-  "build": 75,
+  "version": "8.7",
+  "build": 76,
   "protocol": 8,
   "date": "2026-10-20",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "Fixed: the app froze when a game brought in a lot of characters at once (like the 100 players of Last Survivor Games). Characters now share their parts and appear a few at a time",
-      "Settings are in groups down the side, like a Mac's System Settings: General, Appearance, Family, Games, Sound and more, each with its own icon. Search still looks through everything"
+      "Fixed: Last Survivor Games was so slow with 100 players that you could hardly move. Far-away characters now take turns moving their arms and legs, only the nearest 30 names show, NPCs only check the people right next to them, and if a crowd holds you up for half a second you slip through it"
     ],
     "ja": [
-      "直しました：たくさんの キャラクターが 一度に 来る ゲーム（Last Survivor Games の 100人 など）で アプリが 止まっていました。キャラクターの 部品を 使い回して、少しずつ 出すように しました",
-      "設定を Mac の「システム設定」のように 左に グループで ならべました（一般・見た目・家族・ゲーム・サウンド など、それぞれ アイコンつき）。検索では いままでどおり 全部から さがせます"
+      "直しました：Last Survivor Games が 100人だと とても重くて、ほとんど 動けませんでした。遠くの キャラクターは 手足を 交代で 動かし、名前は 近くの 30人だけ 出し、NPC は すぐ となりの人だけを 見るように しました。人ごみに 0.5秒 止められたら すりぬけて 進めます"
     ]
   }
 }
