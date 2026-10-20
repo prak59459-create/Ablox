@@ -265,6 +265,30 @@
         "en": "Thank you for the big idea! A casino room is not something we'll make, but Lucky Chip Party keeps getting new mini-games.",
         "ja": "大きなアイデアを ありがとう！カジノの部屋は 作らないことにしたけど、Lucky Chip Party の ミニゲームは これからも ふえます。"
       }
+    },
+    {
+      "id": "s1792457542905-24AQ83",
+      "status": "planned",
+      "message": {
+        "en": "We're reading your idea — back soon!",
+        "ja": "読んでいます。少し待っててね！"
+      }
+    },
+    {
+      "id": "s1792457615140-28R2QU",
+      "status": "planned",
+      "message": {
+        "en": "We're reading your idea — back soon!",
+        "ja": "読んでいます。少し待っててね！"
+      }
+    },
+    {
+      "id": "s1792457721866-A25RTH",
+      "status": "planned",
+      "message": {
+        "en": "We're reading your idea — back soon!",
+        "ja": "読んでいます。少し待っててね！"
+      }
     }
   ]
 }
