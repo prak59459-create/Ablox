@@ -25,8 +25,8 @@ let package = Package(
             targets: ["AbloxApp"],
             bundleIdentifier: "com.ablox.client",
             teamIdentifier: "",
-            displayVersion: "8.9",
-            bundleVersion: "78",
+            displayVersion: "9.0",
+            bundleVersion: "79",
             // The drawn Ablox cube (8.8), from `Sources/Assets.xcassets`: the
             // form Swift Playgrounds writes itself when an icon is picked in
             // its app settings. Never `.placeholder(icon:)`: two guesses at

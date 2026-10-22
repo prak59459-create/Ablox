@@ -1,16 +1,16 @@
 {
   "app": "Ablox",
-  "version": "8.9",
-  "build": 78,
+  "version": "9.0",
+  "build": 79,
   "protocol": 8,
   "date": "2026-10-22",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "Last Survivor Games: no more lag while you stand in the crowd of 100. Shadows reach only a few steps when many people are near, and people further back in a crowd are drawn without their faces, hats, pets and auras"
+      "Last Survivor Games: lighter while you play among the 100 — positions of a crowd are found straight away instead of one by one, playing alone no longer packs 100 movements a step for nobody, and name tags are worked out with less work each frame"
     ],
     "ja": [
-      "Last Survivor Games：100人の 中に いる ときの ラグを へらしました。人が 多い ときは 影を 近くだけに して、人ごみの おくの 人は 顔・ぼうし・ペット・オーラを はぶいて えがきます"
+      "Last Survivor Games：100人の 中で プレイしている ときを 軽く しました。100人の 位置を 1人ずつ さがさずに すぐ 見つけ、ひとりで 遊ぶ ときは だれも 受け取らない 100人分の 動きを つめるのを やめ、名前の 計算も へらしました"
     ]
   }
 }

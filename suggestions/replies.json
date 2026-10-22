@@ -383,11 +383,12 @@
     },
     {
       "id": "s1792707805097-RV8ETU",
-      "status": "planned",
+      "status": "done",
       "message": {
-        "en": "We're reading your idea — back soon!",
-        "ja": "読んでいます。少し待っててね！"
-      }
+        "en": "Thanks for telling us exactly when it happens! Playing among the 100 now takes less work, so it should feel smoother.",
+        "ja": "どんな ときに おきるか 教えてくれて ありがとう！100人の 中で 遊ぶ ときの 手間を へらして、軽く しました。"
+      },
+      "version": "9.0"
     }
   ]
 }

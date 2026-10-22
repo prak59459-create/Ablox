@@ -2,6 +2,19 @@
   "app": "Ablox",
   "releases": [
     {
+      "version": "9.0",
+      "build": 79,
+      "date": "2026-10-22",
+      "notes": {
+        "en": [
+          "Last Survivor Games: lighter while you play among the 100 — positions of a crowd are found straight away instead of one by one, playing alone no longer packs 100 movements a step for nobody, and name tags are worked out with less work each frame"
+        ],
+        "ja": [
+          "Last Survivor Games：100人の 中で プレイしている ときを 軽く しました。100人の 位置を 1人ずつ さがさずに すぐ 見つけ、ひとりで 遊ぶ ときは だれも 受け取らない 100人分の 動きを つめるのを やめ、名前の 計算も へらしました"
+        ]
+      }
+    },
+    {
       "version": "8.9",
       "build": 78,
       "date": "2026-10-22",
