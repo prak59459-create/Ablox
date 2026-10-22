@@ -371,6 +371,14 @@
         "en": "Done! In Last Survivor Games, people and NPCs now pass through each other, so a crowd can't stop you.",
         "ja": "できたよ！Last Survivor Games では 人と NPC が すりぬけるので、人ごみで 止まらないよ。"
       }
+    },
+    {
+      "id": "s1792656615108-ZHQWJV",
+      "status": "planned",
+      "message": {
+        "en": "We're reading your idea — back soon!",
+        "ja": "読んでいます。少し待っててね！"
+      }
     }
   ]
 }
