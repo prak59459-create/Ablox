@@ -329,43 +329,47 @@
       "version": "8.7"
     },
     {
-      "id": "s1792545024064-5SGU3S",
-      "status": "planned",
-      "message": {
-        "en": "We're reading your idea — back soon!",
-        "ja": "読んでいます。少し待っててね！"
-      }
-    },
-    {
       "id": "s1792547179274-7837EA",
-      "status": "planned",
+      "status": "done",
       "message": {
-        "en": "We're reading your idea — back soon!",
-        "ja": "読んでいます。少し待っててね！"
-      }
+        "en": "Notifications are here! Tap the 🔔 bell at the top of the menu to see new versions, news, friend requests and friends' rooms to join. You can turn on iPad notifications there too.",
+        "ja": "お知らせが できたよ！メニューの 上の 🔔 ベルで、新しい版・お知らせ・フレンドの もうしこみ・フレンドの ルームへの さそいが 見られるよ。そこで iPad の 通知も オンに できるよ。"
+      },
+      "version": "8.8"
     },
     {
       "id": "s1792547379225-YD267Y",
-      "status": "planned",
+      "status": "done",
       "message": {
-        "en": "We're reading your idea — back soon!",
-        "ja": "読んでいます。少し待っててね！"
-      }
+        "en": "Done! After this update, Ablox and Ablox Studio show their cube icons in My Apps.",
+        "ja": "できたよ！アップデートすると、マイアプリに Ablox と Studio の キューブの アイコンが 出るよ。"
+      },
+      "version": "8.8"
     },
     {
       "id": "s1792547628688-B3A4DR",
-      "status": "planned",
+      "status": "done",
       "message": {
-        "en": "We're reading your idea — back soon!",
-        "ja": "読んでいます。少し待っててね！"
-      }
+        "en": "Done! A slide lasts 1 second on flat ground. Down a slope you slide all the way to the bottom, then 2 more seconds.",
+        "ja": "できたよ！平らな 地面では 1秒。坂では 下まで ぜんぶ すべって、そのあと 2秒 すべるよ。"
+      },
+      "version": "8.8"
     },
     {
       "id": "s1792547849599-57ARBP",
-      "status": "planned",
+      "status": "done",
       "message": {
-        "en": "We're reading your idea — back soon!",
-        "ja": "読んでいます。少し待っててね！"
+        "en": "Close-range attacks are now fists, swords, bats and axes instead of a gun! In 99 Nights Camp you chop trees with an axe, and in Meme Heist you swing a bat.",
+        "ja": "近くの こうげきが 銃ではなく、素手・剣・バット・オノに なったよ！99 Nights Camp では オノで 木を 切れて、Meme Heist では バットを ふれるよ。"
+      },
+      "version": "8.8"
+    },
+    {
+      "id": "s1792545024064-5SGU3S",
+      "status": "done",
+      "message": {
+        "en": "Done! In Last Survivor Games, people and NPCs now pass through each other, so a crowd can't stop you.",
+        "ja": "できたよ！Last Survivor Games では 人と NPC が すりぬけるので、人ごみで 止まらないよ。"
       }
     }
   ]

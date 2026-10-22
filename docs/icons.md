@@ -116,20 +116,21 @@ uses the same pictures (`web/public/icons` in AbloxGames).
 
 ## The app icon
 
-The one genuine binary in each bundle: `Sources/Resources/Assets.xcassets`.
+The one genuine binary in each bundle: `Sources/Assets.xcassets` (8.8), named
+in the manifest as `appIcon: .asset("AppIcon")`, so it shows in Swift
+Playgrounds' My Apps and on the home screen.
 iOS requires a real image file for the home screen — it is the only thing the
 app cannot render at runtime.
 
-Both are generated at 1024×1024 from the same geometry as `AbloxMark`
-(`scripts/make-app-icon.py`), so the drawn mark and the home-screen icon cannot
-drift apart:
+Both are generated at 1024×1024 from the same geometry as `AbloxMark`,
+so the drawn mark and the home-screen icon cannot drift apart. The image is
+`design/AppIcon.png`, copied into the catalogue:
 
 - **Ablox** — light cube on a near-black tile.
 - **Ablox Studio** — the inverted variation: dark cube on a light tile, so the
   two are distinguishable at a glance while plainly the same mark.
 
-Both are lit from the upper left, top face lightest. Regenerating is
-`python3 scripts/make-app-icon.py`.
+Both are lit from the upper left, top face lightest.
 
 ## Notes on the source sheet
 

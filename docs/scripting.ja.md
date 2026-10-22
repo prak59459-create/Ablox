@@ -285,7 +285,9 @@ end
 
 ## 武器
 
-最初から: `blaster` `rifle` `shotgun` `pistol`。自分で作るとき:
+最初から: `blaster` `rifle` `shotgun` `pistol`。
+ふる武器（8.8）: `fist`（素手で なぐる）`sword` `bat` `axe` `knife` `spear`。弾の線が出ず、手に その物を持ち、ボタンは ✋ になる。
+`on hit` と `on hit_block` は 銃と同じ（木を オノで 切る、など）。8.8 より前の iPad では ブラスターの形で 見える。自分で作るとき:
 
 ```lua
 weapon("railgun", {model: "rifle", damage: 500, rate: 0.5, range: 800, ammo: 1, reload: 3, spread: 0})

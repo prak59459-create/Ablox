@@ -131,7 +131,8 @@ public struct MainMenuView: View {
             DynamicBackgroundView()
 
             VStack(spacing: 0) {
-                MenuTopBar(tab: $selectedTab, onMe: openMe)
+                MenuTopBar(tab: $selectedTab, onMe: openMe,
+                           nearby: friendNearby.map { (name: $0.name, world: $0.peer.worldName) })
                     // On the bar rather than the screen: one alert per view.
                     .alert(L("Welcome back!"), isPresented: Binding(get: { dailyBonus != nil }, set: { if !$0 { dailyBonus = nil } })) {
                         Button(L("Thanks!"), role: .cancel) { dailyBonus = nil }

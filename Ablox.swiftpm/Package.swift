@@ -25,15 +25,14 @@ let package = Package(
             targets: ["AbloxApp"],
             bundleIdentifier: "com.ablox.client",
             teamIdentifier: "",
-            displayVersion: "8.7",
-            bundleVersion: "76",
-            // No `appIcon:` on purpose. The parameter is optional, and two
-            // guesses at `PlaceholderIcon`'s member names (`.hammer`, then
-            // `.cube`) were both rejected on device — a wrong one does not
-            // degrade to a default icon, it stops the manifest compiling and
-            // the project will not open at all. The drawn Ablox cube is in
-            // `design/AppIcon.png`; set it from Swift Playgrounds' own
-            // app-settings screen, which writes the asset catalogue itself.
+            displayVersion: "8.8",
+            bundleVersion: "77",
+            // The drawn Ablox cube (8.8), from `Sources/Assets.xcassets`: the
+            // form Swift Playgrounds writes itself when an icon is picked in
+            // its app settings. Never `.placeholder(icon:)`: two guesses at
+            // `PlaceholderIcon`'s member names (`.hammer`, then `.cube`) were
+            // rejected on device, and a wrong one stops the project opening.
+            appIcon: .asset("AppIcon"),
             accentColor: .presetColor(.cyan),
             supportedDeviceFamilies: [
                 .pad,

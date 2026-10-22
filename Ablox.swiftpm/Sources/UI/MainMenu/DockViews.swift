@@ -16,6 +16,8 @@ struct MenuTopBar: View {
     @Binding var tab: MenuTab
     /// Opens a part of Me: the shop from the coins, the badges from the level.
     var onMe: (MeSection) -> Void
+    /// A friend who has started playing nearby, for the bell.
+    var nearby: (name: String, world: String)? = nil
 
     @State private var showingCoins = false
     @State private var showingLevel = false
@@ -60,6 +62,7 @@ struct MenuTopBar: View {
                 CoinsQuickPanel(onShop: shopAction)
                     .presentationCompactAdaptation(.sheet)
             }
+            InboxButton(nearby: nearby)
             Button {
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { tab = .settings }
             } label: {

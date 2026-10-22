@@ -33,17 +33,18 @@ all — so none of the source is ever reached.
 | Written | Compiler said | Correct form |
 |---|---|---|
 | `.localNetwork(purposeString:bonjourServices:)` | no such argument label | `bonjourServiceTypes:` |
-| `appIcon: .placeholder(icon: .hammer)` | `PlaceholderIcon` has no member `hammer` | omit `appIcon:` |
-| `appIcon: .placeholder(icon: .cube)` | `PlaceholderIcon` has no member `cube` | omit `appIcon:` |
+| `appIcon: .placeholder(icon: .hammer)` | `PlaceholderIcon` has no member `hammer` | `appIcon: .asset("AppIcon")` |
+| `appIcon: .placeholder(icon: .cube)` | `PlaceholderIcon` has no member `cube` | `appIcon: .asset("AppIcon")` |
 | `.portrait(upsideDown: false)` | cannot call value of non-function type `InterfaceOrientation` | `.portrait` |
 
-**`appIcon:` is omitted deliberately.** The parameter is optional. Two
+**`appIcon:` is `.asset("AppIcon")` (8.8), never `.placeholder(icon:)`.** Two
 independent guesses at `PlaceholderIcon`'s vocabulary were both wrong, and there
-is no way to enumerate the real one from here — so the safest icon is no icon.
-The drawn Ablox mark lives in `design/AppIcon.png`; set it from Swift
-Playgrounds' own app-settings screen (the palette button in the toolbar), which
-writes a valid asset catalogue itself. Hand-writing one is another manifest
-error waiting to happen.
+is no way to enumerate the real one from here. The asset form is the one Swift
+Playgrounds writes itself when an icon is picked in its app settings (the form
+`ProjectSync` carries over), so it is not a guess: the drawn mark is copied from
+`design/AppIcon.png` into `Sources/Assets.xcassets/AppIcon.appiconset` (one
+1024×1024 image, no transparency), inside the app target's folder. Until 8.7 the
+icon was left out and set by hand; a suggestion asked for it in My Apps.
 
 **`InterfaceOrientation` values are properties, not functions.** The error
 wording is the useful part: *"cannot call value of non-function type"* means
