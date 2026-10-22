@@ -1,24 +1,16 @@
 {
   "app": "Ablox",
-  "version": "8.8",
-  "build": 77,
+  "version": "8.9",
+  "build": 78,
   "protocol": 8,
   "date": "2026-10-22",
   "package": "Ablox.swiftpm",
   "notes": {
     "en": [
-      "New: a 🔔 bell at the top of the menu with notifications from Ablox — a new version, news, friend requests, friends' rooms to join and new messages, with a count of the new ones. Turn on iPad notifications there to see them even during a game",
-      "New: punching and swinging. Close-range weapons are now fists, swords, bats, axes, knives and spears in your hand instead of a gun, with no bullet line and a ✋ button. In 99 Nights Camp you chop trees with your axe, and in Meme Heist you have a bat",
-      "Sliding: on flat ground a slide lasts 1 second; down a slope it lasts all the way to the bottom, then 2 more seconds on the ground",
-      "The Ablox cube is now the app's icon in Swift Playgrounds' My Apps",
-      "Last Survivor Games: people and NPCs no longer bump into each other"
+      "Last Survivor Games: no more lag while you stand in the crowd of 100. Shadows reach only a few steps when many people are near, and people further back in a crowd are drawn without their faces, hats, pets and auras"
     ],
     "ja": [
-      "新しく：メニューの上に 🔔 ベル。新しい版・お知らせ・フレンドの もうしこみ・フレンドの ルームへの さそい・新しい メッセージが ならび、新しい 数が 出ます。そこで「iPad の 通知」を オンにすると ゲーム中でも 出ます",
-      "新しく：なぐる・ふる こうげき。近くを こうげきする 武器は 銃ではなく、素手・剣・バット・オノ・ナイフ・やりを 手に 持つように なり、弾の 線は 出ず、ボタンは ✋ です。99 Nights Camp では オノで 木を 切れて、Meme Heist では バットを 持っています",
-      "スライディング：平らな 地面では 1秒、坂では 下まで ぜんぶ すべって、坂の あとの 地面も 2秒 すべります",
-      "Swift Playgrounds の「マイアプリ」に Ablox の アイコンが 出るように なりました",
-      "Last Survivor Games：人と NPC が ぶつからなく なりました"
+      "Last Survivor Games：100人の 中に いる ときの ラグを へらしました。人が 多い ときは 影を 近くだけに して、人ごみの おくの 人は 顔・ぼうし・ペット・オーラを はぶいて えがきます"
     ]
   }
 }

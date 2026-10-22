@@ -374,11 +374,12 @@
     },
     {
       "id": "s1792656615108-ZHQWJV",
-      "status": "planned",
+      "status": "done",
       "message": {
-        "en": "We're reading your idea — back soon!",
-        "ja": "読んでいます。少し待っててね！"
-      }
+        "en": "Thanks for telling us! The lag in the big crowd is fixed — standing among 100 players is much lighter now.",
+        "ja": "教えてくれてありがとう！100人の 中に いる ときの ラグを 直して、軽く しました。"
+      },
+      "version": "8.9"
     }
   ]
 }
